@@ -16,9 +16,11 @@
           {
             "group": "Get Started",
             "pages": [
-              "introduction",
+              "overview",
               "quickstart",
-              "development"
+              "quickstart 7702",
+              "demo",
+              "code examples"
             ]
           },
           {
