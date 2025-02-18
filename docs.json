@@ -18,20 +18,55 @@
             "pages": [
               "overview",
               "quickstart",
-              "quickstart 7702",
+              "quickstart-7702",
               "demo",
               "code examples"
             ]
           },
           {
-            "group": "Essentials",
+            "group": "Core Setup",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/settings",
-              "essentials/navigation",
-              "essentials/reusable-snippets"
+              "core-setup/create-omni-account",
+              "core-setup/passkeys",
+              "core-setup/ecdsa",
+              "core-setup/send-omnichain-transaction",
+              "core-setup/batch-transactions"
+            ]
+          },
+           {
+            "group": "Omnichain Actions",
+            "pages": [
+               "omnichain-actions/swap",
+              "omnichain-actions/execution"
+            ]
+          },
+           {
+            "group": "Smart Sessions",
+            "pages": [
+              "smart-sessions/tutorial",
+              "smart-sessions/7702",
+              "smart-sessions/signature-validators/passkeys",
+              "smart-sessions/signature-validators/ecdsa",
+              "smart-sessions/signature-validators/multisig",
+              "smart-sessions/policies/sudo",
+              "smart-sessions/policies/universal-action",
+              "smart-sessions/policies/gas",
+              "smart-sessions/policies/time-frame",
+            ]
+          },
+           {
+            "group": "Advanced",
+            "pages": [
+              "advanced/multi-sig",
+              "advanced/build-modules",
+            ]
+          },
+           {
+            "group": "Customize",
+            "pages": [
+              "customize/smart-accounts/safe",
+              "customize/smart-accounts/nexus",
+              "customize/smart-accounts/newton",
             ]
           }
         ]
