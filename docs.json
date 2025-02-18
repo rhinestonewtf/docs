@@ -72,7 +72,26 @@
         ]
       },
       {
-        "tab": "API Reference",
+        "tab": "Build Modules",
+        "groups": [
+          {
+            "group": "API Documentation",
+            "pages": [
+              "api-reference/introduction"
+            ]
+          },
+          {
+            "group": "Endpoint Examples",
+            "pages": [
+              "api-reference/endpoint/get",
+              "api-reference/endpoint/create",
+              "api-reference/endpoint/delete"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
         "groups": [
           {
             "group": "API Documentation",
