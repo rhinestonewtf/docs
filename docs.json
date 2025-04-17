@@ -16,7 +16,7 @@
           {
             "group": "Get Started",
             "pages": [
-              "pages/overview/why-rhinestone",
+              "pages/overview/index",
               "pages/overview/getting-started"
             ]
           }
