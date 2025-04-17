@@ -21,6 +21,17 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "SDK",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "pages/sdk/index"
+            ]
+          }
+        ]
       }
     ],
     "global": {
