@@ -1,11 +1,11 @@
 {
 	"$schema": "https://mintlify.com/docs.json",
 	"theme": "mint",
-	"name": "Mint Starter Kit",
+	"name": "Rhinestone",
 	"colors": {
-		"primary": "#16A34A",
-		"light": "#07C983",
-		"dark": "#15803D"
+		"primary": "#1F178D",
+		"light": "#7369E9",
+		"dark": "#2D1FC6"
 	},
 	"favicon": "/favicon.svg",
 	"navigation": {
@@ -19,61 +19,88 @@
 							"pages/overview/welcome",
 							"pages/overview/getting-started"
 						]
+					},
+					{
+						"group": "Omni Account",
+						"pages": [
+							"pages/overview/omni-account/overview",
+							"pages/overview/omni-account/intents",
+							{
+								"group": "Architecture",
+								"pages": [
+									"pages/overview/omni-account/architecture/overview",
+									"pages/overview/omni-account/architecture/omni-account",
+									"pages/overview/omni-account/architecture/orchestrator",
+									"pages/overview/omni-account/architecture/settlement-layer",
+									"pages/overview/omni-account/architecture/solvers"
+								]
+							}
+						]
+					},
+					{
+						"group": "Resources",
+						"pages": [
+							"pages/overview/resources/account-abstraction",
+							"pages/overview/resources/modules",
+							"pages/overview/resources/erc-7579",
+							"pages/overview/resources/erc-7484",
+							"pages/overview/resources/address-book",
+							"pages/overview/resources/audits"
+						]
 					}
 				]
 			},
 			{
 				"tab": "SDK",
-				"groups": [
+				"pages": [
+					"pages/sdk/overview",
+					"pages/sdk/quickstart",
 					{
-						"group": "Get Started",
-						"pages": ["pages/sdk/overview"]
+						"group": "Core Setup",
+						"pages": [
+							"pages/sdk/core-setup/core-modules-intro",
+							"pages/sdk/core-setup/create-omni-account",
+							"pages/sdk/core-setup/send-omnichain-transaction",
+							"pages/sdk/core-setup/passkeys",
+							"pages/sdk/core-setup/ecdsa-signer"
+						]
+					},
+					{
+						"group": "Smart Sessions",
+						"pages": [
+							"pages/sdk/smart-sessions/introduction",
+							{
+								"group": "Signature Validators",
+								"pages": ["pages/sdk/smart-sessions/signature-validators/ecdsa"]
+							},
+							{
+								"group": "Policies",
+								"pages": ["pages/sdk/smart-sessions/policies/sudo"]
+							}
+						]
+					},
+					{
+						"group": "Customize",
+						"pages": [
+							{
+								"group": "Smart Account Providers",
+								"pages": [
+									"pages/sdk/customize/smart-account-providers/biconomy-nexus"
+								]
+							},
+							"pages/sdk/customize/erc4337-infra"
+						]
 					}
 				]
+			},
+			{
+				"tab": "Build Modules",
+				"pages": ["pages/build-modules/overview"]
 			}
-		],
-		"global": {
-			"anchors": [
-				{
-					"anchor": "Documentation",
-					"href": "https://mintlify.com/docs",
-					"icon": "book-open-cover"
-				},
-				{
-					"anchor": "Community",
-					"href": "https://mintlify.com/community",
-					"icon": "slack"
-				},
-				{
-					"anchor": "Blog",
-					"href": "https://mintlify.com/blog",
-					"icon": "newspaper"
-				}
-			]
-		}
+		]
 	},
 	"logo": {
 		"light": "/logo/light.svg",
 		"dark": "/logo/dark.svg"
-	},
-	"navbar": {
-		"links": [
-			{
-				"label": "Support",
-				"href": "mailto:hi@mintlify.com"
-			}
-		],
-		"primary": {
-			"type": "button",
-			"label": "Dashboard",
-			"href": "https://dashboard.mintlify.com"
-		}
-	},
-	"footer": {
-		"socials": {
-			"x": "https://x.com/mintlify",
-			"github": "https://github.com/mintlify",
-			"linkedin": "https://linkedin.com/company/mintlify"
-		}
 	}
 }
