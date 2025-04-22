@@ -21,13 +21,15 @@
 					{
 						"group": "Get Started",
 						"pages": [
-							"pages/overview/welcome",
+							"pages/overview/what-is-rhinestone",
 							"pages/overview/getting-started"
 						]
 					},
 					{
 						"group": "Concepts",
 						"pages": [
+							"pages/overview/concepts/smart-accounts",
+							"pages/overview/concepts/core-modules",
 							"pages/overview/concepts/intents",
 							{
 								"group": "Chain Abstraction",
@@ -38,7 +40,8 @@
 									"pages/overview/concepts/chain-abstraction/settlement-layers",
 									"pages/overview/concepts/chain-abstraction/solvers"
 								]
-							}
+							},
+							"pages/overview/concepts/rhinestone-relayer"
 						]
 					},
 					{
