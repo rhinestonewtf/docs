@@ -55,6 +55,7 @@
 				"pages": [
 					"pages/sdk/overview",
 					"pages/sdk/quickstart",
+					"pages/sdk/demos",
 					{
 						"group": "Core Setup",
 						"pages": [
