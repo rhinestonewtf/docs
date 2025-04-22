@@ -21,25 +21,27 @@
 					{
 						"group": "Get Started",
 						"pages": [
-							"pages/overview/welcome",
+							"pages/overview/what-is-rhinestone",
 							"pages/overview/getting-started"
 						]
 					},
 					{
-						"group": "Omni Account",
+						"group": "Concepts",
 						"pages": [
-							"pages/overview/omni-account/overview",
-							"pages/overview/omni-account/intents",
+							"pages/overview/concepts/smart-accounts",
+							"pages/overview/concepts/core-modules",
+							"pages/overview/concepts/intents",
 							{
-								"group": "Architecture",
+								"group": "Chain Abstraction",
 								"pages": [
-									"pages/overview/omni-account/architecture/overview",
-									"pages/overview/omni-account/architecture/omni-account",
-									"pages/overview/omni-account/architecture/orchestrator",
-									"pages/overview/omni-account/architecture/settlement-layer",
-									"pages/overview/omni-account/architecture/solvers"
+									"pages/overview/concepts/chain-abstraction/overview",
+									"pages/overview/concepts/chain-abstraction/omni-account",
+									"pages/overview/concepts/chain-abstraction/orchestrator",
+									"pages/overview/concepts/chain-abstraction/settlement-layers",
+									"pages/overview/concepts/chain-abstraction/solvers"
 								]
-							}
+							},
+							"pages/overview/concepts/rhinestone-relayer"
 						]
 					},
 					{
