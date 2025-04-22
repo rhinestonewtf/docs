@@ -52,10 +52,45 @@
 			},
 			{
 				"tab": "SDK",
-				"groups": [
+				"pages": [
+					"pages/sdk/overview",
+					"pages/sdk/getting-started",
+					"pages/sdk/quickstart-7702",
 					{
-						"group": "Get Started",
-						"pages": ["pages/sdk/overview"]
+						"group": "Core Setup",
+						"pages": [
+							"pages/sdk/core-setup/core-modules-intro",
+							"pages/sdk/core-setup/create-omni-account",
+							"pages/sdk/core-setup/send-omni-chain-transaction",
+							"pages/sdk/core-setup/passkeys",
+							"pages/sdk/core-setup/ecdsa-signer"
+						]
+					},
+					{
+						"group": "Smart Sessions (Session Keys)",
+						"pages": [
+							"pages/sdk/smart-sessions/introduction",
+							{
+								"group": "Signature Validators",
+								"pages": ["pages/sdk/smart-sessions/signature-validators/ecdsa"]
+							},
+							{
+								"group": "Policies",
+								"pages": ["pages/sdk/smart-sessions/policies/sudo"]
+							}
+						]
+					},
+					{
+						"group": "Customize",
+						"pages": [
+							{
+								"group": "Smart Account Providers",
+								"pages": [
+									"pages/sdk/customize/smart-account-providers/biconomy-nexus"
+								]
+							},
+							"pages/sdk/customize/erc4337-infra"
+						]
 					}
 				]
 			}
