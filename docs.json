@@ -27,14 +27,14 @@
 								"group": "Architecture",
 								"pages": [
 									"pages/overview/omni-account/architecture/overview",
-									"pages/overview/omni-account/architecture/orchestrator",
 									"pages/overview/omni-account/architecture/omni-account",
-									"pages/overview/omni-account/architecture/solvers",
-									"pages/overview/omni-account/architecture/settlement-layer"
+									"pages/overview/omni-account/architecture/orchestrator",
+									"pages/overview/omni-account/architecture/settlement-layer",
+									"pages/overview/omni-account/architecture/solvers"
 								]
 							},
-							"pages/overview/omni-account/further-use-cases",
-							"pages/overview/omni-account/meta-intents"
+							"pages/overview/omni-account/meta-intents",
+							"pages/overview/omni-account/further-use-cases"
 						]
 					},
 					{
@@ -61,7 +61,7 @@
 						"pages": [
 							"pages/sdk/core-setup/core-modules-intro",
 							"pages/sdk/core-setup/create-omni-account",
-							"pages/sdk/core-setup/send-omni-chain-transaction",
+							"pages/sdk/core-setup/send-omnichain-transaction",
 							"pages/sdk/core-setup/passkeys",
 							"pages/sdk/core-setup/ecdsa-signer"
 						]
