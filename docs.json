@@ -7,6 +7,11 @@
 		"light": "#7369E9",
 		"dark": "#2D1FC6"
 	},
+	"background": {
+		"color": {
+			"dark": "#0D0926"
+		}
+	},
 	"favicon": "/favicon.svg",
 	"navigation": {
 		"tabs": [
@@ -55,6 +60,7 @@
 				"pages": [
 					"pages/sdk/overview",
 					"pages/sdk/quickstart",
+					"pages/sdk/demos",
 					{
 						"group": "Core Setup",
 						"pages": [
