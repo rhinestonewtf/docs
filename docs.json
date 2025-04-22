@@ -47,12 +47,10 @@
 					{
 						"group": "Resources",
 						"pages": [
-							"pages/overview/resources/account-abstraction",
-							"pages/overview/resources/modules",
-							"pages/overview/resources/erc-7579",
-							"pages/overview/resources/erc-7484",
 							"pages/overview/resources/address-book",
-							"pages/overview/resources/audits"
+							"pages/overview/resources/audit-reports",
+							"pages/overview/resources/erc-7579",
+							"pages/overview/resources/modules"
 						]
 					}
 				]
