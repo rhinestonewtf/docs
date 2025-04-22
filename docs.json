@@ -19,6 +19,34 @@
 							"pages/overview/welcome",
 							"pages/overview/getting-started"
 						]
+					},
+					{
+						"group": "Omni Account",
+						"pages": [
+							{
+								"group": "Architecture",
+								"pages": [
+									"pages/overview/omni-account/architecture/overview",
+									"pages/overview/omni-account/architecture/orchestrator",
+									"pages/overview/omni-account/architecture/omni-account",
+									"pages/overview/omni-account/architecture/solvers",
+									"pages/overview/omni-account/architecture/settlement-layer"
+								]
+							},
+							"pages/overview/omni-account/further-use-cases",
+							"pages/overview/omni-account/meta-intents"
+						]
+					},
+					{
+						"group": "Resources",
+						"pages": [
+							"pages/overview/resources/account-abstraction",
+							"pages/overview/resources/modules",
+							"pages/overview/resources/erc-7579",
+							"pages/overview/resources/erc-7484",
+							"pages/overview/resources/address-book",
+							"pages/overview/resources/audits"
+						]
 					}
 				]
 			},
