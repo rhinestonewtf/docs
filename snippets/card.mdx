@@ -1,0 +1,13 @@
+export const Card = ({ component }) => (
+  <>
+    <div class="group flex flex-col justify-start overflow-hidden rounded-lg text-current no-underline dark:shadow-none inset-y-4 bg-[#f7f7f8] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:20px_20px] bg-gray-100 dark:border-neutral-700 dark:bg-white/[0.08] dark:text-gray-50 min-w-[150px] min-h-[120px] py-[16px] px-[16px] flex justify-between flex-grow">
+      <div class="flex flex-col justify-between">
+        <div class="">
+          { component.icon }
+        </div>
+        <span class="mt-[20px] font-bold my-2">{ component.title }</span>
+        <div class="text-[13px] dark:text-gray-300 mt-2">{ component.description }</div>
+      </div>
+    </div>
+  </>
+);

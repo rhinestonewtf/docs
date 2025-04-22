@@ -1,0 +1,16 @@
+export const FallbacksIcon = ({ width, height }) => (
+  <>
+    <img
+      className="h-12 w-12 m-0 block dark:hidden"
+      width={width}
+      height={height}
+      src="/images/fallbacks_light.png"
+    />
+    <img
+      className="h-12 w-12 m-0 hidden dark:block"
+      width={width}
+      height={height}
+      src="/images/fallbacks_dark.png"
+    />
+  </>
+);
