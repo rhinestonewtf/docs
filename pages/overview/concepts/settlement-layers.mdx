@@ -1,0 +1,36 @@
+---
+title: "Settlement Layers"
+---
+
+Rhinestone currently uses Across as its primary settlement layer. Over time, additional settlement layers will be integrated to expand chain coverage, token coverage, and ensure the fastest and most cost-effective routes.  
+
+## Why is Across our Primary Settlement Layer?
+
+**Existing Solver Network and Liquidity:** Across has a mature marketplace of solvers (or Relayers) that can be used to scale this new form of cross-chain intents.
+
+**Integrated Solver Netting:** Across supports automatic solver netting by allowing fillers to claim funds using liquidity provider (LP) funds on any chain. LP yields are regulated based on the net assets entering and leaving a chain, ensuring efficient use of available liquidity.
+
+**Trustless Settlement Process:** Across already has a mature infrastructure that utilizes optimistic proofs to secure the settlement process in a trustless way.
+
+**Support for Arbitrary Calls on Target Chain:** Across allows intents to encode message data with the fill transaction, which can be used to make arbitrary calls on the target chain. Our system uses this feature to call the appropriate functions on the user’s target chain Smart Account. It also allows the solvers to provide gas abstraction services and act as independent ERC-4337 bundlers (if the call is made to an entrypoint contract).
+
+## Architecture
+
+<img className="block dark:hidden" src="/images/omniaccount_4_light.png" />
+<img className="hidden dark:block" src="/images/omniaccount_4_dark.png" />
+
+## Intent Flow
+
+1. The user interacts with an app and sends an intent to the Orchestrator  
+2. The Orchestrator propagates the intent to a solver network (Across Relayers)  
+3. The winning Relayer (X) fills the intent via the Across (Destination) Spokepool  
+4. Destination Spokepool sends funds and (optionally) makes an execution via the Omni Account on the destination chain
+
+At this point, the user experience ends, yet funds have not been withdrawn from the origin chain Omni Account. The second half of the flow is the claim event, which is invincible to the user. This is what allows for low-latency crosschain transactions.
+
+5. Relayer triggers the claim event on the origin chain Omni Account  
+6. Omni Account releases funds to the Across (Origin) Spokepool  
+7. Across settles with the Relayer after matching the origin chain deposit event with the correct destination chain prefill event.
+
+<img className="block dark:hidden" src="/images/omniaccount_5_light.png" />
+<img className="hidden dark:block" src="/images/omniaccount_5_dark.png" />

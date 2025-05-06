@@ -33,17 +33,9 @@
 							"pages/overview/concepts/smart-accounts",
 							"pages/overview/concepts/core-modules",
 							"pages/overview/concepts/intents",
-							{
-								"group": "Chain Abstraction",
-								"pages": [
-									"pages/overview/concepts/chain-abstraction/overview",
-									"pages/overview/concepts/chain-abstraction/omni-account",
-									"pages/overview/concepts/chain-abstraction/orchestrator",
-									"pages/overview/concepts/chain-abstraction/settlement-layers",
-									"pages/overview/concepts/chain-abstraction/solvers"
-								]
-							},
-							"pages/overview/concepts/rhinestone-relayer"
+							"pages/overview/concepts/chain-abstraction",
+							"pages/overview/concepts/settlement-layers",
+							"pages/overview/concepts/solvers"
 						]
 					},
 					{

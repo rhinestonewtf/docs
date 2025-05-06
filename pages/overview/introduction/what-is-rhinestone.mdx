@@ -2,6 +2,37 @@
 title: "What is Rhinestone?"
 ---
 
-Rhinestone is a programmable and open platform for chain-abstracted Smart Accounts. [ERC-7579](https://erc7579.com/), the leading shared standard for Modular Smart Accounts, underpins our infrastructure and tooling, making it the only account vendor-agnostic smart wallet platform. ERC-7579 is now supported by all significant Smart Accounts, including Safe, Biconomy Nexus, ZeroDev Kernel, Magic’s Newton, Thirdweb, Trust Wallet, OKX, and many more. With [EIP-7702](https://eips.ethereum.org/EIPS/eip-7702) around the corner (via [Pectra](https://eips.ethereum.org/EIPS/eip-7600)) EOAs will soon be welcomed to the Rhinestone platform.
+Rhinestone empowers developers to build self-custodial Web3 applications with a seamless user experience and powerful, Web2-like features. We provide infrastructure and tooling for embedded Smart Accounts (i.e., Account Abstraction) and an intent-based transaction system that enables instant crosschain execution (i.e., Chain Abstraction).
 
-Build with Rhinestone to maximize distribution, ensure broader ecosystem interoperability, and significantly enhance your product UX with the [deepest library](/pages/sdk/overview) of Smart Account features and native intent-based chain abstraction.
+The Rhinestone platform is account-agnostic, supporting all major smart account implementations to ensure zero vendor lock-in and maximum distribution. We provide a library of Core Modules, including passkeys, session keys, automations, resource locking, and more, and toolkits for advanced account customization.
+
+Rhinestone’s transaction infrastructure aggregates crosschain settlement layers and solver marketplaces to ensure that developers have the best routing, lowest prices, and fastest speeds for any intent-powered transaction, both same-chain and cross-chain. This includes transfers, swaps, and executions/calls. We call this system [Omni Account](../concepts/chain-abstraction). 
+
+Core tenets of our offering:
+
+* User experience above all  
+* Interoperable and composable  
+* Lowest price, fastest routes
+
+## Rhinestone’s Offering
+
+Rhinestone offers two key services:
+
+* **Embedded Smart Accounts:** A suite of onchain tools and services for deploying and configuring smart accounts with modules.   
+* **Intent-based Transactions:** A transaction system that is powered by Solvers and external Settlement Layers (such as Across, Relay, and Eco).
+
+All our services are wrapped within the Rhinestone SDK, a TypeScript library built on top of Viem, that enables developers to deploy, configure, and customize smart accounts through simple declarative interfaces and functions. All supported account implementations and module features are accessible through this SDK.
+
+When a user transacts through the Rhinestone system, their “intent” is propagated to a marketplace of Solvers who compete to fill these intents on the destination chain. To fill intents, Solvers store and manage token liquidity across all supported chains to transact on behalf of the user. After filling, Solvers are made whole through our supported Settlement Layers. Solvers also support same-chain transactions by supplying ETH to cover the gas costs for transaction execution, providing a substitute for regular ERC4337 bundlers and paymasters. 
+
+## Low Latency
+
+Crosschain fill speeds of less than 1.5 seconds. Even when transferring from Ethereum L1 to an L2.  
+
+Rhinestone combines an intent-based transaction architecture with resource locks to enable pre-filling or optimistic filling. Resource locks enable users to make onchain guarantees to Solvers, who can then fill intents before funds leave the user’s account on the source chain. Settlement is then delayed until after the target chain execution takes place. This is what allows cross-chain transactions (even Ethereum L1 to L2s) to be filled in under 1.5 seconds. 
+
+For same-chain transactions, [intents are also faster than User Operations](https://blog.rhinestone.wtf/intents-are-eating-erc-4337-891da7044fc2). Userops are pseudo-transactions facilitated by ERC-4337. The improvement of speed of intents vs. userops primarily comes down to the simplicity of intents vs. the complex infrastructure surrounding ERC-4337.
+
+## Unified Balance
+
+Rhinestone’s Omni Account system, which is powered by resource locks, allows a user’s balance across all supported chains to be unified and instantly spendable on any target chain. Our Orchestration service provides a portfolio endpoint API for these balances to be queried by the wallet. This role must be done by the Orchestrator to include pending intents that have not yet settled onchain.
