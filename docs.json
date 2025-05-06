@@ -19,10 +19,12 @@
 				"tab": "Overview",
 				"groups": [
 					{
-						"group": "Get Started",
+						"group": "Introduction",
 						"pages": [
-							"pages/overview/what-is-rhinestone",
-							"pages/overview/getting-started"
+							"pages/overview/introduction/what-is-rhinestone",
+							"pages/overview/introduction/supported-chains",
+							"pages/overview/introduction/supported-smart-accounts",
+							"pages/overview/introduction/getting-started"
 						]
 					},
 					{
