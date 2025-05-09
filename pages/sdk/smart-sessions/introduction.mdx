@@ -1,3 +1,149 @@
 ---
 title: "Introduction"
 ---
+
+[Smart Sessions](https://github.com/erc7579/smartsessions) is an implementation of session keys that works across all ERC-7579 compatible accounts.
+
+It separates **validators**, **policies**, and **actions** to increase composability and component reuse, which improves developer efficiency and costs.
+
+## Validators
+
+Smart Sessions support a wide range of signing mechanisms out of the box:
+
+- Passkeys
+- [Single ECDSA key](./signature-validators/ecdsa)
+- [Multiple ECDSA keys](./signature-validators/ecdsa) (i.e. multisig)
+
+You can also use custom validators to validate sessions, as long as they are ERC-1271 compatible.
+
+## Actions
+
+Actions define what transactions (calls) you can make within a session. An action is defined by the _target address_ and the _function selector_.
+
+An example of an action would be token transfer, where `target` would be the address of the ERC20 token and `selector` would be `0xa9059cbb` (the transfer function selector).
+
+When defining multiple actions within a session, a transaction that matches **any** specified action is considered valid. If no actions are specified, **any** transaction will pass.
+
+## Policies
+
+Policies let you restrict the session to hit specific conditions. You can define policies at the _session_ (affect the entire session) or _action_ (affects a single action with session) level.
+
+Supported policies include:
+
+- [Sudo](./policies/sudo): allows any action
+- Universal action: allows actions with the specified calldata
+- Spending limit: allows a limited value of ERC20 tokens transferred and approved
+- Timeframe: allows actions within the specified time frame
+- Usage limit: allows a limited number of actions
+- Value limit: allows a limited ether value transfered with actions
+
+When defining multiple policies within a session or an action, a transaction that passes **every** specified policy is considered valid. If no policies are specified, **any** transaction will pass (i.e. the sudo policy is applied).
+
+## Creating sessions
+
+To create an account with a session key:
+
+```ts {1-6,13}
+const session: Session = {
+  owners: {
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
+  },
+}
+
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [ownerAccount],
+  },
+  sessions: [session],
+  rhinestoneApiKey,
+})
+```
+
+You can also limit the session down to specific allowed actions:
+
+```ts {6-16}
+const session: Session = {
+  owners: {
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
+  },
+  actions: [
+    {
+      target: usdcAddress,
+      selector: toFunctionSelector(
+        getAbiItem({
+          abi: erc20Abi,
+          name: 'transfer',
+        }),
+      ),
+    },
+  ],
+}
+```
+
+Finally, you can specify policies at both session and action levels:
+
+```ts {6-10,20-31}
+const session: Session = {
+  owners: {
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
+  },
+  policies: [
+    {
+      type: 'sudo',
+    },
+  ],
+  actions: [
+    {
+      target: usdcAddress,
+      selector: toFunctionSelector(
+        getAbiItem({
+          abi: erc20Abi,
+          name: 'transfer',
+        }),
+      ),
+      policies: [
+        {
+          type: 'universal-action',
+          rules: [
+            {
+              condition: 'equal',
+              calldataOffset: 0n,
+              referenceValue: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
+```
+
+## Using sessions
+
+To authorize a transaction with a session key you've defined before:
+
+```ts {13-16}
+const transactionResult = await rhinestoneAccount.sendTransaction({
+  chain,
+  calls: [
+    {
+      to: usdcAddress,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: ['0xd8da6bf26964af9d7eed9e03e53415d37aa96045', 1n],
+      }),
+    },
+  ],
+  signers: {
+    type: 'session',
+    session: session,
+  },
+})
+```
+
+This will prompt the signature request from the session owner(s), and submit the transaction of their behalf.

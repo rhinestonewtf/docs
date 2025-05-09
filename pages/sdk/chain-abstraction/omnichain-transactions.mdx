@@ -1,0 +1,47 @@
+---
+title: "Omnichain Transactions"
+---
+
+To make your first cross-chain transaction, make sure that:
+
+1) The account is deployed on [any chain](../../overview/introduction/supported-chains).
+2) The account has at least one of the [supported assets](../../overview/introduction/supported-chains) on the chain with the deployed account.
+
+```ts
+const usdcTarget = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"
+const usdcAmount = 1n
+
+const transaction = await rhinestoneAccount.sendTransaction({
+  targetChain: arbitrumSepolia,
+  calls: [
+    {
+      to: usdcTarget,
+      value: 0n,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: ['0xd8da6bf26964af9d7eed9e03e53415d37aa96045', usdcAmount],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: usdcTarget,
+      amount: usdcAmount,
+    },
+  ],
+})
+```
+
+Assuming you had USDC on Base Sepolia, this will bridge some of that USDC to Arbitrum Sepolia and execute the transfer transaction.
+
+If the account is not deployed on the target chain (i.e. Arbitrum Sepolia), it will also deploy the smart account on that chain.
+
+<Note>Make sure the token address in `calls` and `tokenRequests` corresponds to the target chain.</Note>
+
+
+## Token Requests
+
+`tokenRequests` is a list of token assets and their amounts that are required on the target chain to make the transaction. It tells the solvers to ensure those assets are present before execution the transaction `calls`.
+
+If those assets are already present on the target chain, no bridging is needed. If some assets are missing, or if the amount is not enough to fulfill the request, solvers will bridge those assets from any available chain.

@@ -1,0 +1,27 @@
+---
+title: "Omni Account"
+---
+
+[Omni Account](../../overview/concepts/chain-abstraction) is a chain abstraction system made by Rhinestone that enables instant cross-chain transactions using any balance on any supported chain, without requiring manual bridging or gas token management.
+
+The Rhinestone SDK supports Omni Accounts out-of-the-box. When creating an account, the SDK will automatically install all the required modules to make cross-chain transactions across all [supported chains](../../overview/introduction/supported-chains).
+
+## Modules
+
+### Same Chain
+
+Handles same-chain operations with two modes: UserOp Mode processes deposits and executes UserOperations in a single transaction, while Execution Mode unlocks resources and executes ERC7579 operations atomically. Both modes ensure secure validation of signatures and proper fund distribution.
+
+### Target Chain
+
+A cross-chain message handler that operates in two modes: ERC7579 Module Mode acts as fallback handler and executor for existing smart accounts, while ERC4337 UserOp Trampoline Mode serves as an intermediary for UserOperations when accounts aren't deployed. Both modes enable seamless cross-chain transactions with proper validation and execution.
+
+### Resource Lock
+
+Implements virtual resource locking where assets remain in the user's account but are restricted from being spent. The module monitors all transactions to prevent unauthorized spending and implements a claim-based unlocking mechanism requiring dual signatures (user + allocator/orchestrator).
+
+The module integrates with ERC7579 accounts as an executor, providing a secure way to lock resources without compromising asset ownership.
+
+## Spokepool
+
+A unified entrypoint contract that serves as the primary interface for solvers to interact with Rhinestone modules. It combines multiple components to handle atomic fills, deposit routing, and user operation execution. The contract provides a single interface for managing deposits, executing fills, handling user operations, and interacting with the Compact claims system.

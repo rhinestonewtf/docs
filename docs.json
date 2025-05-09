@@ -56,11 +56,22 @@
 					"pages/sdk/quickstart",
 					"pages/sdk/demos",
 					{
+						"group": "Smart EOAs (EIP-7702)",
+						"pages": [
+							"pages/sdk/eip-7702/overview"
+						]
+					},
+					{
+						"group": "Chain Abstraction",
+						"pages": [
+							"pages/sdk/chain-abstraction/omni-account",
+							"pages/sdk/chain-abstraction/omnichain-transactions"
+						]
+					},
+					{
 						"group": "Core Setup",
 						"pages": [
-							"pages/sdk/core-setup/core-modules-intro",
-							"pages/sdk/core-setup/create-omni-account",
-							"pages/sdk/core-setup/send-omnichain-transaction",
+							"pages/sdk/core-setup/core-modules",
 							"pages/sdk/core-setup/passkeys",
 							"pages/sdk/core-setup/ecdsa-signer"
 						]
@@ -77,6 +88,12 @@
 								"group": "Policies",
 								"pages": ["pages/sdk/smart-sessions/policies/sudo"]
 							}
+						]
+					},
+					{
+						"group": "Advanced",
+						"pages": [
+							"pages/sdk/advanced/account-deployments"
 						]
 					},
 					{

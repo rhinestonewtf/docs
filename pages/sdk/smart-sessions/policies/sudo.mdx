@@ -1,3 +1,19 @@
 ---
 title: "Sudo"
 ---
+
+To enable a sudo policy:
+
+```ts {6-10}
+const session: Session = {
+  owners: {
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
+  },
+  policies: [
+    {
+      type: 'sudo',
+    },
+  ],
+}
+```

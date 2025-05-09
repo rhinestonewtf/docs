@@ -1,3 +1,47 @@
 ---
 title: "ECDSA Signer"
 ---
+
+## Single Owner
+
+To create an account owned by a single EOA:
+
+```ts
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  }
+  rhinestoneApiKey,
+})
+```
+
+## Multisig
+
+To create a multisig account:
+
+```ts {4}
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [accountA, accountB, accountC],
+  }
+  rhinestoneApiKey,
+})
+```
+
+
+You can also specify the signature threshold (i.e. how much signatures are required to authorize the transaction):
+
+```ts {5}
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [accountA, accountB, accountC],
+    threshold: 2,
+  }
+  rhinestoneApiKey,
+})
+```
+
+By default, the `threshold` is 1 (any multisig owner can sign any transaction).
