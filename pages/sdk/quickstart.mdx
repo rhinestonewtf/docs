@@ -34,6 +34,7 @@ Let's create a smart account with a single owner:
 
 ```ts
 import { createRhinestoneAccount } from '@rhinestone/sdk'
+import { getTokenAddress } from '@rhinestone/sdk/orchestrator'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { baseSepolia, arbitrumSepolia, optimismSepolia } from 'viem/chains'
 import {
@@ -104,7 +105,7 @@ await publicClient.waitForTransactionReceipt({ hash: txHash })
 Finally, let's make a cross-chain token transfer:
 
 ```ts
-const usdcTarget = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"
+const usdcTarget = getTokenAddress('USDC', targetChain.id)
 const usdcAmount = 1n
 
 const transaction = await rhinestoneAccount.sendTransaction({

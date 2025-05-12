@@ -8,7 +8,7 @@ To make your first cross-chain transaction, make sure that:
 2) The account has at least one of the [supported assets](../../overview/introduction/supported-chains) on the chain with the deployed account.
 
 ```ts
-const usdcTarget = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"
+const usdcTarget = getTokenAddress('USDC', arbitrumSepolia.id)
 const usdcAmount = 1n
 
 const transaction = await rhinestoneAccount.sendTransaction({
