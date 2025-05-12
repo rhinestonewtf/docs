@@ -2,11 +2,11 @@
 title: "Introduction"
 ---
 
-[Smart Sessions](https://github.com/erc7579/smartsessions) is an implementation of session keys that works across all ERC-7579 compatible accounts.
+[Smart Sessions](https://github.com/erc7579/smartsessions) is an implementation of session keys that works across all ERC-7579-compatible accounts.
 
 It separates **validators**, **policies**, and **actions** to increase composability and component reuse, which improves developer efficiency and costs.
 
-## Validators
+## Owners
 
 Smart Sessions support a wide range of signing mechanisms out of the box:
 
@@ -26,18 +26,18 @@ When defining multiple actions within a session, a transaction that matches **an
 
 ## Policies
 
-Policies let you restrict the session to hit specific conditions. You can define policies at the _session_ (affect the entire session) or _action_ (affects a single action with session) level.
+Policies let you restrict the session to hit specific conditions. You can define policies at the _session_ (affects the entire session) or _action_ (affects a single action within a session) level.
 
 Supported policies include:
 
 - [Sudo](./policies/sudo): allows any action
 - Universal action: allows actions with the specified calldata
-- Spending limit: allows a limited value of ERC20 tokens transferred and approved
+- Spending limit: allows a limited value of ERC20 tokens to be transferred and approved
 - Timeframe: allows actions within the specified time frame
 - Usage limit: allows a limited number of actions
-- Value limit: allows a limited ether value transfered with actions
+- Value limit: allows a limited ETH value transfered
 
-When defining multiple policies within a session or an action, a transaction that passes **every** specified policy is considered valid. If no policies are specified, **any** transaction will pass (i.e. the sudo policy is applied).
+When defining multiple policies within a session or an action, a transaction that passes **every** specified policy is considered valid. If no policies are specified, **any** transaction will pass (i.e., the sudo policy is applied).
 
 ## Creating sessions
 
@@ -61,7 +61,7 @@ const rhinestoneAccount = await createRhinestoneAccount({
 })
 ```
 
-You can also limit the session down to specific allowed actions:
+You can also limit the session to specific allowed actions:
 
 ```ts {6-16}
 const session: Session = {
@@ -146,4 +146,4 @@ const transactionResult = await rhinestoneAccount.sendTransaction({
 })
 ```
 
-This will prompt the signature request from the session owner(s), and submit the transaction of their behalf.
+This will prompt the signature request from the session owner(s) and submit the transaction on their behalf.

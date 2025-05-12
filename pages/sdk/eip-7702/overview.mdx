@@ -2,9 +2,11 @@
 title: "Overview"
 ---
 
-Rhinestone SDK supports smart EOAs (EIP-7702) out of the box.
+Rhinestone SDK supports smart EOAs (EIP-7702 accounts) out of the box.
 
 You can use any compatible account provider for batched transactions, gas sponsorship, custom validators, session keys, and chain abstraction.
+
+<Info>Using EIP-7702 features requires `viem@2.28.0` or higher.</Info>
 
 <Warning>Not all smart accounts are compatible with EIP-7702. We recommend starting with [Biconomy Nexus](../customize/smart-account-providers/biconomy-nexus).</Warning>
 
@@ -21,4 +23,4 @@ const rhinestoneAccount = await createRhinestoneAccount({
 })
 ```
 
-When making the first transaction, this will delegate EOA code to the smart account and initilize it with the required modules.
+When making the first transaction, this will delegate EOA code to the smart account and initialize it with the required modules.

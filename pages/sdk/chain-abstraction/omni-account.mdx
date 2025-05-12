@@ -10,15 +10,15 @@ The Rhinestone SDK supports Omni Accounts out-of-the-box. When creating an accou
 
 ### Same Chain
 
-Handles same-chain operations with two modes: UserOp Mode processes deposits and executes UserOperations in a single transaction, while Execution Mode unlocks resources and executes ERC7579 operations atomically. Both modes ensure secure validation of signatures and proper fund distribution.
+Handles same-chain operations with two modes: UserOp Mode processes deposits and executes UserOperations in a single transaction, while Execution Mode unlocks resources and executes ERC7579 operations atomically.
 
 ### Target Chain
 
-A cross-chain message handler that operates in two modes: ERC7579 Module Mode acts as fallback handler and executor for existing smart accounts, while ERC4337 UserOp Trampoline Mode serves as an intermediary for UserOperations when accounts aren't deployed. Both modes enable seamless cross-chain transactions with proper validation and execution.
+A cross-chain message handler that operates in two modes: ERC7579 Module Mode acts as a fallback handler and executor for existing smart accounts, while ERC4337 UserOp Trampoline Mode serves as an intermediary for UserOperations when accounts aren't deployed.
 
 ### Resource Lock
 
-Implements virtual resource locking where assets remain in the user's account but are restricted from being spent. The module monitors all transactions to prevent unauthorized spending and implements a claim-based unlocking mechanism requiring dual signatures (user + allocator/orchestrator).
+Implements virtual resource locking where assets remain in the user's account but are restricted from being spent. The module monitors all transactions to prevent unauthorized spending and implements a claim-based unlocking mechanism requiring dual signatures (user + orchestrator).
 
 The module integrates with ERC7579 accounts as an executor, providing a secure way to lock resources without compromising asset ownership.
 

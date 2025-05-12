@@ -6,13 +6,13 @@ Core Modules is a set of [open-sourced](https://github.com/rhinestonewtf/core-mo
 
 ## Validators
 
-[**Ownable Validator**](ecdsa-signer) enables an EOA as a signer for a smart account. It is ideal for product use cases where users are expected to be crypto-native and possess an EOA wallet. Alternatively, it can be combined with MPC providers embedded signers.
+[**Ownable Validator**](ecdsa-signer) enables an EOA as a signer for a smart account. It is ideal for product use cases where users are expected to be crypto-native and possess an EOA wallet. Alternatively, it can be combined with MPC providers' embedded signers.
 
 [**Webauthn Validator**](passkeys) enables a passkey as a signer on a smart account, allowing users to sign cryptographic messages with their biometrics via the secure enclave of their device or use a preferred password manager.
 
-**Social Recovery** allows users to specify one or multiple guardians with an m of n threshold for account recovery. The user sets a guardian by expressing the public address of the guardian.
+**Social Recovery** allows users to specify one or multiple guardians with an m of n threshold for account recovery. To recover the account, the guardians are able to override the existing account validation logic.
 
-**Multifactor Authentication (MFA)** is a multiplexer, which allows developers to compose any set of signer modules together. For example, passkeys can be set as the main signer, but passkeys and an ECDSA validation scheme are required when making high-value transfers.
+**Multifactor Authentication (MFA)** is a multiplexer that allows developers to compose any set of signer modules together. For example, passkeys can be set as the main signer, but both the passkey and the ECDSA signature are required when making high-value transfers.
 
 ## Executors
 
@@ -28,8 +28,8 @@ Core Modules is a set of [open-sourced](https://github.com/rhinestonewtf/core-mo
 
 **Deadman Switch** recovers an account after a specified inactive period. The user sets the target recovery address (this could be another smart account or a typical EOA wallet) along with the required period of inactivity.
 
-**Cold Storage Hook** creates timelock and transfer restrictions. It restricts execution on the account in two ways: 1) a timelock period and 2) transfers are limited to just one address.
+**Cold Storage Hook** creates timelock and transfer restrictions. It restricts execution on the account in two ways: 1) a timelock period, and 2) transfers are limited to just one address.
 
-**Flash Loan** is a module base found in ModuleKit that allows developers to easily create executor modules that tap into flash loan capabilities, as described in ERC-3156. This could be used to create a peer-to-peer rental system without needing an escrow contract or over-collateralization.
+**Flash Loan** is a module that allows developers to easily create executor modules that tap into flash loan capabilities, as described in ERC-3156. This could be used to create a peer-to-peer rental system without needing an escrow contract or over-collateralization.
 
 **Hook Multiplexer** is an opinionated router for combining multiple hook modules. Hooks are modules that are triggered before or after execution and can be used to enforce certain smart account behavior. Some examples of hooks include spending limits, white/blacklists, and more. This is an important module for accounts with only one global hook slot.

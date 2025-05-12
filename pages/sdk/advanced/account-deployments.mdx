@@ -6,13 +6,13 @@ The Rhinestone SDK handles the account deployments for you.
 
 On the target chain, the deployments are handled by the orchestrator in most cases.
 
-On the source chain, you can either use a separate _deployer_ EOA or an ERC-4337 bundler to deploy.
+On the source chain, you can either use an ERC-4337 bundler or a separate _deployer_ EOA to deploy.
 
 ## Using a bundler
 
-By default, accounts are deployed with an ERC-4337 bundler. This requires the account to be prefunded on the source chain to pay for gas.
+By default, accounts are deployed with an ERC-4337 bundler. This requires the account to be prefunded on the source chain with ETH to pay for gas.
 
-See [ERC-4337 Infra](../customize/erc4337-infra) for more details on using ERC-4337 bundlers.
+See [ERC-4337 Infra](../customize/erc4337-infra) for more details on using bundlers.
 
 ```ts {6-9}
 const rhinestoneAccount = await createRhinestoneAccount({
@@ -27,11 +27,11 @@ const rhinestoneAccount = await createRhinestoneAccount({
 })
 ```
 
-<Warning>While the bundler configuration is not required to get started, it is highly recommended to set the API key for production use.</Warning>
+<Warning>While the bundler configuration is not required to get started, it is highly recommended to provide the API key for production use.</Warning>
 
 ## Using a deployer EOA
 
-Alternatively, you can use a separate EOA to deploy smart account. This let's you sponsor the gas to cover the deployment cost in ETH.
+Alternatively, you can use a separate EOA to deploy a smart account. This lets you sponsor the gas to cover the deployment cost in ETH.
 
 ```ts {6}
 const rhinestoneAccount = await createRhinestoneAccount({
@@ -43,4 +43,4 @@ const rhinestoneAccount = await createRhinestoneAccount({
 })
 ```
 
-<Note>Make sure the deployer EOA has enough ETH on the source chain to cover deployment costs.</Note>
+<Note>Make sure the deployer EOA has enough ETH on the _source_ chain to cover deployment costs.</Note>
