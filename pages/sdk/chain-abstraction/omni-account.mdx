@@ -18,7 +18,7 @@ A cross-chain message handler that operates in two modes: ERC7579 Module Mode ac
 
 ### Resource Lock
 
-Implements virtual resource locking where assets remain in the user's account but are restricted from being spent. The module monitors all transactions to prevent unauthorized spending and implements a claim-based unlocking mechanism requiring dual signatures (user + orchestrator).
+Implements resource locking via an escrow contract. The module deposits the user's funds into [TheCompact](https://github.com/Uniswap/the-compact) to lock them. The module also processes the claims on user's funds to prevent unauthorized spending (using signatures from both the user and the orchestrator).
 
 The module integrates with ERC7579 accounts as an executor, providing a secure way to lock resources without compromising asset ownership.
 
