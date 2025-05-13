@@ -116,6 +116,14 @@
 			}
 		]
 	},
+	"navbar": {
+    "links": [
+      {
+        "label": "Old Docs",
+        "href": "https://docs.rhinestone.wtf"
+      }
+    ]
+  },
 	"logo": {
 		"light": "/logo/light.svg",
 		"dark": "/logo/dark.svg"
