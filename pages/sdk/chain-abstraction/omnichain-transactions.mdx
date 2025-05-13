@@ -10,6 +10,7 @@ To make your first cross-chain transaction, make sure that:
 ```ts
 const usdcTarget = getTokenAddress('USDC', arbitrumSepolia.id)
 const usdcAmount = 1n
+const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 
 const transaction = await rhinestoneAccount.sendTransaction({
   sourceChain: baseSepolia,
@@ -21,7 +22,7 @@ const transaction = await rhinestoneAccount.sendTransaction({
       data: encodeFunctionData({
         abi: erc20Abi,
         functionName: 'transfer',
-        args: ['0xd8da6bf26964af9d7eed9e03e53415d37aa96045', usdcAmount],
+        args: [receiver, usdcAmount],
       }),
     },
   ],
