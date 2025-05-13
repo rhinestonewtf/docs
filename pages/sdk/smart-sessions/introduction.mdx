@@ -24,6 +24,8 @@ An example of an action would be token transfer, where `target` would be the add
 
 When defining multiple actions within a session, a transaction that matches **any** specified action is considered valid. If no actions are specified, **any** transaction will pass.
 
+<Info>When using smart contracts directly, you need to explicitly provide a list of valid actions.</Info>
+
 ## Policies
 
 Policies let you restrict the session to hit specific conditions. You can define policies at the _session_ (affects the entire session) or _action_ (affects a single action within a session) level.
