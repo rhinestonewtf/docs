@@ -1,0 +1,18 @@
+---
+title: "Safe7579"
+---
+
+To create a [Safe7579](https://github.com/rhinestonewtf/safe7579) smart account:
+
+```ts {2-4}
+const rhinestoneAccount = await createRhinestoneAccount({
+  account: {
+    type: 'safe',
+  },
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  },
+  rhinestoneApiKey,
+})
+```

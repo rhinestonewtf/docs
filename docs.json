@@ -57,9 +57,7 @@
 					"pages/sdk/demos",
 					{
 						"group": "Smart EOAs (EIP-7702)",
-						"pages": [
-							"pages/sdk/eip-7702/overview"
-						]
+						"pages": ["pages/sdk/eip-7702/overview"]
 					},
 					{
 						"group": "Chain Abstraction",
@@ -92,9 +90,7 @@
 					},
 					{
 						"group": "Advanced",
-						"pages": [
-							"pages/sdk/advanced/account-deployments"
-						]
+						"pages": ["pages/sdk/advanced/account-deployments"]
 					},
 					{
 						"group": "Customize",
@@ -102,7 +98,10 @@
 							{
 								"group": "Smart Account Providers",
 								"pages": [
-									"pages/sdk/customize/smart-account-providers/biconomy-nexus"
+									"pages/sdk/customize/smart-account-providers/biconomy-nexus",
+									"pages/sdk/customize/smart-account-providers/safe7579",
+									"pages/sdk/customize/smart-account-providers/zerodev-kernel",
+									"pages/sdk/customize/smart-account-providers/etherspot-prime"
 								]
 							},
 							"pages/sdk/customize/erc4337-infra"
@@ -113,13 +112,13 @@
 		]
 	},
 	"navbar": {
-    "links": [
-      {
-        "label": "Old Docs",
-        "href": "https://docs.rhinestone.wtf"
-      }
-    ]
-  },
+		"links": [
+			{
+				"label": "Old Docs",
+				"href": "https://docs.rhinestone.wtf"
+			}
+		]
+	},
 	"logo": {
 		"light": "/logo/light.svg",
 		"dark": "/logo/dark.svg"
