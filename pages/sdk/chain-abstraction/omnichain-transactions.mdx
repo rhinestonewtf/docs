@@ -41,7 +41,6 @@ If the smart account is not deployed on the target chain (i.e., Arbitrum Sepolia
 
 <Note>Make sure the token address in `calls` and `tokenRequests` corresponds to the _target_ chain.</Note>
 
-
 ## Token Requests
 
 `tokenRequests` is a list of token assets and their amounts that are required on the target chain to make the transaction. It tells the solvers to ensure those assets are present before executing the transaction `calls`.
@@ -49,3 +48,21 @@ If the smart account is not deployed on the target chain (i.e., Arbitrum Sepolia
 If those assets are already present on the target chain, no bridging is needed. If some assets are missing or if the amount is not enough to fulfill the request, solvers will bridge those assets from any available chain.
 
 If you don't need any assets on the target chain, you can omit this.
+
+## Gas Limit
+
+You can override the default gas limit for the target chain execution with `gasLimit`:
+
+```ts {10}
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChain: baseSepolia,
+  targetChain: arbitrumSepolia,
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+  gasLimit: 200_000n,
+})
+```
