@@ -1,3 +1,18 @@
 ---
 title: "Biconomy Nexus"
 ---
+
+To create a [Nexus](https://github.com/bcnmy/nexus) smart account:
+
+```ts {2-4}
+const rhinestoneAccount = await createRhinestoneAccount({
+  account: {
+    type: 'nexus',
+  },
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  },
+  rhinestoneApiKey,
+})
+```

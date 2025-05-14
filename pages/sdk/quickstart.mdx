@@ -1,3 +1,150 @@
 ---
 title: "Quickstart"
 ---
+
+In this guide, you will create your first Omni Account and make a cross-chain swap in 5 minutes.
+
+## Prerequisites
+
+To get started, you'll need a Rhinestone API key. [Reach out to us](https://t.me/konradkopp) to get one.
+
+You will also need some testnet funds. To get testnet ETH, you can use a faucet from [Quicknode](https://faucet.quicknode.com/drip) or [Alchemy](https://www.alchemy.com/faucets). To get testnet USDC, use [Circle Faucet](https://faucet.circle.com/).
+
+Install the Rhinestone SDK:
+
+<CodeGroup>
+
+```javascript npm
+npm install viem @rhinestone/sdk
+```
+
+```javascript pnpm
+pnpm add viem @rhinestone/sdk
+```
+
+```javascript bun
+bun install viem @rhinestone/sdk
+```
+
+</CodeGroup>
+
+## Creating a Wallet
+
+Let's create a smart account with a single owner:
+
+```ts
+import { createRhinestoneAccount } from '@rhinestone/sdk'
+import { getTokenAddress } from '@rhinestone/sdk/orchestrator'
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import { baseSepolia, arbitrumSepolia, optimismSepolia } from 'viem/chains'
+import {
+  Chain,
+  createPublicClient,
+  createWalletClient,
+  encodeFunctionData,
+  erc20Abi,
+  Hex,
+  http,
+  parseEther,
+} from 'viem'
+
+const fundingPrivateKey = process.env.FUNDING_PRIVATE_KEY
+if (!fundingPrivateKey) {
+  throw new Error('FUNDING_PRIVATE_KEY is not set')
+}
+
+const rhinestoneApiKey = process.env.RHINESTONE_API_KEY
+if (!rhinestoneApiKey) {
+  throw new Error('RHINESTONE_API_KEY is not set')
+}
+
+const sourceChain = baseSepolia
+const targetChain = arbitrumSepolia
+
+// You can use an existing PK here
+const privateKey = generatePrivateKey()
+console.log(`Owner private key: ${privateKey}`)
+const account = privateKeyToAccount(privateKey)
+
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  }
+  rhinestoneApiKey,
+})
+const address = await rhinestoneAccount.getAddress()
+console.log(`Smart account address: ${address}`)
+```
+
+## Funding the Account
+
+We will send some ETH from the funding account to the created smart account. The Orchestrator will use some of that ETH to deploy the account on the target chain, as well as to convert it to USDC for a transfer transaction.
+
+```ts
+const publicClient = createPublicClient({
+  chain: sourceChain,
+  transport: http(),
+})
+const fundingAccount = privateKeyToAccount(fundingPrivateKey as Hex)
+const fundingClient = createWalletClient({
+  account: fundingAccount,
+  chain: sourceChain,
+  transport: http(),
+})
+
+const txHash = await fundingClient.sendTransaction({
+  to: address,
+  value: parseEther('0.001'),
+})
+await publicClient.waitForTransactionReceipt({ hash: txHash })
+```
+
+## Sending a Cross-chain Transaction
+
+Finally, let's make a cross-chain token transfer:
+
+```ts
+const usdcTarget = getTokenAddress('USDC', targetChain.id)
+const usdcAmount = 1n
+
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChain,
+  targetChain,
+  calls: [
+    {
+      to: usdcTarget,
+      value: 0n,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: ['0xd8da6bf26964af9d7eed9e03e53415d37aa96045', usdcAmount],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: usdcTarget,
+      amount: usdcAmount,
+    },
+  ],
+})
+console.log('Transaction', transaction)
+
+const transactionResult = await rhinestoneAccount.waitForExecution(transaction)
+console.log('Result', transactionResult)
+```
+
+After running that, you will get a smart account deployed on both Base Sepolia and Arbitrum Sepolia, and make a cross-chain USDC transfer.
+
+Note that you don't need to manage the gas tokens or do the ETH → USDC swap when making a transfer. The Orchestrator will handle that for you!
+
+## Next Steps
+
+To get an in-depth overview of the Omni Account features, follow our [Chain Abstraction guides](./chain-abstraction/omnichain-transactions).
+
+To learn more about using Omni Accounts with smart EOAs, check out our [EIP-7702 guide](./eip-7702/overview).
+
+To learn more about installing and managing ERC-7579 modules, follow our [Core Modules guides](./core-setup/core-modules).
+
+To learn more about deploying the smart accounts across chains, check out our [guide on account deployments](./advanced/account-deployments).

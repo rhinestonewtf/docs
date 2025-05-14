@@ -11,9 +11,3 @@ Intents are chain-agnostic, but with the proper settlement infrastructure and so
 ## How does Rhinestone use intents?
 
 When a user wishes to transact, the wallet or application sends a “meta intent” to Rhinestone’s Omni Account service. We then construct the instruction set for the solver to fulfil the intent, which is called the “order bundle”. This order bundle is returned to the user in the form of a human-readable signature envelope, which encodes the instruction set for the intent into a single signature. The order bundle is then propagated to the solver market to be executed.
-
-## Flow diagram
-
-<img className="block h-[400px]" src="/images/omniaccount_9_light.jpg" />
-
-[Submit your first intent](../../sdk/quickstart)

@@ -1,3 +1,27 @@
 ---
 title: "ERC-4337 Infra"
 ---
+
+Internally, the SDK uses ERC-4337 bundlers to deploy and to submit transaction using UserOps (e.g. when using smart sessions).
+
+Supplying the API key is optional, but highly recommended for production use.
+
+## Pimlico
+
+To use [Pimlico](https://www.pimlico.io/), provide an API key during account initialization:
+
+```ts {7-10}
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  }
+  rhinestoneApiKey,
+  bundler: {
+    type: 'pimlico',
+    apiKey: pimlicoApiKey,
+  },
+})
+```
+
+[Reach out](https://github.com/rhinestonewtf/sdk/issues) if you need support for other ERC-4337 providers!

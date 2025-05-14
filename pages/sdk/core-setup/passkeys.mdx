@@ -1,3 +1,23 @@
 ---
 title: "Passkeys"
 ---
+
+To create a passkey-owned account:
+
+```ts {3-5,8-11}
+import { toWebAuthnAccount } from 'viem/account-abstraction'
+
+const passkeyAccount = toWebAuthnAccount({
+  credential,
+})
+
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'passkey',
+    account: passkeyAccount,
+  }
+  rhinestoneApiKey,
+})
+```
+
+<Note>We're working on a multisig support for passkeys. Let us know if you would benefit from that.</Note>

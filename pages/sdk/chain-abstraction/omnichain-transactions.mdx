@@ -1,0 +1,76 @@
+---
+title: "Omnichain Transactions"
+---
+
+To make your first cross-chain transaction, make sure that:
+
+1) The account is deployed on [any chain](../../overview/introduction/supported-chains).
+2) The account has at least one of the [supported assets](../../overview/introduction/supported-chains) on the chain with the deployed account.
+
+```ts
+const usdcTarget = getTokenAddress('USDC', arbitrumSepolia.id)
+const usdcAmount = 1n
+const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
+
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChain: baseSepolia,
+  targetChain: arbitrumSepolia,
+  calls: [
+    {
+      to: usdcTarget,
+      value: 0n,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [receiver, usdcAmount],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: usdcTarget,
+      amount: usdcAmount,
+    },
+  ],
+})
+```
+
+Assuming you had USDC on Base Sepolia, this will bridge some of that USDC to Arbitrum Sepolia and execute the transfer transaction.
+
+If the smart account is not deployed on the target chain (i.e., Arbitrum Sepolia), it will also deploy the account code on that chain.
+
+<Note>Make sure the token address in `calls` and `tokenRequests` corresponds to the _target_ chain.</Note>
+
+## Token Requests
+
+`tokenRequests` is a list of token assets and their amounts that are required on the target chain to make the transaction. It tells the solvers to ensure those assets are present before executing the transaction `calls`.
+
+If those assets are already present on the target chain, no bridging is needed. If some assets are missing or if the amount is not enough to fulfill the request, solvers will bridge those assets from any available chain.
+
+If you don't need any assets on the target chain, you can omit this.
+
+## Gas Limit
+
+You can override the default gas limit for the target chain execution with `gasLimit`:
+
+```ts {10}
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChain: baseSepolia,
+  targetChain: arbitrumSepolia,
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+  gasLimit: 200_000n,
+})
+```
+
+## Source Chain
+
+Providing the source chain deploys the account on that chain, as well as uses the funds on that chain to fulfill the intent.
+
+If you already have an account deployed on one or more source chains, you can omit the `sourceChain`. In that case, the orchestrator will use the best chain(s) to source funds.
+
+<Info>Providing a `sourceChain` is required when working with session keys.</Info>
