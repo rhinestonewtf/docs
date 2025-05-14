@@ -109,10 +109,6 @@
 						]
 					}
 				]
-			},
-			{
-				"tab": "Build Modules",
-				"pages": ["pages/build-modules/overview"]
 			}
 		]
 	},
