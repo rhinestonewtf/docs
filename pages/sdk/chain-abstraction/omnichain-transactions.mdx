@@ -47,3 +47,5 @@ If the smart account is not deployed on the target chain (i.e., Arbitrum Sepolia
 `tokenRequests` is a list of token assets and their amounts that are required on the target chain to make the transaction. It tells the solvers to ensure those assets are present before executing the transaction `calls`.
 
 If those assets are already present on the target chain, no bridging is needed. If some assets are missing or if the amount is not enough to fulfill the request, solvers will bridge those assets from any available chain.
+
+If you don't need any assets on the target chain, you can omit this.
