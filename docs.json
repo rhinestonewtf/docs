@@ -16,7 +16,7 @@
 	"navigation": {
 		"tabs": [
 			{
-				"tab": "Overview",
+				"tab": "Home",
 				"groups": [
 					{
 						"group": "Introduction",
@@ -50,7 +50,7 @@
 				]
 			},
 			{
-				"tab": "SDK",
+				"tab": "Guides",
 				"pages": [
 					"pages/sdk/overview",
 					"pages/sdk/quickstart",
