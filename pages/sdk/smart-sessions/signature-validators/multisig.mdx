@@ -1,0 +1,38 @@
+---
+title: "Multisig"
+---
+
+To create a multisig session:
+
+```ts {4}
+const session: Session = {
+  owners: {
+    type: 'ecdsa',
+    accounts: [accountA, accountB, accountC],
+  },
+  policies: [
+    {
+      type: 'sudo',
+    },
+  ],
+}
+```
+
+You can also specify the signature threshold (i.e., how many signatures are required to authorize the transaction):
+
+```ts {5}
+const session: Session = {
+  owners: {
+    type: 'ecdsa',
+    accounts: [accountA, accountB, accountC],
+    threshold: 2,
+  },
+  policies: [
+    {
+      type: 'sudo',
+    },
+  ],
+}
+```
+
+By default, the `threshold` is 1 (any session owner account can authorize any transaction within the session).

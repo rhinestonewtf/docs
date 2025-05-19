@@ -2,6 +2,34 @@
 title: "Core Modules"
 ---
 
-Modules are self-contained smart contracts that extend the functionality of a smart account. Rhinestone’s Core Modules are audited and battle-tested modules that cover the “tablestakes” features every developer needs when building on smart accounts.  
+Modules are self-contained smart contracts that extend the functionality of a smart account. Rhinestone’s Core Modules are audited and battle-tested modules that cover the “tablestakes” features every developer needs when building on smart accounts.
 
-[Check out Core Modules](../../sdk/core-setup/core-modules)
+## Validators
+
+**Ownable Validator** enables an EOA as a signer for a smart account. It is ideal for product use cases where users are expected to be crypto-native and possess an EOA wallet. Alternatively, it can be combined with MPC providers' embedded signers.
+
+**Webauthn Validator** enables a passkey as a signer on a smart account, allowing users to sign cryptographic messages with their biometrics via the secure enclave of their device or use a preferred password manager.
+
+**Social Recovery** allows users to specify one or multiple guardians with an m of n threshold for account recovery. To recover the account, the guardians are able to override the existing account validation logic.
+
+**Multifactor Authentication (MFA)** is a multiplexer that allows developers to compose any set of signer modules together. For example, passkeys can be set as the main signer, but both the passkey and the ECDSA signature are required when making high-value transfers.
+
+## Executors
+
+**Scheduled Transfers** allows for automated transfers to be triggered on a smart account. The user can create a schedule on which a relayer will execute the transfers based on some parameters, like frequency or number of repetitions.
+
+**Scheduled Orders** allows for automated token swaps to be triggered on a smart account. The user can create a schedule on which a relayer will execute the swaps based on some parameters, like frequency or number of repetitions.
+
+**Auto Save** is a more opinionated version of the Scheduled Transfers module. It allows a user to automatically transfer a set percentage of any received token to a target ERC-4626 yield-bearing vault.
+
+**Ownable Executor** creates a hierarchy ownership structure across smart accounts. This module allows one smart account to have execution rights on another smart account. The execution rights can trigger any transaction with the owner account paying for gas. This can enable automated relationships between DAOs and sub-DAOs or main accounts to sub-accounts.
+
+## Other
+
+**Deadman Switch** recovers an account after a specified inactive period. The user sets the target recovery address (this could be another smart account or a typical EOA wallet) along with the required period of inactivity.
+
+**Cold Storage Hook** creates timelock and transfer restrictions. It restricts execution on the account in two ways: 1) a timelock period, and 2) transfers are limited to just one address.
+
+**Flash Loan** is a module that allows developers to easily create executor modules that tap into flash loan capabilities, as described in ERC-3156. This could be used to create a peer-to-peer rental system without needing an escrow contract or over-collateralization.
+
+**Hook Multiplexer** is an opinionated router for combining multiple hook modules. Hooks are modules that are triggered before or after execution and can be used to enforce certain smart account behavior. Some examples of hooks include spending limits, white/blacklists, and more. This is an important module for accounts with only one global hook slot.

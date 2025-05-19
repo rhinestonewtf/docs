@@ -21,10 +21,10 @@
 					{
 						"group": "Introduction",
 						"pages": [
+							"pages/overview/introduction/welcome-to-rhinestone",
 							"pages/overview/introduction/what-is-rhinestone",
 							"pages/overview/introduction/supported-chains",
-							"pages/overview/introduction/supported-smart-accounts",
-							"pages/overview/introduction/getting-started"
+							"pages/overview/introduction/supported-smart-accounts"
 						]
 					},
 					{
@@ -43,6 +43,7 @@
 						"pages": [
 							"pages/overview/resources/address-book",
 							"pages/overview/resources/audit-reports",
+							"pages/overview/resources/fees",
 							"pages/overview/resources/erc-7579",
 							"pages/overview/resources/modules"
 						]
@@ -56,22 +57,24 @@
 					"pages/sdk/quickstart",
 					"pages/sdk/demos",
 					{
-						"group": "Smart EOAs (EIP-7702)",
-						"pages": ["pages/sdk/eip-7702/overview"]
+						"group": "Core",
+						"pages": [
+							"pages/sdk/core-setup/create-account",
+							"pages/sdk/core-setup/eip-7702",
+							"pages/sdk/core-setup/send-omnichain-transaction",
+							"pages/sdk/core-setup/batch-transactions",
+							"pages/sdk/core-setup/passkeys",
+							"pages/sdk/core-setup/ecdsa-signer",
+							"pages/sdk/core-setup/multisig"
+						]
 					},
 					{
 						"group": "Chain Abstraction",
 						"pages": [
-							"pages/sdk/chain-abstraction/omni-account",
-							"pages/sdk/chain-abstraction/omnichain-transactions"
-						]
-					},
-					{
-						"group": "Core Setup",
-						"pages": [
-							"pages/sdk/core-setup/core-modules",
-							"pages/sdk/core-setup/passkeys",
-							"pages/sdk/core-setup/ecdsa-signer"
+							"pages/sdk/chain-abstraction/omnichain-swaps",
+							"pages/sdk/chain-abstraction/account-deployment",
+							"pages/sdk/chain-abstraction/unified-balance",
+							"pages/sdk/chain-abstraction/orchestrator-errors"
 						]
 					},
 					{
@@ -80,18 +83,25 @@
 							"pages/sdk/smart-sessions/introduction",
 							{
 								"group": "Signature Validators",
-								"pages": ["pages/sdk/smart-sessions/signature-validators/ecdsa"]
+								"pages": [
+									"pages/sdk/smart-sessions/signature-validators/ecdsa",
+									"pages/sdk/smart-sessions/signature-validators/multisig"
+								]
 							},
 							{
 								"group": "Policies",
-								"pages": ["pages/sdk/smart-sessions/policies/sudo"]
-							}
+								"pages": [
+									"pages/sdk/smart-sessions/policies/sudo",
+									"pages/sdk/smart-sessions/policies/call",
+									"pages/sdk/smart-sessions/policies/gas-limit",
+									"pages/sdk/smart-sessions/policies/spending-limit",
+									"pages/sdk/smart-sessions/policies/timeframe"
+								]
+							},
+							"pages/sdk/smart-sessions/actions"
 						]
 					},
-					{
-						"group": "Advanced",
-						"pages": ["pages/sdk/advanced/account-deployments"]
-					},
+					"pages/sdk/module-sdk",
 					{
 						"group": "Customize",
 						"pages": [
@@ -99,7 +109,7 @@
 								"group": "Smart Account Providers",
 								"pages": [
 									"pages/sdk/customize/smart-account-providers/biconomy-nexus",
-									"pages/sdk/customize/smart-account-providers/safe7579",
+									"pages/sdk/customize/smart-account-providers/safe",
 									"pages/sdk/customize/smart-account-providers/zerodev-kernel",
 									"pages/sdk/customize/smart-account-providers/etherspot-prime"
 								]

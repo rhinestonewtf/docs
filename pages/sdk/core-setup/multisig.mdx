@@ -1,0 +1,38 @@
+---
+title: "Multisig"
+---
+
+
+## ECDSA
+
+To create a multisig account:
+
+```ts {4}
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [accountA, accountB, accountC],
+  }
+  rhinestoneApiKey,
+})
+```
+
+
+You can also specify the signature threshold (i.e., how many signatures are required to authorize the transaction):
+
+```ts {5}
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [accountA, accountB, accountC],
+    threshold: 2,
+  }
+  rhinestoneApiKey,
+})
+```
+
+By default, the `threshold` is 1 (any multisig owner can sign any transaction).
+
+## Passkeys
+
+We're working on a multisig support for passkeys. Let us know if you would benefit from that.
