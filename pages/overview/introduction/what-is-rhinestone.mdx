@@ -38,7 +38,7 @@ This includes transfers, swaps, and executions/calls. We call this system Omni A
 
 ![Architecture.png](/images/Architecture.png)
 
-For an in-depth review of our chain abstraction architecture, visit the [concepts section].
+For an in-depth review of our chain abstraction architecture, visit the [concepts section](../concepts/chain-abstraction).
 
 ### **Rhinestone Intents**
 
@@ -52,7 +52,7 @@ Rhinestone delivers crosschain fill speeds of less than 1.5 seconds. Even when t
 
 Rhinestone combines an intent-based transaction architecture with resource locking to enable pre-filling or optimistic filling. Resource locks enable users to make onchain guarantees to Solvers, who can then fill intents before funds leave the user’s account on the source chain. Settlement is then delayed until after the target chain execution takes place. This is what allows cross-chain transactions to be filled in under 1.5 seconds. 
 
-For resource locks, we are utilizing [TheCompact](https://github.com/Uniswap/the-compact), a dedicated escrow contract co-developed with Uniswap for cross-chain intents. For more on resource locks and our R&D project to enact resource locks through a hook module on the account, see this [<u>post</u>](https://blog.rhinestone.wtf/resource-lock-hook-335590cec733).
+For resource locks, we are utilizing [TheCompact](https://github.com/Uniswap/the-compact), a dedicated escrow contract co-developed with Uniswap for cross-chain intents. For more on resource locks and our R&D project to enact resource locks through a hook module on the account, see this [post](https://blog.rhinestone.wtf/resource-lock-hook-335590cec733).
 
 ## Get in touch
 
