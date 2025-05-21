@@ -1,3 +1,56 @@
 ---
 title: "Create an Account"
 ---
+
+Let's create a smart account with a single owner:
+
+```ts
+import { createRhinestoneAccount } from '@rhinestone/sdk'
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import { baseSepolia, arbitrumSepolia } from 'viem/chains'
+
+const rhinestoneApiKey = process.env.RHINESTONE_API_KEY
+
+// You can use an existing PK here
+const privateKey = generatePrivateKey()
+console.log(`Owner private key: ${privateKey}`)
+const account = privateKeyToAccount(privateKey)
+
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  }
+  rhinestoneApiKey,
+})
+const address = await rhinestoneAccount.getAddress()
+console.log(`Smart account address: ${address}`)
+```
+
+Once you fund the account, you can start making transactions:
+
+```ts
+import { getTokenAddress } from '@rhinestone/sdk/orchestrator'
+import { baseSepolia } from 'viem/chains'
+
+const chain = baseSepolia
+const usdcTarget = getTokenAddress('USDC', chain)
+const usdcAmount = 1n
+const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
+
+const transaction = await rhinestoneAccount.sendTransaction({
+  chain,
+  calls: [
+    {
+      to: usdcTarget,
+      value: 0n,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [receiver, wethAmount],
+      }),
+    },
+  ],
+})
+console.log('Transaction', transaction)
+```

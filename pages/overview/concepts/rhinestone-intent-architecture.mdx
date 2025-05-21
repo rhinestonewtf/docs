@@ -1,0 +1,33 @@
+---
+title: "Rhinestone Intent Architecture"
+mode: "wide"
+sidebarTitle: "Rhinestone Intent Architecture"
+description: "An overview of the Omni Account crosschain intent flow"
+---
+
+## What are intents?
+
+Intents are expressions of desired outcomes that sophisticated third-party actors fulfil. These third-party actors are often referred to as Solvers or Relayers. A helpful metaphor is that an intent is to purchase a good on Amazon with next-day delivery, and a transaction is a detailed description of the SKU, warehouse, and delivery routes.
+
+Intents are chain-agnostic, but with the proper settlement infrastructure and solver marketplace, intents enable fast, cheap, and generalized executions to happen across chains. Rhinestone combines intents with a self-custodial resource locking and permissioning framework that unifies a user's balance across chains to be spent instantly on any supported chain.
+
+## How does Rhinestone use intents?
+
+When a user wishes to transact, the wallet or application sends a “meta intent” to Rhinestone’s Omni Account service. We then construct the instruction set for the solver to fulfil the intent, which is called the “order bundle”. This order bundle is returned to the user in the form of a human-readable signature envelope, which encodes the instruction set for the intent into a single signature. The order bundle is then propagated to the solver market to be executed.
+
+## Rhinestone Intent Flow
+
+The below flow provides an example flow for our interactions with the Across Relayer network and the Across settlement layer.
+
+![Omni 4 - light.png](/images/Omni4-light.png)
+
+1. The user interacts with an app and sends an intent to the Orchestrator
+2. The Orchestrator propagates the intent to a solver network (Across Relayers)
+3. The winning Relayer (X) fills the intent via the Across (Destination) Spokepool
+4. Destination Spokepool sends funds and (optionally) makes an execution via the Omni Account on the destination chain
+
+At this point, the user experience ends, yet funds have not been withdrawn from the origin chain Omni Account. The second half of the flow is the claim event, which is invincible to the user. This is what allows for low-latency crosschain transactions.
+
+5. Relayer triggers the claim event on the origin chain Omni Account
+6. Omni Account releases funds to the Across (Origin) Spokepool
+7. Across settles with the Relayer after matching the origin chain deposit event with the correct destination chain prefill event.

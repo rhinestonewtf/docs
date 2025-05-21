@@ -1,0 +1,28 @@
+---
+title: "Call Policy"
+---
+
+Call policy allows to filter out transaction based on the calldata and ether value.
+
+To enable a call policy:
+
+```ts {6-10}
+const session: Session = {
+  owners: {
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
+  },
+  policies: [
+    {
+      type: 'universal-action',
+      rules: [
+        {
+          condition: 'equal',
+          calldataOffset: 0n,
+          referenceValue: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+        },
+      ],
+    },
+  ],
+}
+```

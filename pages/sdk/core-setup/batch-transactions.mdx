@@ -1,3 +1,35 @@
 ---
 title: "Batch Transactions"
 ---
+
+You can make multiple calls in a single transaction:
+
+```ts
+import { getTokenAddress } from '@rhinestone/sdk/orchestrator'
+import { baseSepolia } from 'viem/chains'
+
+const chain = baseSepolia
+const usdcAddress = getTokenAddress('USDC', chain)
+const usdcAmount = 1n
+const ethAmount = 2n
+const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
+
+const transaction = await rhinestoneAccount.sendTransaction({
+  chain,
+  calls: [
+    {
+      to: usdcAddress,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [receiver, usdcAmount],
+      }),
+    },
+    {
+      to: receiver,
+      value: ethAmount,
+    },
+  ]
+})
+console.log('Transaction', transaction)
+```

@@ -31,11 +31,8 @@
 						"group": "Concepts",
 						"pages": [
 							"pages/overview/concepts/smart-accounts",
-							"pages/overview/concepts/core-modules",
-							"pages/overview/concepts/intents",
 							"pages/overview/concepts/chain-abstraction",
-							"pages/overview/concepts/settlement-layers",
-							"pages/overview/concepts/solvers"
+							"pages/overview/concepts/rhinestone-intent-architecture"
 						]
 					},
 					{
