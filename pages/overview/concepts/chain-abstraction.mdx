@@ -8,29 +8,36 @@ Chain Abstraction generally refers to enabling users to perform instant cross-ch
 
 Omni Account is Rhinestone’s Chain Abstraction offering. It is an intent-powered system that transforms any Smart Account or Smart EOA (EIP-7702) into a chain-abstracted account. Omni Account consists of two core components:
 
-* **Resource locking**, via TheCompact, to enable irrevocable onchain guarantees to offchain entities through a single signature, and  
-* **The Orchestrator**, an offchain entity that sequences transactions and ensures users cannot break their onchain guarantees. 
+- **Resource locking**, via TheCompact, to enable irrevocable onchain guarantees to offchain entities through a single signature, and
+- **The Orchestrator**, an offchain entity that sequences transactions and ensures users cannot break their onchain guarantees.
 
 ## Key Features
 
-* Unified balance across all supported chains.  
-* Instant cross-chain transactions that are atomic and deterministic (i.e., zero slippage).  
-* Any arbitrary calldata can be appended to the cross-chain intent for crosschain executions.  
-* Atomic and deterministic token transfers with zero slippage.  
-* Crosschain swaps through DEX routing and solver-based swapping (i.e., market makers).    
-* M-to-1 source chain to destination chain, and M-to-n input tokens to output tokens. Use an arbitrary number of origin chains and tokens to fund a single intent on a single destination chain.  
-* Supports same-chain intents, a faster and cheaper alternative to ERC-4337.
+- Unified balance across all supported chains.
+- Instant cross-chain transactions that are atomic and deterministic (i.e., zero slippage).
+- Any arbitrary calldata can be appended to the cross-chain intent for crosschain executions.
+- Atomic and deterministic token transfers with zero slippage.
+- Crosschain swaps through DEX routing and solver-based swapping (i.e., market makers).
+- M-to-1 source chain to destination chain, and M-to-n input tokens to output tokens. Use an arbitrary number of origin chains and tokens to fund a single intent on a single destination chain.
+- Supports same-chain intents, a faster and cheaper alternative to ERC-4337.
 
 ## Architecture
 
-* **Smart Account:** Any ERC-7579 compatible smart account or Smart EOA (EIP-7702).  
-* **Omni Account Modules:** A set of ERC-7579 modules that enforce resource locks and set verifiable execution pathways for the Orchestrator to the integrated Settlement Layers.  
-* **The Orchestrator:** An offchain entity that tracks ongoing intents to ensure locked funds cannot be double-spent.  
-* **Solver Network:** Integrated solvers who manage inventory, fill executions and settle via the integrated Settlement Layers.  
-* **Settlement Layer:** An execution layer with sophisticated actors performing executions on the user’s behalf.
+- **Smart Account:** Any ERC-7579 compatible smart account or Smart EOA (EIP-7702).
+- **Omni Account Modules:** A set of ERC-7579 modules that enforce resource locks and set verifiable execution pathways for the Orchestrator to the integrated Settlement Layers.
+- **The Orchestrator:** An offchain entity that tracks ongoing intents to ensure locked funds cannot be double-spent.
+- **Solver Network:** Integrated solvers who manage inventory, fill executions and settle via the integrated Settlement Layers.
+- **Settlement Layer:** An execution layer with sophisticated actors performing executions on the user’s behalf.
 
-<img className="block dark:hidden" src="/images/omniaccount_3_light.png" />
-<img className="hidden dark:block" src="/images/omniaccount_3_dark.png" />
+<img
+  className="block dark:hidden"
+  src="/images/omniaccount_3_light.png"
+/>
+
+<img
+  className="hidden dark:block"
+  src="/images/omniaccount_3_dark.png"
+/>
 
 ## The Orchestrator
 
@@ -38,12 +45,19 @@ The Orchestrator is an offchain entity that enforces resource locks and coordina
 
 The Orchestrator is trustless from the end user’s perspective. It can only interact with the Smart Account via the Settlement Executors, providing onchain verifiable execution paths. The Settlement Executors utilize the Across Protocol as the sole settlement layer, inheriting Across’ battle-tested optimistic proof system. The Orchestrator poses no liveness or censorship risk to users. An onchain escape hatch can be activated through an onchain call without a dependency on Rhinestone or the Orchestrator.
 
-<img className="block dark:hidden" src="/images/omniaccount_8_light.png" />
-<img className="hidden dark:block" src="/images/omniaccount_8_dark.png" />
+<img
+  className="block dark:hidden"
+  src="/images/omniaccount_8_light.png"
+/>
+
+<img
+  className="hidden dark:block"
+  src="/images/omniaccount_8_dark.png"
+/>
 
 ## The Role of the Orchestrator
 
-* **Resource Lock Enforcement:** Performs accounting and intent sequencing to ensure users can not overspend or double-spend a locked balance.  
-* **Portfolio Endpoint:** Tracks and indexes crosschain unified balances, including pending intents that have not yet been settled onchain.  
-* **Pathfinding:** Provides the optimal routes for cross-chain transactions, including the optimal origin chain, input tokens, and swap routes. The Orchestrator will also inject executions for onchain actions on the destination chain, or consumer-injected executions from the wallet. This includes deploying and initialising new accounts on the destination chain if the user has never transacted on that network.  
-* **Intent Auctions and Broadcasting:** Intents are broadcasted to Solvers who bid on the right to fill an intent. The format of the auction process will depend on the intent.
+- **Resource Lock Enforcement:** Performs accounting and intent sequencing to ensure users can not overspend or double-spend a locked balance.
+- **Portfolio Endpoint:** Tracks and indexes crosschain unified balances, including pending intents that have not yet been settled onchain.
+- **Pathfinding:** Provides the optimal routes for cross-chain transactions, including the optimal origin chain, input tokens, and swap routes. The Orchestrator will also inject executions for onchain actions on the destination chain, or consumer-injected executions from the wallet. This includes deploying and initialising new accounts on the destination chain if the user has never transacted on that network.
+- **Intent Auctions and Broadcasting:** Intents are broadcasted to Solvers who bid on the right to fill an intent. The format of the auction process will depend on the intent.
