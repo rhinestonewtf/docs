@@ -1,5 +1,5 @@
 ---
-title: "Introduction"
+title: "Overview"
 ---
 
 [Smart Sessions](https://github.com/erc7579/smartsessions) is an implementation of session keys that works across all ERC-7579-compatible accounts.
@@ -41,7 +41,9 @@ Supported policies include:
 
 When defining multiple policies within a session or an action, a transaction that passes **every** specified policy is considered valid. If no policies are specified, **any** transaction will pass (i.e., the sudo policy is applied).
 
-## Creating sessions
+## Usage
+
+### Creating sessions
 
 To create an account with a session key:
 
@@ -124,7 +126,7 @@ const session: Session = {
 }
 ```
 
-## Using sessions
+### Using sessions
 
 To authorize a transaction with a session key you've defined before:
 

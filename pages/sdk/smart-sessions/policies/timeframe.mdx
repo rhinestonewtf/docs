@@ -1,0 +1,25 @@
+---
+title: "Timeframe Policy"
+---
+
+You can set the valid timeframe for the transactions, by defining the time bound in which the transaction remains valid.
+
+To enable the policy:
+
+```ts {6-12}
+const session: Session = {
+  owners: {
+    type: "ecdsa",
+    accounts: [accountA],
+  },
+  policies: [
+    {
+      type: "time-frame",
+      validAfter: Date.now(),
+      validUntil: Date.now() + 1000 * 60 * 60 * 24,
+    },
+  ],
+};
+```
+
+This will create a session that will be valid for 24 hours.

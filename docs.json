@@ -77,7 +77,7 @@
 					{
 						"group": "Smart Sessions",
 						"pages": [
-							"pages/sdk/smart-sessions/introduction",
+							"pages/sdk/smart-sessions/overview",
 							{
 								"group": "Signature Validators",
 								"pages": [
@@ -90,12 +90,11 @@
 								"pages": [
 									"pages/sdk/smart-sessions/policies/sudo",
 									"pages/sdk/smart-sessions/policies/call",
-									"pages/sdk/smart-sessions/policies/gas-limit",
 									"pages/sdk/smart-sessions/policies/spending-limit",
-									"pages/sdk/smart-sessions/policies/timeframe"
+									"pages/sdk/smart-sessions/policies/timeframe",
+									"pages/sdk/smart-sessions/policies/usage-limit"
 								]
-							},
-							"pages/sdk/smart-sessions/actions"
+							}
 						]
 					},
 					"pages/sdk/module-sdk",
