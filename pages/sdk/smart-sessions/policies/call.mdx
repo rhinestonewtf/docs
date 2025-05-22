@@ -2,7 +2,7 @@
 title: "Call Policy"
 ---
 
-Call policy allows to filter out transactions based on the call data and ether value.
+Call policy allows to filter out actions based on the call data and ether value.
 
 Within a policy, you can set up to 16 rules. Each rule consists of a condition, the calldata offset, and a reference value to compare.
 
@@ -26,11 +26,11 @@ The number of bytes to offset from the start (excluding the function selector).
 
 The resulting value is a hex string of 32 bytes.
 
-In other words, if the offset is 10, the compared value will be formed from the call data with the starting index of `4 + 10 = 14` and an end index of `4 + 10 + 32 = 46`.
+In other words, if the offset is 10, the compared value will be formed from the calldata with the starting index of `4 + 10 = 14` and an end index of `4 + 10 + 32 = 46`.
 
 ## Reference Value
 
-Value to compare the call data against to.
+Value to compare the calldata against.
 
 The reference value is a hex string of 32 bytes. For convenience, you can pass the hex string of a smaller length or a bigint, and the SDK will convert it for you.
 
