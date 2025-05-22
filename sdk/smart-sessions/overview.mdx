@@ -11,7 +11,7 @@ It separates **owners**, **policies**, and **actions** to increase composability
 Smart Sessions support a wide range of signing mechanisms out of the box:
 
 - [Single ECDSA key](./signature-validators/ecdsa)
-- [Multiple ECDSA keys](./signature-validators/ecdsa) (i.e. multisig)
+- [Multiple ECDSA keys](./signature-validators/multisig) (i.e. multisig)
 - Passkeys (_soon_)
 
 You can also use custom validators to validate sessions, as long as they are [ERC-7780](https://eips.ethereum.org/EIPS/eip-7780) compatible.
@@ -33,10 +33,10 @@ Policies let you restrict the session to hit specific conditions. You can define
 Supported policies include:
 
 - [Sudo](./policies/sudo): allows any transaction
-- Universal action: allows transactions with the specified calldata
-- Spending limit: allows a limited value of ERC20 tokens to be transferred and approved
-- Timeframe: allows transaction within the specified time frame
-- Usage limit: allows a limited number of transaction
+- [Call](./policies/call): allows transactions with the specified calldata
+- [Spending limit](./policies/spending-limit): allows a limited value of ERC20 tokens to be transferred and approved
+- [Timeframe](./policies/timeframe): allows transaction within the specified time frame
+- [Usage limit](./policies/usage-limit): allows a limited number of transaction
 - Value limit: allows a limited ETH value transfered
 
 When defining multiple policies within a session or an action, a transaction that passes **every** specified policy is considered valid. If no policies are specified, **any** transaction will pass (i.e., the sudo policy is applied).
