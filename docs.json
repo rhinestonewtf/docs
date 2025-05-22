@@ -104,10 +104,10 @@
 							{
 								"group": "Smart Account Providers",
 								"pages": [
-									"pages/sdk/customize/smart-account-providers/biconomy-nexus",
+									"pages/sdk/customize/smart-account-providers/nexus",
 									"pages/sdk/customize/smart-account-providers/safe",
-									"pages/sdk/customize/smart-account-providers/zerodev-kernel",
-									"pages/sdk/customize/smart-account-providers/etherspot-prime"
+									"pages/sdk/customize/smart-account-providers/kernel",
+									"pages/sdk/customize/smart-account-providers/prime"
 								]
 							},
 							"pages/sdk/customize/erc4337-infra"
