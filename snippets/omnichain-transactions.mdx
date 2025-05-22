@@ -2,11 +2,9 @@
 
 ## Token Requests
 
-`tokenRequests` is a list of token assets and their amounts that are required on the target chain to make the transaction. It tells the solvers to ensure those assets are present before executing the transaction `calls`.
+`tokenRequests` is a list of token assets and their amounts that are required on the target chain to make the transaction. It tells the solvers to ensure those assets are present before executing the transaction `calls`. If you don't need any assets on the target chain, you can omit this.
 
-If those assets are already present on the target chain, no bridging is needed. If some assets are missing or if the amount is not enough to fulfill the request, solvers will bridge those assets from any available chain.
-
-If you don't need any assets on the target chain, you can omit this.
+<Note>Solvers will supply all assets specified in the `tokenRequests`. If the user already has the required assets, don't add them into `tokenRequests`.</Note>
 
 ## Gas Limit
 
