@@ -1,10 +1,10 @@
 ---
 title: "What is Rhinestone?"
-description: "Learn a bit more about Rhinestone and how it all works"
+description: "Learn more about Rhinestone and how it all works"
 mode: "wide"
 ---
 
-Rhinestone provides **infrastructure and tooling for modular smart accounts** (i.e., Account Abstraction) and an **intent-based transaction system that enables instant crosschain execution** (i.e., Chain Abstraction).
+Rhinestone provides **infrastructure and tooling for modular smart accounts** and an **intent-based transaction system that enables instant crosschain execution** (i.e., Chain Abstraction).
 
 We provide all the core features one would expect from a smart account:
 
@@ -14,15 +14,15 @@ We provide all the core features one would expect from a smart account:
 
 Along with everything you need for a chain abstracted account:
 
-- Resource locks.
-- Aggregated settlement layers (such as Across).
+- Resource locks for lightning-fast crosschain intents.
+- Aggregated settlement layers for extensive chain and token coverage.
 - A marketplace of solvers with deep liquidity.
 
 ## Smart Accounts
 
-We wrote the standard for modular smart accounts ([ERC-7579](https://erc7579.com/)) to enable portable, secure, and extensible smart accounts for the ecosystem. Whether a user has a Safe or a Nexus, the application layer should not only be agnostic, but also have the ability to write custom account-agnostic modules that extend the feature set of any account.
+We wrote the standard for modular smart accounts ([ERC-7579](https://erc7579.com/)) to enable portable, secure, and extensible smart wallets for the ecosystem. Whether a user has a Safe or a Nexus, the application layer should not only be agnostic, but also have the ability to write custom modules that extend the feature set of any account.
 
-As such, the Rhinestone tech stack is account-agnostic, supporting all major smart account implementations to ensure zero vendor lock-in and maximum distribution. We provide a library of Core Modules, including passkeys, session keys, automations, resource locking, and more, all easily accessible through a simple SDK.
+The Rhinestone tech stack is account-agnostic, supporting all major smart account implementations to ensure zero vendor lock-in and maximum distribution. We provide a library of Core Modules, including passkeys, session keys, automations, resource locking, and more, all easily accessible through a simple SDK.
 
 <img
   className="block dark:hidden"
@@ -34,15 +34,17 @@ As such, the Rhinestone tech stack is account-agnostic, supporting all major sma
   src="/images/omniaccount_1_dark.png"
 />
 
-We also provide an advanced toolkit for teams looking to develop custom modules, called ModuleKit.
+We also provide an advanced toolkit for teams looking to develop custom modules, called [ModuleKit](https://docs.rhinestone.wtf/build-modules).
 
 ## Transaction Infrastructure
 
-The advent of ERC-4337 introduced an open-source technology for smart account transactions, called useroperations. However, this infrastructure is isolated to single chains, and with the inevitable horizontal scaling of blockchain technology – i.e., the launch of many L2s and alt VMs – we require a transaction infrastructure that is multi-chain first.
+The advent of ERC-4337 introduced an open-source technology for smart account transactions, called useroperations. However, this infrastructure is isolated to single chains. With the inevitable horizontal scaling of blockchain technology – i.e., the launch of many L2s and alt VMs – we require a transaction infrastructure that is multi-chain first.
 
-Rhinestone’s transaction infrastructure provides an answer to this problem. We provide the key onchain and offchain components for transforming any blockchain account (EOA or Smart Account) into a chain abstracted account. We utilise resource locks and aggregate crosschain settlement layers (such as Across) to ensure developers have the best routing, lowest prices, and fastest speeds for any intent-powered transaction, both same-chain and cross-chain. 
+Rhinestone’s transaction infrastructure provides an answer to this problem. We provide the core components for transforming any blockchain account (EOA or smart account) into a chain-abstracted account. We utilize resource locks and aggregate crosschain settlement layers (such as Across) to ensure developers have the best routing, lowest prices, and fastest speeds for any intent-powered transaction, both same chain and crosschain. 
 
-This includes transfers, swaps, and executions/calls. We call this system Omni Account.
+This includes transfers, swaps, and executions/calls. We call this system [Omni Account](../concepts/chain-abstraction).
+
+### Omni Account Architecture
 
 <img
   className="block dark:hidden"
@@ -56,9 +58,9 @@ This includes transfers, swaps, and executions/calls. We call this system Omni A
 
 For an in-depth review of our chain abstraction architecture, visit the [concepts section](../concepts/chain-abstraction).
 
-### **Rhinestone Intents**
+### Rhinestone Intents
 
-When a user transacts through the Rhinestone system, their “intent” is propagated to a marketplace of Solvers who compete to fill these intents on the destination chain. To fill intents, Solvers store and manage token liquidity across all supported chains to transact on behalf of the user. After filling, Solvers are made whole through a supported settlement layer. Solvers also support same-chain transactions by supplying ETH to cover the gas costs for transaction execution, providing a substitute for regular ERC-4337 bundlers and paymasters.
+When a user transacts through the Rhinestone system, their “intent” is propagated to a marketplace of solvers who compete to fill these intents on the destination chain. To fill intents, solvers store and manage token liquidity across all supported chains to transact on behalf of the user. After filling, Solvers are made whole through a supported settlement layer. Solvers also support same-chain transactions by supplying ETH to cover the gas costs for transaction execution, providing a substitute for regular ERC-4337 bundlers and paymasters.
 
 For a deeper understanding of the Rhinestone intent lifecycle, visit the relevant concepts section.
 
@@ -66,7 +68,7 @@ For a deeper understanding of the Rhinestone intent lifecycle, visit the relevan
 
 Rhinestone delivers crosschain fill speeds of less than 1.5 seconds. Even when transferring from Ethereum L1 to an L2.  
 
-Rhinestone combines an intent-based transaction architecture with resource locking to enable pre-filling or optimistic filling. Resource locks enable users to make onchain guarantees to Solvers, who can then fill intents before funds leave the user’s account on the source chain. Settlement is then delayed until after the target chain execution takes place. This is what allows cross-chain transactions to be filled in under 1.5 seconds. 
+Rhinestone combines an intent-based transaction architecture with resource locking to enable pre-filling or optimistic filling. Resource locks enable users to make onchain guarantees to solvers, who can then fill intents before funds leave the user’s account on the source chain. Settlement is then delayed until after the target chain execution takes place. This is what allows cross-chain transactions to be filled in under 1.5 seconds. 
 
 For resource locks, we are utilizing [TheCompact](https://github.com/Uniswap/the-compact), a dedicated escrow contract co-developed with Uniswap for cross-chain intents. For more on resource locks and our R&D project to enact resource locks through a hook module on the account, see this [post](https://blog.rhinestone.wtf/resource-lock-hook-335590cec733).
 
