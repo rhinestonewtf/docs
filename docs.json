@@ -303,7 +303,83 @@
 									]
 								}]
 							},
-							"build-modules/reference/glossary/types"
+							"build-modules/reference/glossary/types",
+							{
+								"group": "CheckNSignatures",
+								"pages": [{
+									"group": "CheckSignatures",
+									"pages": [
+										"build-modules/reference/checknsignatures/checksignatures/recoverNSignatures"
+									]
+								}, {
+									"group": "CheckNSignaturesFoundryHelper",
+									"pages": [
+										"build-modules/reference/checknsignatures/checknsignaturesfoundryhelper/sign"
+									]
+								}]
+							},
+							{
+								"group": "ERC4337 Data Libs",
+								"pages": [{
+									"group": "SentinelList",
+									"pages": [{
+										"group": "SentinelListLib",
+										"pages": [
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/init",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/alreadyInitialized",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/getNext",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/push",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/safePush",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/pop",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/popAll",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/contains",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/getEntriesPaginated"
+										]
+									}, {
+										"group": "SentinelList4337Lib",
+										"pages": [
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/init",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/alreadyInitialized",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/getNext",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/push",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/safePush",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/pop",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/popAll",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/contains",
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/getEntriesPaginated"
+										]
+									}, {
+										"group": "LinkedBytes32Lib",
+										"pages": [
+											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/init",
+											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/alreadyInitialized",
+											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/getNext",
+											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/push",
+											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/safePush",
+											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/pop",
+											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/popAll",
+											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/contains",
+											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/getEntriesPaginated"
+										]
+									}, {
+										"group": "SentinelListHelper",
+										"pages": [
+											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellisthelper/findPrevious"
+										]
+									}]
+								}]
+							},
+							{
+								"group": "ERC4337 Validation",
+								"pages": [
+									{
+										"group": "Simulator",
+										"pages": [
+											"build-modules/reference/erc4337-validation/simulator/simulateUserOp"
+										]
+									}
+								]
+							}
 						]
 					},
 					{
