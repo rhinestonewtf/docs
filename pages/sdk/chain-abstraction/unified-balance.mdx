@@ -25,7 +25,7 @@ Often, you want to let the user spend the maximum possible amount of tokens for 
 
 While the `getPortfolio` util provides the total spendable balance, it doesn't consider the execution fee, as it is chain-specific and depends on the transaction gas cost.
 
-To get an estimate of the maximum amount of tokens you can spend on a given transaction, use `getMaxSpendableAmount`:
+To get an estimate of the maximum amount of tokens you can spend on a given transaction, use `getMaxSpendableAmount`. In this case, we get the maximum spendable USDC amount on Base Sepolia:
 
 ```ts
 const usdcAddress = getTokenAddress('USDC', baseSepolia.id)

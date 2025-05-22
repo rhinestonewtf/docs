@@ -9,24 +9,42 @@ Rhinestone’s core product offering is Omni Account, an intent-powered system t
 These crosschain intents allows users to instantly spend tokens from one chain (or multiple chains) on another chain, without bridging or without caring for the destination chain gas token. Example use cases include:
 
 - Lend ETH on Base using USDC on Ethereum Mainnet and Polygon
+
 - Purchase an NFT on Polygon using ETH on Optimism
+
 - Swap USDC to DEGEN using ETH from Arbitrum 
 
 ## Key Features
 
-- **Wide Account Support:** Unlike all other Chain Abstraction solutions, Omni Account is compatible with all major smart account implementations and smart EOAs (via EIP-7702).   
-- **Atomic and Deterministic:** Any arbitrary calldata can be appended to the crosschain intent for crosschain executions. These crosschain transactions are atomic and deterministic (i.e., zero slippage) because the solver performs the destination chain transaction before claiming funds from the users source chain accounts.
-- **Incredibly low latency:** Omni Account utilize resource locks and aggregates settlement layers (such as Across and Relay) to provide unparalleled speed. We provide optimal routing to give you best-in-class speed and pricing. 
-- **Multiple source chains:** M-to-1 source chain to destination chain, and M-to-n input tokens to output tokens. Use an arbitrary number of origin chains and tokens to fund a single intent on a single destination chain.
+### General-purpose Transaction Infrastructure
+
+All smart accounts require transaction infrastructure, even smart EOAs (via EIP-7702). This is the reason ERC-4337 exists. **Omni Account utilizes solvers to support both same-chain and crosschain transactions**. This is a huge DevX improvement! One toolkit for all your smart account needs.  
+
+### Wide Account Support
+
+Unlike other Chain Abstraction solutions, Omni Account does not lock developers into a specific account implementation. **It is compatible with all smart account implementations and EOAs (via EIP-7702)**. This not only provides more freedom to developers but also allows applications to support a wider array of users with an existing smart wallet. 
+
+### One Signature with M-to-1 Chains and Tokens 
+
+**Omni Account can mix multiple input tokens, source chains, and settlement layers within a single intent**. All within one signature. This allows for a truly chain-abstracted balance where intents can be funded from any support chain and with any supported token. Rhinestone aggregates existing settlement layers to provide an extensive chain abstraction service.  
+
+### Atomic and Deterministic 
+
+**Even with M-to-1 chains and tokens, and with multiple settlement layers, Rhinestone intents are atomic and deterministic**. This provides a one-click experience to the end user and allows for arbitrary calldata (such as a DEX swap or DeFi interaction) to be included in the crosschain intent with guaranteed execution (because there is no slippage).  
+
+### Incredibly low latency
+
+Omni Account utilizes resource locks to provide unparalleled speed. User funds are pre-locked, allowing **solvers to optimistically fill crosschain intents** and then subsequently process the claim against the users' source chain accounts. This allows fills to occur in 1-2 seconds from being posted. We also provide a **pre-confirmation service** that allows solvers to inform applications when an intent has been successfully submitted to the chain.
 
 ## Omni Account
 
-Omni Account consists of two core components; 
+Omni Account consists of two core onchain components; 
 
 - **Smart Account:** This can be any supported smart account or a smart EOA. 
+
 - **Omni Account Modules:** A set of contracts that enforce resource locks and set verifiable execution pathways for the Orchestrator to the integrated settlement layers.
 
-## The Orchestrator
+### The Orchestrator
 
 The Orchestrator is an offchain entity that enforces resource locks and coordinates user intents with Solvers and Settelement Layers. It listens to user intents, propagates them to a solver network, creates resource lock allocations for counterparties (e.g., Solvers), and facilitates the claim process via the chosen settlement layer (e.g., Across).
 
@@ -42,19 +60,19 @@ The Orchestrator is trustless from the end user’s perspective. It can only int
   src="/images/omniaccount_8_dark.png"
 />
 
-## Settlement Layers
+### Settlement Layers
 
-Rhinestone currently uses Across as its primary settlement layer. Over time, additional settlement layers will be integrated to expand chain coverage, token coverage, and ensure the fastest and most cost-effective routes.
+Rhinestone currently uses Across as its primary settlement layer. Additional settlement layers are in alpha, including Relay, Eco, and Catalyst. By aggregating settlement layers, Rhinestone can expand chain coverage, token coverage, and ensure the fastest and most cost-effective routes.
 
-### Why is Across our Primary Settlement Layer?
+Why is Across our Primary Settlement Layer?
 
-**Existing Solver Network and Deep Liquidity:** Across has a mature marketplace of solvers (or Relayers) that can be used to scale this new form of cross-chain intents.
+- **Existing Solver Network and Deep Liquidity:** Across has a mature marketplace of solvers (or Relayers) that can be used to scale this new form of cross-chain intents.
 
-**Integrated Solver Netting:** Across supports automatic solver netting by allowing fillers to claim funds using liquidity provider (LP) funds on any chain. LP yields are regulated based on the net assets entering and leaving a chain, ensuring efficient use of available liquidity.
+- **Integrated Solver Netting:** Across supports automatic solver netting by allowing fillers to claim funds using liquidity provider (LP) funds on any chain. LP yields are regulated based on the net assets entering and leaving a chain, ensuring efficient use of available liquidity.
 
-**Trustless Settlement Process:** Across already has a mature infrastructure that utilizes optimistic proofs to secure the settlement process in a trustless way.
+- **Trustless Settlement Process:** Across already has a mature infrastructure that utilizes optimistic proofs to secure the settlement process in a trustless way.
 
-## Solvers
+### Solvers
 
 Solvers are entities that hold token inventory on each supported chain and fill intents on behalf of the user. In the Across ecosystem, Solvers are referred to as Relayers. Other Chain Abstraction systems refer to solvers as “fillers” or “market makers.”
 

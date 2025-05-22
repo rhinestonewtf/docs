@@ -32,12 +32,12 @@ Policies let you restrict the session to hit specific conditions. You can define
 
 Supported policies include:
 
-- [Sudo](./policies/sudo): allows any action
-- [Call](./policies/call): allows actions with the specified calldata
+- [Sudo](./policies/sudo): allows any transaction
+- [Call](./policies/call): allows transactions with the specified calldata
 - [Spending limit](./policies/spending-limit): allows a limited value of ERC20 tokens to be transferred and approved
-- [Timeframe](./policies/timeframe): allows actions within the specified time frame
-- [Usage limit](./policies/usage-limit): allows a limited number of actions
-- Value limit: allows a limited amount of ETH value transfered
+- [Timeframe](./policies/timeframe): allows transaction within the specified time frame
+- [Usage limit](./policies/usage-limit): allows a limited number of transaction
+- Value limit: allows a limited ETH value transfered
 
 When defining multiple policies within a session or an action, a transaction that passes **every** specified policy is considered valid. If no policies are specified, **any** transaction will pass (i.e., the sudo policy is applied).
 

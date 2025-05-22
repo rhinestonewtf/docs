@@ -27,11 +27,11 @@ The number of bytes to offset from the start (excluding the function selector).
 
 The resulting value is a hex string of 32 bytes.
 
-In other words, if the offset is 10, the compared value will be formed from the call data with the starting index of `4 + 10 = 14` and an end index of `4 + 10 + 32 = 46`.
+In other words, if the offset is 10, the compared value will be formed from the calldata with the starting index of `4 + 10 = 14` and an end index of `4 + 10 + 32 = 46`.
 
 ## Reference Value
 
-Value to compare the call data against to.
+Value to compare the calldata against.
 
 The reference value is a hex string of 32 bytes. For convenience, you can pass the hex string of a smaller length or a bigint, and the SDK will convert it for you.
 

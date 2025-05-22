@@ -21,7 +21,7 @@ Rhinestone led the development of ERC-7579, a minimal standard for modular smart
 
 ### Modules
 
-Modules are self-contained smart contracts that extend a smart account's feature set. This allows developers to access the programmable validation and execution of smart accounts, allowing teams to build custom components or reuse modules built by other developers.
+Modules are self-contained smart contracts that extend a smart account's feature set. This allows developers to access the programmable validation and execution of smart accounts by building a custom module or reusing existing modules. This is a powerful shift in wallet development as it transforms the underlying account contract into an open platform. 
 
 There are four types of modules:
 
@@ -34,8 +34,8 @@ There are four types of modules:
 
 Rhinestone maintains a set of Core Modules that provide the table-stakes features any developer needs when building on a Smart Account. These modules include:
 
-- **Ownable Validator** enables an EOA as a signer for a smart account. It is ideal for product use cases where users are expected to be crypto-native and possess an EOA wallet. Alternatively, it can be combined with MPC providers' embedded signers.
-- **Webauthn Validator** enables a passkey as a signer on a smart account, allowing users to sign cryptographic messages with their biometrics via the secure enclave of their device or use a preferred password manager.
+- **Ownable Validator (ECDSA)** enables an EOA as a signer on a smart account. It is ideal for product use cases where users are expected to connect an existing EOA wallet. It can also be combined with MPC providers to enable social login.
+- **Webauthn (Passkeys) Validator** enables a passkey as a signer on a smart account, allowing users to sign cryptographic messages with their biometrics via the secure enclave of their device or use a preferred password manager.
 - **Social Recovery** allows users to specify one or multiple guardians with an m-of-n threshold for account recovery. To recover the account, the guardians are able to override the existing account validation logic.
 - **Validator Multiplexer** allows developers to compose any set of signer modules together. For example, passkeys can be set as the main signer, but both the passkey and the ECDSA signature are required when making high-value transfers.
 - **Scheduled Transfers and Scheduled Orders** allows for automated transfers and swaps to be triggered on a smart account. This module must be paired with an offchain automation system to trigger transactions.
