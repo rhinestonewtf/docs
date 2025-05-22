@@ -10,7 +10,7 @@ If you don't need any assets on the target chain, you can omit this.
 
 ## Gas Limit
 
-You can override the default gas limit for the target chain execution with `gasLimit`:
+You can override the default gas limit for the target chain execution with `gasLimit`. Doing this will make the intent better priced, because we can more accurately calculate the fee that a solver needs to be reimbursed with for paying the gas. If this is not provided, we calculate using a gas limit of 1_000_000.
 
 ```ts {10}
 const transaction = await rhinestoneAccount.sendTransaction({
