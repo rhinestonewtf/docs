@@ -43,7 +43,6 @@ const transaction = await rhinestoneAccount.sendTransaction({
   calls: [
     {
       to: usdcTarget,
-      value: 0n,
       data: encodeFunctionData({
         abi: erc20Abi,
         functionName: 'transfer',

@@ -2,35 +2,35 @@
 title: "Call Policy"
 ---
 
-Call policy allows to filter out transaction based on the calldata and ether value.
+Call policy allows to filter out transactions based on the call data and ether value.
 
 Within a policy, you can set up to 16 rules. Each rule consists of a condition, the calldata offset, and a reference value to compare.
 
-When chechking a transaction, the policy checks it against every rule. For a policy to accept a transaction, *every* rule of that policy should pass.
+When checking a transaction, the policy checks it against every rule. For a policy to accept a transaction, *every* rule of that policy should pass.
 
 ## Conditions
 
 Available conditions are:
 
-* equal (x == A)
-* greater than (x > A)
-* less than (x < A)
-* greater than or equal (x ≥ A)
-* less than or equal (x ≤ A)
-* not equal (x ≠ A)
-* in range (A ≤ x ≤ B)
+* equal ($x = A$)
+* greater than ($x > A$)
+* less than ($x < A$)
+* greater than or equal ($x \geq A$)
+* less than or equal ($x \leq A$)
+* not equal ($x \neq A$)
+* in range ($A \leq x \leq B$)
 
 ## Calldata Offset
 
 The number of bytes to offset from the start (excluding the function selector).
 
-The compared value is a hex string of 32 bytes.
+The resulting value is a hex string of 32 bytes.
 
-In other words, if the `offset` is 10, the compared value will be formed from the calldata with the starting index of `4 + 10 = 14` and an end index of `4 + 10 + 32 = 46`.
+In other words, if the offset is 10, the compared value will be formed from the call data with the starting index of `4 + 10 = 14` and an end index of `4 + 10 + 32 = 46`.
 
 ## Reference Value
 
-Value to compare the calldata against to.
+Value to compare the call data against to.
 
 The reference value is a hex string of 32 bytes. For convenience, you can pass the hex string of a smaller length or a bigint, and the SDK will convert it for you.
 
@@ -71,17 +71,15 @@ const session: Session = {
 }
 ```
 
-Together with an ERC20 transfer action, this policy will only let USDC transfers to a single receiver address.
+Together with an ERC20 transfer action, this policy will only allow USDC transfers to a single receiver address.
 
 ### Param Accumulator
 
 You can limit the total accumulated value of a param across all session uses.
 
-This can be helpful if you want to e.g. 
+This can be helpful if you want to e.g. limit the total value of tokens passed through the session.
 
-```ts
-const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
-
+```ts {6-18}
 const session: Session = {
   owners: {
     type: 'ecdsa',
@@ -92,10 +90,10 @@ const session: Session = {
       type: 'universal-action',
       rules: [
         {
-          condition: 'equal',
-          calldataOffset: 0n,
-          referenceValue: receiver,
-          usageLimit: 
+          condition: 'lessThan',
+          calldataOffset: 20n,
+          referenceValue: parseUnits("10", 6),
+          usageLimit: parseUnits("50", 6),
         },
       ],
     },
@@ -107,9 +105,11 @@ const session: Session = {
 }
 ```
 
+Together with an ERC20 transfer action, this will limit the token transferred to 10 USDC per session use, and 50 USDC for a total lifespan of the session.
+
 ### Value Limit
 
-To limit maximum value to pass in a single transaction:
+To limit the maximum value to pass for a single session use:
 
 ```ts {11}
 const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
@@ -122,7 +122,7 @@ const session: Session = {
   policies: [
     {
       type: 'universal-action',
-      valueLimitPerUse: 0n,
+      valueLimitPerUse: parseUnits("0.1", 18),
       rules: [
         {
           condition: 'equal',
@@ -138,3 +138,5 @@ const session: Session = {
   ]
 }
 ```
+
+This will limit the value per session use to 0.1 ETH.
