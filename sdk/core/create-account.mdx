@@ -39,7 +39,7 @@ const usdcAmount = 1n
 const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 
 const transaction = await rhinestoneAccount.sendTransaction({
-  chain,
+  chain: chain.id,
   calls: [
     {
       to: usdcTarget,
