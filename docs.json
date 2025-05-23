@@ -451,7 +451,7 @@
 	"navbar": {
 		"links": [
 			{
-				"label": "Old Docs",
+				"label": "Legacy Docs",
 				"href": "https://legacy.docs.rhinestone.dev"
 			}
 		]
