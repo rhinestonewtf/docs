@@ -451,6 +451,10 @@
 	"navbar": {
 		"links": [
 			{
+				"label": "GitHub",
+				"href": "https://github.com/rhinestonewtf"
+			},
+			{
 				"label": "Legacy Docs",
 				"href": "https://legacy.docs.rhinestone.dev"
 			}
