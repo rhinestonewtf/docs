@@ -35,7 +35,9 @@
 						"pages": [
 							"home/concepts/modular-smart-accounts",
 							"home/concepts/chain-abstraction",
-							"home/concepts/rhinestone-intent-architecture"
+							"home/concepts/rhinestone-intent-architecture",
+							"home/concepts/smart-sessions",
+							"home/concepts/smart-eoas-eip-7702"
 						]
 					},
 					{
@@ -62,10 +64,10 @@
 							"sdk/core/create-account",
 							"sdk/core/eip-7702",
 							"sdk/core/send-omnichain-transaction",
-							"sdk/core/batch-transactions",
 							"sdk/core/passkeys",
 							"sdk/core/ecdsa-signer",
-							"sdk/core/multisig"
+							"sdk/core/multisig",
+							"sdk/core/batch-transactions"
 						]
 					},
 					{
@@ -80,6 +82,7 @@
 					{
 						"group": "Smart Sessions",
 						"pages": [
+							"sdk/smart-sessions/introduction",
 							"sdk/smart-sessions/overview",
 							{
 								"group": "Signature Validators",

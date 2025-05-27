@@ -1,9 +1,28 @@
 ---
 title: "Multisig"
+description: "Setup an m-of-n passkeys or ECDSA multisig."
 ---
 
+## Overview
 
-## ECDSA
+A multisig account requires multiple signatures from a predefined set of authorized parties to approve and execute transactions. Unlike single-signature setups, where one keyholder controls the account, multisig enhances security and trust by distributing control among multiple stakeholders. 
+
+In most common cases, multisig is used to ensure that no single party can act unilaterally, reducing the risk of theft, loss, or misuse of funds. However, in some cases multisigs can also be used to improve the user experience. For example, when using passkeys a common headache is that passkeys are not portable between devices. Therefore, in order to provide a seamless experience a new passkey signer must be added for each new device, creating a 1-of-1+n(devices) setup.
+
+Both our [ESDCA signer](./ecdsa-signer) (Ownable Validator) and [passkeys signer](./passkeys) (WebAuthn Validator) support multisig by verifying individual signatures, while the smart account enforces the required threshold (e.g., 2-of-3 signatures).
+
+### How it works
+
+* **Mechanism**: The Ownable Validator or WebAuthn Validator stores a list of owner addresses and validates a single signature at a time, ensuring the signer is a registered owner.  
+* **Multisig Integration**: The smart account collects signatures from multiple owners, encodes them into a signature field, and passes each for validation. The account enforces the multisig policy (e.g., 2-of-3 owners).  
+* **Workflow**:  
+  1. Owners submit a signature.  
+  2. The smart account aggregates signatures and iterates through them, calling the Ownable Validator or WebAuthn Validator to verify each against the stored owners.  
+  3. If the required number of valid signatures meets the account’s threshold, the action is approved.
+
+## Usage
+
+### ECDSA
 
 To create a multisig account:
 
@@ -33,6 +52,6 @@ const rhinestoneAccount = await createRhinestoneAccount({
 
 By default, the `threshold` is 1 (any multisig owner can sign any transaction).
 
-## Passkeys
+### Passkeys
 
-We're working on a multisig support for passkeys. Let us know if you would benefit from that.
+We're working on a multisig support for passkeys. [Let us know](http://t.me/kurt_larsen) if you would benefit from that.
