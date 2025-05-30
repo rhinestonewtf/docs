@@ -1,167 +1,13 @@
 {
 	"openapi": "3.0.2",
 	"paths": {
-		"/bundles/{bundleId}": {
-			"get": {
-				"description": "Retrieve the status of a specific bundle along with the status of each order within the bundle.",
-				"summary": "Get Bundle",
-				"tags": [],
-				"parameters": [{
-						"name": "bundleId",
-						"in": "path",
-						"required": true,
-						"schema": {
-							"type": "string",
-							"pattern": "^\\d+$",
-							"example": "77119256265773742309930654065362693497375232736834856992878277299604179621015"
-						},
-						"description": "Unique identifier of the bundle"
-					},
-					{
-						"name": "x-api-key",
-						"in": "header",
-						"required": true,
-						"schema": {
-							"type": "string",
-							"description": "Rhinestone API key"
-						}
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "200",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"status": {
-											"type": "string",
-											"enum": [
-												"PENDING",
-												"EXPIRED",
-												"FILLED",
-												"PRECONFIRMED",
-												"PARTIALLY_COMPLETED",
-												"COMPLETED",
-												"FAILED",
-												"UNKNOWN"
-											],
-											"description": "Overall status of the bundle"
-										},
-										"fillTimestamp": {
-											"type": "number",
-											"description": "Timestamp of the fill transaction",
-											"example": 1633493192
-										},
-										"fillTransactionHash": {
-											"type": "string",
-											"description": "Transaction hash of the fill transaction",
-											"example": "0xc1674f4671accbceec3f22c2c9cfa4f7aead7183f48df90c239e0d85d6c31e21"
-										},
-										"claims": {
-											"type": "array",
-											"items": {
-												"type": "object",
-												"properties": {
-													"depositId": {
-														"type": "string",
-														"description": "Unique identifier of the deposit. BigInt is serialized as a string",
-														"example": "77119256265773742309930654065362693497375232736834856992878277299604179621015"
-													},
-													"chainId": {
-														"type": "number",
-														"description": "Chain ID of the deposit",
-														"example": 10
-													},
-													"status": {
-														"type": "string",
-														"enum": [
-															"PENDING",
-															"EXPIRED",
-															"CLAIMED"
-														],
-														"description": "Status of individual order",
-														"example": "CLAIMED"
-													},
-													"claimTimestamp": {
-														"type": "number",
-														"description": "Timestamp when the claim was processed"
-													},
-													"claimTransactionHash": {
-														"type": "string",
-														"description": "Transaction hash of the claim transaction"
-													}
-												},
-												"required": [
-													"depositId",
-													"chainId",
-													"status"
-												]
-											},
-											"description": "Array of claims within the bundle"
-										}
-									},
-									"required": [
-										"status",
-										"claims"
-									],
-									"description": "Successfully retrieved bundle status"
-								}
-							}
-						}
-					},
-					"400": {
-						"description": "400",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"error": {
-											"type": "string",
-											"description": "Error message for invalid bundle ID format",
-											"example": "Bundle ID must be numeric"
-										}
-									},
-									"required": [
-										"error"
-									],
-									"description": "Invalid bundle ID"
-								}
-							}
-						}
-					},
-					"500": {
-						"description": "500",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"error": {
-											"type": "string",
-											"description": "Error message describing the server-side issue",
-											"example": "An unknown error occurred"
-										}
-									},
-									"required": [
-										"error"
-									],
-									"description": "Server error"
-								}
-							}
-						}
-					}
-				}
-			}
-		},
 		"/accounts/{userAddress}/portfolio": {
 			"get": {
 				"description": "Retrieves the token balances across all supported chains for a user's abstracted account",
 				"summary": "Get User Portfolio",
-				"tags": [],
-				"parameters": [{
+				"tags": ["User"],
+				"parameters": [
+					{
 						"name": "userAddress",
 						"in": "path",
 						"required": true,
@@ -171,7 +17,8 @@
 							"example": "0x579d5631f76126991c00fb8fe5467fa9d49e5f6a"
 						},
 						"description": "Ethereum address of the user account"
-					}, {
+					},
+					{
 						"name": "x-api-key",
 						"in": "header",
 						"required": true,
@@ -188,7 +35,8 @@
 							"type": "string",
 							"example": "1,10,137"
 						}
-					}, {
+					},
+					{
 						"name": "tokens",
 						"in": "query",
 						"description": "Comma-separated list of chain:token pairs to filter by",
@@ -232,7 +80,8 @@
 														"example": 6
 													},
 													"balance": {
-														"type": "string",
+														"type": "integer",
+														"format": "int64",
 														"description": "Total balance across all chains (as string to handle BigInt)",
 														"example": "1000000"
 													},
@@ -252,7 +101,8 @@
 																	"example": "0xA0b86a33E6441b8C4505B8C4505B8C4505B8C4505"
 																},
 																"balance": {
-																	"type": "string",
+																	"type": "integer",
+																	"format": "int64",
 																	"description": "Token balance on this specific chain (as string to handle BigInt)",
 																	"example": "500000"
 																}
@@ -280,6 +130,66 @@
 										"portfolio"
 									],
 									"description": "Successfully retrieved user portfolio"
+								},
+								"examples": {
+									"Single Token": {
+										"summary": "Portfolio with single token",
+										"value": {
+											"portfolio": [
+												{
+													"tokenName": "USDC",
+													"tokenDecimals": 16,
+													"balance": "1000000000000000000",
+													"tokenChainBalance": [
+														{
+															"chainId": 10,
+															"tokenAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+															"balance": "1000000000000000000"
+														}
+													]
+												}
+											]
+										}
+									},
+									"Multiple Tokens": {
+										"summary": "Portfolio with multiple tokens across chains",
+										"value": {
+											"portfolio": [
+												{
+													"tokenName": "USDC",
+													"balance": "2000000000000000000",
+													"tokenChainBalance": [
+														{
+															"chainId": 10,
+															"tokenAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+															"balance": "1000000000000000000"
+														},
+														{
+															"chainId": 8453,
+															"tokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+															"balance": "1000000000000000000"
+														}
+													]
+												},
+												{
+													"tokenName": "WETH",
+													"balance": "2000000",
+													"tokenChainBalance": [
+														{
+															"chainId": 10,
+															"tokenAddress": "0x4200000000000000000000000000000000000006",
+															"balance": "1000000"
+														},
+														{
+															"chainId": 8453,
+															"tokenAddress": "0x4200000000000000000000000000000000000006",
+															"balance": "1000000"
+														}
+													]
+												}
+											]
+										}
+									}
 								}
 							}
 						}
@@ -331,9 +241,9 @@
 		},
 		"/accounts/{userAddress}/bundles/path": {
 			"post": {
-				"description": "Retrieves the order path for token transfers and target executions based on the provided user address and intent.",
-				"summary": "Get Order Path",
-				"tags": [],
+				"description": "Retrieves the path for token transfers and target executions based on the provided user address and intent.",
+				"summary": "Get Bundle Path",
+				"tags": ["User"],
 				"parameters": [{
 						"name": "userAddress",
 						"in": "path",
@@ -734,7 +644,7 @@
 			"post": {
 				"description": "Gets the total cost for a meta intent and list the tokens that will be sent and received",
 				"summary": "Get Bundle Cost",
-				"tags": [],
+				"tags": ["User"],
 				"parameters": [{
 						"name": "userAddress",
 						"in": "path",
@@ -1090,7 +1000,7 @@
 			"post": {
 				"description": "Submits a signed order bundle containing cross-chain token transfers and executions. It verifies the signatures, checks balances, and emits events for further processing.",
 				"summary": "Submit Bundle",
-				"tags": [],
+				"tags": ["User"],
 				"parameters": [{
 					"name": "x-api-key",
 					"in": "header",
@@ -1355,11 +1265,166 @@
 				}
 			}
 		},
+		"/bundles/{bundleId}": {
+			"get": {
+				"description": "Retrieve the status of a specific bundle along with the status of each order within the bundle.",
+				"summary": "Get Bundle",
+				"tags": ["User"],
+				"parameters": [{
+						"name": "bundleId",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"pattern": "^\\d+$",
+							"example": "77119256265773742309930654065362693497375232736834856992878277299604179621015"
+						},
+						"description": "Unique identifier of the bundle"
+					},
+					{
+						"name": "x-api-key",
+						"in": "header",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "Rhinestone API key"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "200",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"status": {
+											"type": "string",
+											"enum": [
+												"PENDING",
+												"EXPIRED",
+												"FILLED",
+												"PRECONFIRMED",
+												"PARTIALLY_COMPLETED",
+												"COMPLETED",
+												"FAILED",
+												"UNKNOWN"
+											],
+											"description": "Overall status of the bundle"
+										},
+										"fillTimestamp": {
+											"type": "number",
+											"description": "Timestamp of the fill transaction",
+											"example": 1633493192
+										},
+										"fillTransactionHash": {
+											"type": "string",
+											"description": "Transaction hash of the fill transaction",
+											"example": "0xc1674f4671accbceec3f22c2c9cfa4f7aead7183f48df90c239e0d85d6c31e21"
+										},
+										"claims": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"depositId": {
+														"type": "string",
+														"description": "Unique identifier of the deposit. BigInt is serialized as a string",
+														"example": "77119256265773742309930654065362693497375232736834856992878277299604179621015"
+													},
+													"chainId": {
+														"type": "number",
+														"description": "Chain ID of the deposit",
+														"example": 10
+													},
+													"status": {
+														"type": "string",
+														"enum": [
+															"PENDING",
+															"EXPIRED",
+															"CLAIMED"
+														],
+														"description": "Status of individual order",
+														"example": "CLAIMED"
+													},
+													"claimTimestamp": {
+														"type": "number",
+														"description": "Timestamp when the claim was processed"
+													},
+													"claimTransactionHash": {
+														"type": "string",
+														"description": "Transaction hash of the claim transaction"
+													}
+												},
+												"required": [
+													"depositId",
+													"chainId",
+													"status"
+												]
+											},
+											"description": "Array of claims within the bundle"
+										}
+									},
+									"required": [
+										"status",
+										"claims"
+									],
+									"description": "Successfully retrieved bundle status"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "400",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message for invalid bundle ID format",
+											"example": "Bundle ID must be numeric"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Invalid bundle ID"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "500",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message describing the server-side issue",
+											"example": "An unknown error occurred"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Server error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/bundles/events": {
 			"get": {
 				"description": "Retrieve the paginated list of pending bundle events.",
 				"summary": "Get Pending Bundle Events",
-				"tags": [],
+				"tags": ["Relayer"],
 				"parameters": [{
 						"name": "x-api-key",
 						"in": "header",
@@ -1422,7 +1487,7 @@
 			"post": {
 				"description": "Submit events for a specific bundle",
 				"summary": "Submit Bundle Events",
-				"tags": [],
+				"tags": ["Relayer"],
 				"parameters": [{
 						"name": "bundleId",
 						"in": "path",
