@@ -18,7 +18,7 @@ const rhinestoneAccount = await createRhinestoneAccount({
     type: 'ecdsa',
     accounts: [eoaAccount],
   },
-  eoa: [eoaAccount],
+  eoa: eoaAccount,
   rhinestoneApiKey,
 })
 ```
