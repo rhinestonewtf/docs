@@ -17,7 +17,7 @@ When it comes to web3 wallets, passkeys revolutionize the user experience by eli
 
 ### How it works
 
-Passkeys is powered by Rhinestone’s WebAuthn Validator module. This module enables smart accounts to validate signatures generated via WebAuthn for secure, user-friendly authentication via passkeys. The module supports ERC-4337 user operations and ERC-1271 signatures. Additionally, it can facilitate a multisig setup – see [here](./multisig#passkeys) for more details regarding a multisig passkey setup.
+Passkeys are powered by Rhinestone’s WebAuthn Validator module. This module enables smart accounts to validate signatures generated via WebAuthn for secure, user-friendly authentication via passkeys. The module supports ERC-4337 user operations and ERC-1271 signatures. Additionally, it can facilitate a multisig setup – see [here](./multisig#passkeys) for more details regarding a multisig passkey setup.
 
 ### Benefits
 
@@ -41,7 +41,7 @@ const rhinestoneAccount = await createRhinestoneAccount({
   owners: {
     type: 'passkey',
     account: passkeyAccount,
-  }
+  },
   rhinestoneApiKey,
 })
 ```

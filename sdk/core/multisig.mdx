@@ -9,7 +9,7 @@ A multisig account requires multiple signatures from a predefined set of authori
 
 In most common cases, multisig is used to ensure that no single party can act unilaterally, reducing the risk of theft, loss, or misuse of funds. However, in some cases multisigs can also be used to improve the user experience. For example, when using passkeys a common headache is that passkeys are not portable between devices. Therefore, in order to provide a seamless experience a new passkey signer must be added for each new device, creating a 1-of-1+n(devices) setup.
 
-Both our [ESDCA signer](./ecdsa-signer) (Ownable Validator) and [passkeys signer](./passkeys) (WebAuthn Validator) support multisig by verifying individual signatures, while the smart account enforces the required threshold (e.g., 2-of-3 signatures).
+Both our [ECDSA signer](./ecdsa-signer) (Ownable Validator) and [passkeys signer](./passkeys) (WebAuthn Validator) support multisig by verifying individual signatures, while the smart account enforces the required threshold (e.g., 2-of-3 signatures).
 
 ### How it works
 
@@ -31,7 +31,7 @@ const rhinestoneAccount = await createRhinestoneAccount({
   owners: {
     type: 'ecdsa',
     accounts: [accountA, accountB, accountC],
-  }
+  },
   rhinestoneApiKey,
 })
 ```
@@ -45,7 +45,7 @@ const rhinestoneAccount = await createRhinestoneAccount({
     type: 'ecdsa',
     accounts: [accountA, accountB, accountC],
     threshold: 2,
-  }
+  },
   rhinestoneApiKey,
 })
 ```

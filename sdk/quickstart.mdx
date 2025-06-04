@@ -70,7 +70,7 @@ const rhinestoneAccount = await createRhinestoneAccount({
   owners: {
     type: 'ecdsa',
     accounts: [account],
-  }
+  },
   rhinestoneApiKey,
 })
 const address = await rhinestoneAccount.getAddress()

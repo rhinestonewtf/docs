@@ -2,7 +2,7 @@
 title: "ERC-4337 Infra"
 ---
 
-Internally, the SDK uses ERC-4337 bundlers to deploy and to submit transaction using UserOps (e.g. when using smart sessions).
+Internally, the SDK uses ERC-4337 bundlers to deploy and to submit transaction using UserOps (e.g., when using smart sessions).
 
 Supplying the API key is optional, but highly recommended for production use.
 
@@ -15,7 +15,7 @@ const rhinestoneAccount = await createRhinestoneAccount({
   owners: {
     type: 'ecdsa',
     accounts: [account],
-  }
+  },
   rhinestoneApiKey,
   bundler: {
     type: 'pimlico',
