@@ -7,7 +7,7 @@ mode: "narrow"
 
 Rhinestone’s core onchain infrastructure and SDKs are **open source and free**.
 
-The transaction infrastructure has no API fee. The stakeholders in the transaction supply chain only make money once your users are transacting. These fees are transaction fees on the principal value of crosschain transaction. 
+The transaction infrastructure has no API fee. The stakeholders in the transaction supply chain only make money once your users are transacting. These fees are transaction fees on the principal value of a crosschain transaction. 
 
 **Same chain intents are free**. Solvers are incentivised to fill these transactions for two reasons:
 
@@ -17,47 +17,7 @@ The transaction infrastructure has no API fee. The stakeholders in the transacti
 
 ## Fee Structure
 
-Transaction fees are split into two categories. 
-
-1. **Transfers**: Is the intent segment same-chain or crosschain?
-
-2. **Swaps**: Does the intent include a swap?
-
-### Transaction Fees
-
-Transfer fees are applied to the principal value of the transaction.
-
-| Intent type | Solver Fee | Rhinestone Fee | Settlement Layer Fee | Total |
-| ----------- | ---------- | -------------- | -------------------- | ----- |
-| Same-chain  | Zero       | Zero           | Zero                 | Zero  |
-| Crosschain  | 3bps       | 3bps           | Zero                 | 6bps  |
-
-### Swap Fees
-
-We provide two forms of swaps.
-
-1. **Injected Swaps**: We inject a DEX swap into the intent to perform the swap on the destination chain. Solvers include this as arbitrary call data when filling the intent.
-
-2. **Solver-based Swaps**: Solvers fulfill the swap using their inventory and/or DEX routing. 
-
-Below are the fees applied to the principal value of the swap by the Rhinestone intent system.
-
-| Intent type       | Solver Fee | Rhinestone Fee | Settlement Layer Fee | Total   |
-| ----------------- | ---------- | -------------- | -------------------- | ------- |
-| Injected Swaps    | Zero       | Zero           | Zero                 | Zero    |
-| 1:1 Stable Swaps  | 1-5bps     | 1bps           | Zero                 | 2-6bps  |
-| ETH-WETH Swaps    | Zero       | Zero           | Zero                 | Zero    |
-| Solver-based Swaps* | 40bps     | 10bps           | Zero                 | 50bps  |
-
-*Solver-based Swaps are currently in beta. Pricing will be updated as the product matures.
-
-### Fee Examples
-
-| Example Intent | Fee Breakdown |
-| -------------- | ------------- |
-| Purchase NFT on Base for 100 USDC using USDC on Arbitrum and Polygon | Crosschain transfer only. 6bps applied to the principal. Fee = 0.06 USDC |
-| Swap 100 USDC from Arbitrum to DEGEN on Base through an injected swap | Crosschain transfer only. 6bps applied to the principal. Fee = 0.06 USDC |
-| Swap 100 USDC to ETH using Solver-based Swaps | Crosschain transfer plus Solver-based Swap. 6bps applied to the principal + 60bps to the swap. Fee = 0.50 USDC |
+Transaction fees are only charged on crosschain transfers and are currently set to 3bps for all supported chains during our private beta. 
 
 ## Gas Fees
 
