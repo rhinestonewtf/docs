@@ -1,5 +1,5 @@
 ---
-title: "Updrade an EOA (EIP-7702)"
+title: "Upgrade an EOA (EIP-7702)"
 ---
 
 Rhinestone SDK supports smart EOAs (EIP-7702 accounts) out of the box.
@@ -17,8 +17,8 @@ const rhinestoneAccount = await createRhinestoneAccount({
   owners: {
     type: 'ecdsa',
     accounts: [eoaAccount],
-  }
-  eoa: [eoaAccount],
+  },
+  eoa: eoaAccount,
   rhinestoneApiKey,
 })
 ```

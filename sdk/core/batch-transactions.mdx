@@ -9,7 +9,7 @@ import { getTokenAddress } from '@rhinestone/sdk/orchestrator'
 import { baseSepolia } from 'viem/chains'
 
 const chain = baseSepolia
-const usdcAddress = getTokenAddress('USDC', chain)
+const usdcAddress = getTokenAddress('USDC', chain.id)
 const usdcAmount = 1n
 const ethAmount = 2n
 const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'

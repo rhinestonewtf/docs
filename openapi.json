@@ -1,0 +1,1652 @@
+{
+	"openapi": "3.0.2",
+	"paths": {
+		"/accounts/{userAddress}/portfolio": {
+			"get": {
+				"description": "Retrieves the token balances across all supported chains for a user's abstracted account",
+				"summary": "Get User Portfolio",
+				"tags": ["User"],
+				"parameters": [
+					{
+						"name": "userAddress",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"pattern": "^0x[a-fA-F0-9]{40}$",
+							"example": "0x579d5631f76126991c00fb8fe5467fa9d49e5f6a"
+						},
+						"description": "Ethereum address of the user account"
+					},
+					{
+						"name": "x-api-key",
+						"in": "header",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "Rhinestone API key"
+						}
+					},
+					{
+						"name": "chainIds",
+						"in": "query",
+						"description": "Comma-separated list of chain IDs to filter by",
+						"schema": {
+							"type": "string",
+							"example": "1,10,137"
+						}
+					},
+					{
+						"name": "tokens",
+						"in": "query",
+						"description": "Comma-separated list of chain:token pairs to filter by",
+						"schema": {
+							"type": "string",
+							"example": "1:0xA0b86a33E6441b8C4505B8C4505B8C4505B8C4505,10:0xB0b86a33E6441b8C4505B8C4505B8C4505B8C4505"
+						}
+					},
+					{
+						"name": "filterEmpty",
+						"in": "query",
+						"description": "Whether to filter out tokens with zero balance",
+						"schema": {
+							"default": "false",
+							"type": "string",
+							"example": "true"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "200",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"portfolio": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"tokenName": {
+														"type": "string",
+														"description": "Name of the token",
+														"example": "USD Coin"
+													},
+													"tokenDecimals": {
+														"type": "number",
+														"description": "Number of decimal places for the token",
+														"example": 6
+													},
+													"balance": {
+														"type": "integer",
+														"format": "int64",
+														"description": "Total balance across all chains (as string to handle BigInt)",
+														"example": "1000000"
+													},
+													"tokenChainBalance": {
+														"type": "array",
+														"items": {
+															"type": "object",
+															"properties": {
+																"chainId": {
+																	"type": "number",
+																	"description": "Chain ID where the token balance exists",
+																	"example": 1
+																},
+																"tokenAddress": {
+																	"type": "string",
+																	"description": "Token contract address on this chain",
+																	"example": "0xA0b86a33E6441b8C4505B8C4505B8C4505B8C4505"
+																},
+																"balance": {
+																	"type": "integer",
+																	"format": "int64",
+																	"description": "Token balance on this specific chain (as string to handle BigInt)",
+																	"example": "500000"
+																}
+															},
+															"required": [
+																"chainId",
+																"tokenAddress",
+																"balance"
+															]
+														},
+														"description": "Array of token balances per chain"
+													}
+												},
+												"required": [
+													"tokenName",
+													"tokenDecimals",
+													"balance",
+													"tokenChainBalance"
+												]
+											},
+											"description": "Array of token portfolio entries"
+										}
+									},
+									"required": [
+										"portfolio"
+									],
+									"description": "Successfully retrieved user portfolio"
+								},
+								"examples": {
+									"Single Token": {
+										"summary": "Portfolio with single token",
+										"value": {
+											"portfolio": [
+												{
+													"tokenName": "USDC",
+													"tokenDecimals": 16,
+													"balance": "1000000000000000000",
+													"tokenChainBalance": [
+														{
+															"chainId": 10,
+															"tokenAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+															"balance": "1000000000000000000"
+														}
+													]
+												}
+											]
+										}
+									},
+									"Multiple Tokens": {
+										"summary": "Portfolio with multiple tokens across chains",
+										"value": {
+											"portfolio": [
+												{
+													"tokenName": "USDC",
+													"balance": "2000000000000000000",
+													"tokenChainBalance": [
+														{
+															"chainId": 10,
+															"tokenAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+															"balance": "1000000000000000000"
+														},
+														{
+															"chainId": 8453,
+															"tokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+															"balance": "1000000000000000000"
+														}
+													]
+												},
+												{
+													"tokenName": "WETH",
+													"balance": "2000000",
+													"tokenChainBalance": [
+														{
+															"chainId": 10,
+															"tokenAddress": "0x4200000000000000000000000000000000000006",
+															"balance": "1000000"
+														},
+														{
+															"chainId": 8453,
+															"tokenAddress": "0x4200000000000000000000000000000000000006",
+															"balance": "1000000"
+														}
+													]
+												}
+											]
+										}
+									}
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "400",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message for invalid request parameters",
+											"example": "Invalid user address format"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Invalid request parameters"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "500",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message describing the server-side issue",
+											"example": "An unknown error occurred"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Server error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/accounts/{userAddress}/bundles/path": {
+			"post": {
+				"description": "Retrieves the path for token transfers and target executions based on the provided user address and intent.",
+				"summary": "Get Bundle Path",
+				"tags": ["User"],
+				"parameters": [{
+						"name": "userAddress",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"pattern": "^0x[a-fA-F0-9]{40}$",
+							"example": "0x579d5631f76126991c00fb8fe5467fa9d49e5f6a"
+						},
+						"description": "Ethereum address of the user account"
+					},
+					{
+						"name": "x-api-key",
+						"in": "header",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "Rhinestone API key"
+						}
+					}
+				],
+				"requestBody": {
+					"description": "Body",
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"targetChainId": {
+										"type": "number"
+									},
+									"tokenTransfers": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"tokenAddress": {
+													"type": "string",
+													"pattern": "^0x[a-fA-F0-9]{40}$"
+												},
+												"amount": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"tokenAddress",
+												"amount"
+											]
+										}
+									},
+									"targetAccount": {
+										"type": "string",
+										"pattern": "^0x[a-fA-F0-9]{40}$"
+									},
+									"targetExecutions": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"to": {
+													"type": "string",
+													"pattern": "^0x[a-fA-F0-9]{40}$"
+												},
+												"value": {
+													"type": "string"
+												},
+												"data": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"to",
+												"value",
+												"data"
+											]
+										}
+									},
+									"userOp": {
+										"type": "object",
+										"properties": {
+											"sender": {
+												"type": "string"
+											},
+											"nonce": {
+												"type": "string"
+											},
+											"callData": {
+												"type": "string"
+											},
+											"callGasLimit": {
+												"type": "string"
+											},
+											"verificationGasLimit": {
+												"type": "string"
+											},
+											"preVerificationGas": {
+												"type": "string"
+											}
+										},
+										"required": [
+											"sender",
+											"nonce",
+											"callData",
+											"callGasLimit",
+											"verificationGasLimit",
+											"preVerificationGas"
+										]
+									},
+									"omniLock": {
+										"default": true,
+										"type": "boolean"
+									},
+									"targetGasUnits": {
+										"type": "string"
+									},
+									"lockMode": {
+										"type": "string",
+										"enum": [
+											"HOOK",
+											"COMPACT"
+										]
+									},
+									"accountAccessList": {
+										"oneOf": [{
+												"type": "array",
+												"items": {
+													"type": "object",
+													"properties": {
+														"chainId": {
+															"type": "number"
+														},
+														"tokenAddress": {
+															"type": "string",
+															"pattern": "^0x[a-fA-F0-9]{40}$"
+														}
+													},
+													"required": [
+														"chainId",
+														"tokenAddress"
+													]
+												}
+											},
+											{
+												"oneOf": [{
+														"type": "object",
+														"properties": {
+															"chainTokens": {
+																"type": "object",
+																"additionalProperties": {
+																	"type": "array",
+																	"items": {
+																		"oneOf": [{
+																				"type": "string",
+																				"enum": [
+																					"ETH",
+																					"WETH",
+																					"USDC"
+																				]
+																			},
+																			{
+																				"type": "string",
+																				"pattern": "^0x[a-fA-F0-9]{40}$"
+																			}
+																		]
+																	}
+																}
+															}
+														}
+													},
+													{
+														"type": "object",
+														"properties": {
+															"chainIds": {
+																"type": "array",
+																"items": {
+																	"oneOf": [{
+																			"type": "string",
+																			"enum": [
+																				"1",
+																				"10",
+																				"137",
+																				"8453",
+																				"42161"
+																			]
+																		},
+																		{
+																			"type": "string",
+																			"enum": [
+																				"80002",
+																				"84532",
+																				"421614",
+																				"11155111",
+																				"11155420"
+																			]
+																		}
+																	]
+																}
+															},
+															"tokens": {
+																"type": "array",
+																"items": {
+																	"type": "string",
+																	"enum": [
+																		"ETH",
+																		"WETH",
+																		"USDC"
+																	]
+																}
+															}
+														}
+													}
+												]
+											}
+										]
+									}
+								},
+								"required": [
+									"targetChainId",
+									"tokenTransfers",
+									"targetAccount"
+								]
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "200",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"orderBundles": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"orderBundle": {
+														"nullable": true,
+														"description": "Multichain compact for the intent"
+													},
+													"intentCost": {
+														"type": "object",
+														"properties": {
+															"tokensSpent": {
+																"type": "object",
+																"additionalProperties": {
+																	"type": "object",
+																	"additionalProperties": {
+																		"type": "string"
+																	}
+																},
+																"description": "Tokens spent per chain and token address (amounts as strings)",
+																"example": {
+																	"1": {
+																		"0x6B175474E89094C44Da98b954EedeAC495271d0F": "501000"
+																	},
+																	"137": {
+																		"0x0000000000000000000000000000000000001010": "500000"
+																	}
+																}
+															},
+															"tokensReceived": {
+																"type": "array",
+																"items": {
+																	"type": "object",
+																	"properties": {
+																		"tokenAddress": {
+																			"type": "string",
+																			"description": "Address of the token received",
+																			"example": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+																		},
+																		"amountSpent": {
+																			"type": "string",
+																			"description": "Amount spent including fees (as string to handle BigInt)",
+																			"example": "1001000"
+																		},
+																		"targetAmount": {
+																			"type": "string",
+																			"description": "Target amount requested (as string to handle BigInt)",
+																			"example": "1000000"
+																		},
+																		"fee": {
+																			"type": "string",
+																			"description": "Fee for the token transfer (as string to handle BigInt)",
+																			"example": "1000"
+																		}
+																	},
+																	"required": [
+																		"tokenAddress",
+																		"amountSpent",
+																		"targetAmount",
+																		"fee"
+																	]
+																},
+																"description": "Array of tokens received in the transaction"
+															}
+														},
+														"required": [
+															"tokensSpent",
+															"tokensReceived"
+														],
+														"description": "Cost breakdown for the intent"
+													},
+													"injectedExecutions": {
+														"type": "array",
+														"items": {
+															"type": "object",
+															"properties": {
+																"to": {
+																	"type": "string",
+																	"description": "Target contract address for execution",
+																	"example": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+																},
+																"value": {
+																	"type": "string",
+																	"description": "Amount of ETH in wei (as string to handle BigInt)",
+																	"example": "0"
+																},
+																"data": {
+																	"type": "string",
+																	"description": "Encoded function call data",
+																	"example": "0xa9059cbb000000000000000000000000579d5631f76126991c00fb8fe5467fa9d49e5f6a"
+																}
+															},
+															"required": [
+																"to",
+																"value",
+																"data"
+															]
+														},
+														"description": "Additional cross-chain executions"
+													}
+												},
+												"required": [
+													"intentCost",
+													"injectedExecutions"
+												]
+											},
+											"description": "Array of order bundles containing multi-chain execution details"
+										}
+									},
+									"required": [
+										"orderBundles"
+									],
+									"description": "Successfully retrieved the order path"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "400",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message for invalid request parameters",
+											"example": "Target chain ID must be a number"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Bad request due to validation errors"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "500",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message describing the server-side issue",
+											"example": "An unknown error occurred"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Internal server error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/accounts/{userAddress}/bundles/cost": {
+			"post": {
+				"description": "Gets the total cost for a meta intent and list the tokens that will be sent and received",
+				"summary": "Get Bundle Cost",
+				"tags": ["User"],
+				"parameters": [{
+						"name": "userAddress",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"pattern": "^0x[a-fA-F0-9]{40}$",
+							"example": "0x579d5631f76126991c00fb8fe5467fa9d49e5f6a"
+						},
+						"description": "Ethereum address of the user account"
+					},
+					{
+						"name": "x-api-key",
+						"in": "header",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "Rhinestone API key"
+						}
+					}
+				],
+				"requestBody": {
+					"description": "Body",
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"targetChainId": {
+										"type": "number"
+									},
+									"tokenTransfers": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"tokenAddress": {
+													"type": "string",
+													"pattern": "^0x[a-fA-F0-9]{40}$"
+												},
+												"amount": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"tokenAddress"
+											]
+										}
+									},
+									"targetGasUnits": {
+										"type": "string"
+									},
+									"userOp": {
+										"type": "object",
+										"properties": {
+											"callGasLimit": {
+												"type": "string"
+											},
+											"verificationGasLimit": {
+												"type": "string"
+											},
+											"preVerificationGas": {
+												"type": "string"
+											}
+										},
+										"required": [
+											"callGasLimit",
+											"verificationGasLimit",
+											"preVerificationGas"
+										]
+									},
+									"accountAccessList": {
+										"oneOf": [{
+												"type": "array",
+												"items": {
+													"type": "object",
+													"properties": {
+														"chainId": {
+															"type": "number"
+														},
+														"tokenAddress": {
+															"type": "string",
+															"pattern": "^0x[a-fA-F0-9]{40}$"
+														}
+													},
+													"required": [
+														"chainId",
+														"tokenAddress"
+													]
+												}
+											},
+											{
+												"oneOf": [{
+														"type": "object",
+														"properties": {
+															"chainTokens": {
+																"type": "object",
+																"additionalProperties": {
+																	"type": "array",
+																	"items": {
+																		"oneOf": [{
+																				"type": "string",
+																				"enum": [
+																					"ETH",
+																					"WETH",
+																					"USDC"
+																				]
+																			},
+																			{
+																				"type": "string",
+																				"pattern": "^0x[a-fA-F0-9]{40}$"
+																			}
+																		]
+																	}
+																}
+															}
+														}
+													},
+													{
+														"type": "object",
+														"properties": {
+															"chainIds": {
+																"type": "array",
+																"items": {
+																	"oneOf": [{
+																			"type": "string",
+																			"enum": [
+																				"1",
+																				"10",
+																				"137",
+																				"8453",
+																				"42161"
+																			]
+																		},
+																		{
+																			"type": "string",
+																			"enum": [
+																				"80002",
+																				"84532",
+																				"421614",
+																				"11155111",
+																				"11155420"
+																			]
+																		}
+																	]
+																}
+															},
+															"tokens": {
+																"type": "array",
+																"items": {
+																	"type": "string",
+																	"enum": [
+																		"ETH",
+																		"WETH",
+																		"USDC"
+																	]
+																}
+															}
+														}
+													}
+												]
+											}
+										]
+									}
+								},
+								"required": [
+									"targetChainId",
+									"tokenTransfers"
+								]
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "200",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"hasFulfilledAll": {
+											"type": "boolean",
+											"description": "Whether all output tokens have been fulfilled",
+											"example": true
+										},
+										"tokensSpent": {
+											"type": "object",
+											"additionalProperties": {
+												"type": "object",
+												"additionalProperties": {
+													"type": "string"
+												}
+											},
+											"description": "Tokens spent per chain and token address (amounts as strings). Only present when hasFulfilledAll is true",
+											"example": {
+												"1": {
+													"0x6B175474E89094C44Da98b954EedeAC495271d0F": "501000"
+												},
+												"137": {
+													"0x0000000000000000000000000000000000001010": "500000"
+												}
+											}
+										},
+										"tokensReceived": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"tokenAddress": {
+														"type": "string",
+														"description": "Address of the token received",
+														"example": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+													},
+													"amountSpent": {
+														"type": "string",
+														"description": "Amount spent including fees (as string to handle BigInt)",
+														"example": "1001000"
+													},
+													"targetAmount": {
+														"type": "string",
+														"description": "Target amount requested (as string to handle BigInt)",
+														"example": "1000000"
+													},
+													"fee": {
+														"type": "string",
+														"description": "Fee for the token transfer (as string to handle BigInt)",
+														"example": "1000"
+													},
+													"hasFulfilled": {
+														"type": "boolean",
+														"description": "Whether this specific token transfer has been fulfilled",
+														"example": true
+													}
+												},
+												"required": [
+													"tokenAddress",
+													"amountSpent",
+													"targetAmount",
+													"fee",
+													"hasFulfilled"
+												]
+											},
+											"description": "Array of tokens received in the transaction. Only present when hasFulfilledAll is true"
+										},
+										"tokenShortfall": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"tokenAddress": {
+														"type": "string",
+														"description": "Address of the token with shortfall",
+														"example": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+													},
+													"targetAmount": {
+														"type": "string",
+														"description": "Target amount that was requested (as string to handle BigInt)",
+														"example": "1000000"
+													},
+													"amountSpent": {
+														"type": "string",
+														"description": "Amount that could be spent (as string to handle BigInt)",
+														"example": "800000"
+													},
+													"fee": {
+														"type": "string",
+														"description": "Fee for the token transfer (as string to handle BigInt)",
+														"example": "1000"
+													},
+													"tokenSymbol": {
+														"type": "string",
+														"description": "Symbol of the token",
+														"example": "USDC"
+													},
+													"tokenDecimals": {
+														"type": "number",
+														"description": "Number of decimal places for the token",
+														"example": 6
+													}
+												},
+												"required": [
+													"tokenAddress",
+													"targetAmount",
+													"amountSpent",
+													"fee",
+													"tokenSymbol",
+													"tokenDecimals"
+												]
+											},
+											"description": "Array of tokens with insufficient balance. Only present when hasFulfilledAll is false"
+										},
+										"totalTokenShortfallInUSD": {
+											"type": "string",
+											"description": "Total value of token shortfall in USD (as string to handle BigInt). Only present when hasFulfilledAll is false",
+											"example": "200.50"
+										}
+									},
+									"required": [
+										"hasFulfilledAll"
+									],
+									"description": "Successfully calculated bundle cost and token requirements"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "400",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message for invalid request parameters",
+											"example": "Target chain ID must be a number"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Bad request due to validation errors"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "500",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message describing the server-side issue",
+											"example": "An unknown error occurred"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Internal server error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/bundles": {
+			"post": {
+				"description": "Submits a signed order bundle containing cross-chain token transfers and executions. It verifies the signatures, checks balances, and emits events for further processing.",
+				"summary": "Submit Bundle",
+				"tags": ["User"],
+				"parameters": [{
+					"name": "x-api-key",
+					"in": "header",
+					"required": true,
+					"schema": {
+						"type": "string",
+						"description": "Rhinestone API key"
+					}
+				}],
+				"requestBody": {
+					"description": "Body",
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"bundles": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"signedOrderBundle": {
+													"type": "object",
+													"properties": {
+														"sponsor": {
+															"type": "string",
+															"pattern": "^0x[a-fA-F0-9]{40}$"
+														},
+														"nonce": {
+															"type": "string"
+														},
+														"expires": {
+															"type": "string"
+														},
+														"segments": {
+															"type": "array",
+															"items": {
+																"nullable": true
+															}
+														},
+														"targetSignature": {
+															"type": "string"
+														},
+														"originSignatures": {
+															"type": "array",
+															"items": {
+																"type": "string"
+															}
+														}
+													},
+													"required": [
+														"sponsor",
+														"nonce",
+														"expires",
+														"segments",
+														"targetSignature",
+														"originSignatures"
+													]
+												},
+												"initCode": {
+													"type": "string"
+												},
+												"userOp": {
+													"type": "object",
+													"properties": {
+														"sender": {
+															"type": "string"
+														},
+														"nonce": {
+															"type": "string"
+														},
+														"initCode": {
+															"type": "string"
+														},
+														"callData": {
+															"type": "string"
+														},
+														"accountGasLimits": {
+															"type": "string"
+														},
+														"preVerificationGas": {
+															"type": "string"
+														},
+														"gasFees": {
+															"type": "string"
+														},
+														"paymasterAndData": {
+															"type": "string"
+														},
+														"signature": {
+															"type": "string"
+														}
+													},
+													"required": [
+														"sender",
+														"nonce",
+														"callData",
+														"preVerificationGas"
+													]
+												}
+											},
+											"required": [
+												"signedOrderBundle"
+											]
+										}
+									}
+								},
+								"required": [
+									"bundles"
+								]
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "201",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"bundleResults": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"bundleId": {
+														"type": "string",
+														"description": "Unique identifier of the submitted bundle (as string to handle BigInt)",
+														"example": "77119256265773742309930654065362693497375232736834856992878277299604179621015"
+													},
+													"status": {
+														"type": "string",
+														"description": "Status of the bundle submission",
+														"example": "PENDING"
+													},
+													"error": {
+														"type": "object",
+														"properties": {
+															"success": {
+																"type": "boolean",
+																"description": "Whether the bundle validation was successful. Always false for failed bundles",
+																"example": false
+															},
+															"call": {
+																"type": "object",
+																"properties": {
+																	"to": {
+																		"type": "string",
+																		"description": "Target contract address for the failed call",
+																		"example": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+																	},
+																	"value": {
+																		"type": "string",
+																		"description": "Amount of ETH sent in the failed call (as string to handle BigInt)",
+																		"example": "0"
+																	},
+																	"data": {
+																		"type": "string",
+																		"description": "Encoded function call data that failed",
+																		"example": "0xa9059cbb000000000000000000000000579d5631f76126991c00fb8fe5467fa9d49e5f6a"
+																	}
+																},
+																"required": [
+																	"to",
+																	"value",
+																	"data"
+																],
+																"description": "Details of the failed call. Only present when success is false"
+															},
+															"details": {
+																"type": "object",
+																"properties": {
+																	"blockNumber": {
+																		"type": "string",
+																		"description": "Block number where the simulation was performed (as string to handle BigInt)",
+																		"example": "12345678"
+																	},
+																	"filler": {
+																		"type": "string",
+																		"description": "Address of the filler that attempted the transaction",
+																		"example": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b9"
+																	},
+																	"simulationUrl": {
+																		"type": "string",
+																		"description": "URL to view the simulation details",
+																		"example": "https://simulator.example.com/tx/0x123..."
+																	}
+																},
+																"required": [
+																	"blockNumber",
+																	"filler"
+																],
+																"description": "Additional error details. Only present when success is false"
+															}
+														},
+														"required": [
+															"success"
+														],
+														"description": "Error information. Only present when the bundle submission failed"
+													}
+												},
+												"required": [
+													"bundleId",
+													"status"
+												]
+											},
+											"description": "Array of results for each submitted bundle"
+										}
+									},
+									"required": [
+										"bundleResults"
+									],
+									"description": "Bundle(s) submitted successfully"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "400",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message for invalid request parameters",
+											"example": "Missing targetSignature or originSignatures"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Bad request due to invalid input"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "500",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message describing the server-side issue",
+											"example": "An unknown error occurred"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Internal server error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/bundles/{bundleId}": {
+			"get": {
+				"description": "Retrieve the status of a specific bundle along with the status of each order within the bundle.",
+				"summary": "Get Bundle",
+				"tags": ["User"],
+				"parameters": [{
+						"name": "bundleId",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"pattern": "^\\d+$",
+							"example": "77119256265773742309930654065362693497375232736834856992878277299604179621015"
+						},
+						"description": "Unique identifier of the bundle"
+					},
+					{
+						"name": "x-api-key",
+						"in": "header",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "Rhinestone API key"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "200",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"status": {
+											"type": "string",
+											"enum": [
+												"PENDING",
+												"EXPIRED",
+												"FILLED",
+												"PRECONFIRMED",
+												"PARTIALLY_COMPLETED",
+												"COMPLETED",
+												"FAILED",
+												"UNKNOWN"
+											],
+											"description": "Overall status of the bundle"
+										},
+										"fillTimestamp": {
+											"type": "number",
+											"description": "Timestamp of the fill transaction",
+											"example": 1633493192
+										},
+										"fillTransactionHash": {
+											"type": "string",
+											"description": "Transaction hash of the fill transaction",
+											"example": "0xc1674f4671accbceec3f22c2c9cfa4f7aead7183f48df90c239e0d85d6c31e21"
+										},
+										"claims": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"depositId": {
+														"type": "string",
+														"description": "Unique identifier of the deposit. BigInt is serialized as a string",
+														"example": "77119256265773742309930654065362693497375232736834856992878277299604179621015"
+													},
+													"chainId": {
+														"type": "number",
+														"description": "Chain ID of the deposit",
+														"example": 10
+													},
+													"status": {
+														"type": "string",
+														"enum": [
+															"PENDING",
+															"EXPIRED",
+															"CLAIMED"
+														],
+														"description": "Status of individual order",
+														"example": "CLAIMED"
+													},
+													"claimTimestamp": {
+														"type": "number",
+														"description": "Timestamp when the claim was processed"
+													},
+													"claimTransactionHash": {
+														"type": "string",
+														"description": "Transaction hash of the claim transaction"
+													}
+												},
+												"required": [
+													"depositId",
+													"chainId",
+													"status"
+												]
+											},
+											"description": "Array of claims within the bundle"
+										}
+									},
+									"required": [
+										"status",
+										"claims"
+									],
+									"description": "Successfully retrieved bundle status"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "400",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message for invalid bundle ID format",
+											"example": "Bundle ID must be numeric"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Invalid bundle ID"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "500",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message describing the server-side issue",
+											"example": "An unknown error occurred"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Server error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/bundles/events": {
+			"get": {
+				"description": "Retrieve the paginated list of pending bundle events.",
+				"summary": "Get Pending Bundle Events",
+				"tags": ["Relayer"],
+				"parameters": [{
+						"name": "x-api-key",
+						"in": "header",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "Rhinestone API key"
+						}
+					},
+					{
+						"name": "count",
+						"in": "query",
+						"description": "Number of events to retrieve",
+						"schema": {
+							"example": 20
+						}
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"description": "Pagination offset",
+						"schema": {
+							"type": "string",
+							"example": 10
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "200",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"events": {
+											"type": "array",
+											"items": {
+												"nullable": true
+											},
+											"description": "List of pending bundle events"
+										},
+										"nextOffset": {
+											"type": "number",
+											"description": "Pagination offset for the next page",
+											"example": 10
+										}
+									},
+									"required": [
+										"events"
+									]
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/bundles/{bundleId}/events": {
+			"post": {
+				"description": "Submit events for a specific bundle",
+				"summary": "Submit Bundle Events",
+				"tags": ["Relayer"],
+				"parameters": [{
+						"name": "bundleId",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"example": "77119256265773742309930654065362693497375232736834856992878277299604179621015"
+						},
+						"description": "Unique identifier of the bundle"
+					},
+					{
+						"name": "x-api-key",
+						"in": "header",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"description": "Rhinestone API key"
+						}
+					}
+				],
+				"requestBody": {
+					"description": "Body",
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"type": {
+										"type": "string",
+										"enum": [
+											"FillPreconfirmation"
+										]
+									},
+									"chainId": {
+										"type": "number"
+									},
+									"txHash": {
+										"type": "string"
+									}
+								},
+								"required": [
+									"type"
+								]
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "201",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"status": {
+											"type": "string",
+											"description": "Status message indicating successful event submission",
+											"example": "Accepted"
+										}
+									},
+									"required": [
+										"status"
+									],
+									"description": "Event submitted successfully"
+								}
+							}
+						}
+					},
+					"204": {
+						"description": "204",
+						"content": {
+							"application/json": {
+								"schema": {
+									"description": "No content - event was processed but no response body"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "401",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message for authentication failure",
+											"example": "API key required"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Unauthorized - invalid or missing API key"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "403",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message for insufficient permissions",
+											"example": "Insufficient permissions"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Forbidden - insufficient permissions"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "500",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "string",
+											"description": "Error message describing the server-side issue",
+											"example": "An unknown error occurred"
+										}
+									},
+									"required": [
+										"error"
+									],
+									"description": "Internal server error"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"info": {
+		"title": "Rhinestone Orchestrator API",
+		"version": "1.0.0"
+	},
+	"servers": [{
+		"url": "https://orchestrator.rhinestone.dev"
+	}],
+	"components": {
+		"securitySchemes": {
+			"bearerAuth": {
+				"type": "http",
+				"scheme": "bearer"
+			}
+		}
+	}
+}

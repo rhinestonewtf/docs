@@ -19,7 +19,7 @@ const rhinestoneAccount = await createRhinestoneAccount({
   owners: {
     type: 'ecdsa',
     accounts: [account],
-  }
+  },
   bundler: {
     type: 'pimlico',
     apiKey: pimlicoApiKey,
@@ -38,8 +38,8 @@ const rhinestoneAccount = await createRhinestoneAccount({
   owners: {
     type: 'ecdsa',
     accounts: [account],
-  }
-  deployer: deployerAccount,
+  },
+  deployerAccount: deployerAccount,
 })
 ```
 

@@ -1,6 +1,32 @@
 ---
 title: "Passkeys"
+description: "A Seamless and Secure Way to Authenticate"
 ---
+
+## Overview
+
+[Passkeys](https://fidoalliance.org/passkeys/) are cryptographic key pairs generated and stored on your devices, offering a passwordless, user-friendly approach to authentication. Backed by industry leaders like [Apple](https://developer.apple.com/passkeys/), [Google](https://developers.google.com/identity/passkeys), and [Microsoft](https://support.microsoft.com/en-gb/windows/passkeys-overview-301c8944-5ea2-452b-9886-97e4d2ef4422), passkeys are supported across a wide range of platforms, including:
+
+* iPhones, iPads, and MacBooks  
+* Android smartphones and tablets  
+* Web browsers like [Chrome](https://developers.google.com/identity/passkeys), [Safari](https://developer.apple.com/passkeys/), and [Edge](https://learn.microsoft.com/en-us/microsoft-edge/security/passkeys) (on Windows, macOS, and Android)
+
+For a complete list of compatible systems, check the [FIDO Alliance’s passkey support documentation](https://fidoalliance.org/passkeys/#support).
+
+When it comes to web3 wallets, passkeys revolutionize the user experience by eliminating the complexity of managing private keys. Instead of memorizing lengthy seed phrases, users can rely on their passkey-enabled devices to securely handle wallet authentication. With robust hardware security and seamless cloud backups from trusted vendors like Apple or Google, passkeys provide a safer, simpler way to interact with onchain applications.
+
+### How it works
+
+Passkeys are powered by Rhinestone’s WebAuthn Validator module. This module enables smart accounts to validate signatures generated via WebAuthn for secure, user-friendly authentication via passkeys. The module supports ERC-4337 user operations and ERC-1271 signatures. Additionally, it can facilitate a multisig setup – see [here](./multisig#passkeys) for more details regarding a multisig passkey setup.
+
+### Benefits
+
+* **User-Friendly**: Enables transaction authentication via passkeys, improving the UX of onchain actions.  
+* **Secure**: Leverages WebAuthn’s cryptographic strength and device-based security (e.g., biometrics).  
+* **Flexible**: Supports both single and multisig setups, fitting various use cases.  
+* **Standardized**: Aligns with ERC-7579, ERC-4337, and ERC-1271 for broad adoption.
+
+## Usage
 
 To create a passkey-owned account:
 
@@ -15,7 +41,7 @@ const rhinestoneAccount = await createRhinestoneAccount({
   owners: {
     type: 'passkey',
     account: passkeyAccount,
-  }
+  },
   rhinestoneApiKey,
 })
 ```

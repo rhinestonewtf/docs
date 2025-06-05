@@ -7,14 +7,14 @@ The Omni Account uses the aggregated balance of the user's funds across all supp
 To get the aggregated portfolio of tokens:
 
 ```ts
-const portfolio = rhinestoneAccount.getPortfolio()
+const portfolio = await rhinestoneAccount.getPortfolio()
 ```
 
 To get the aggregated portfolio of testnet tokens:
 
 ```ts
 const onTestnets = true
-const portfolio = rhinestoneAccount.getPortfolio(onTestnets)
+const portfolio = await rhinestoneAccount.getPortfolio(onTestnets)
 ```
 
 This will return the list of *spendable* tokens (i.e., not part of any pending transaction).
@@ -31,6 +31,6 @@ To get an estimate of the maximum amount of tokens you can spend on a given tran
 const usdcAddress = getTokenAddress('USDC', baseSepolia.id)
 const gasUnits = 200_000n
 
-const tokenAmount = rhinestoneAccount.getMaxSpendableAmount(baseSepolia.id, usdcAddress, gasUnits)
+const tokenAmount = await rhinestoneAccount.getMaxSpendableAmount(baseSepolia.id, usdcAddress, gasUnits)
 ```
 

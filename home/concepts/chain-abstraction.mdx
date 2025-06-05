@@ -5,9 +5,11 @@ mode: "wide"
 description: "Instant crosschain intents without the need for bridging or gas tokens"
 ---
 
+<video src="/images/omni-account-chain-abstraction.mp4" muted autoPlay loop />
+
 Rhinestone’s core product offering is Omni Account, an intent-powered system that chain abstracts any compatible smart account or EOA (via EIP-7702). Omni Account makes the underlying chain completely invisible to the end user through seamless crosschain intents. 
 
-These crosschain intents allows users to instantly spend tokens from one chain (or multiple chains) on another chain, without bridging or without caring for the destination chain gas token. Example use cases include:
+These crosschain intents allow users to instantly spend tokens from one chain (or multiple chains) on another chain, without bridging or without caring for the destination chain gas token. Example use cases include:
 
 - Lend ETH on Base using USDC on Ethereum Mainnet and Polygon
 
@@ -47,7 +49,7 @@ Omni Account consists of two core onchain components;
 
 ### The Orchestrator
 
-The Orchestrator is an offchain entity that enforces resource locks and coordinates user intents with Solvers and Settelement Layers. It listens to user intents, propagates them to a solver network, creates resource lock allocations for counterparties (e.g., Solvers), and facilitates the claim process via the chosen settlement layer (e.g., Across).
+The Orchestrator is an offchain entity that enforces resource locks and coordinates user intents with Solvers and Settlement Layers. It listens to user intents, propagates them to a solver network, creates resource lock allocations for counterparties (e.g., Solvers), and facilitates the claim process via the chosen settlement layer (e.g., Across).
 
 The Orchestrator is trustless from the end user’s perspective. It can only interact with the Smart Account via the Settlement Executors, providing onchain verifiable execution paths. The Settlement Executors utilize the Across Protocol as the sole settlement layer, inheriting Across’ battle-tested optimistic proof system. The Orchestrator poses no liveness or censorship risk to users. An onchain escape hatch can be activated through an onchain call without a dependency on Rhinestone.
 
