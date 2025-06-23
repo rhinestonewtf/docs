@@ -1,0 +1,112 @@
+---
+title: "Social Recovery"
+description: "Recover an account using guardians"
+---
+
+## Overview
+
+Social Recovery allows users to set one or multiple accounts as _guardians_. Guardians can recover access to the account by approving a change to the validator configuration.
+
+For example, if a user loses access to their key, guardians are able to rotate the signer to a new ECDSA key. Or if a smart account has a multisig configuration, guardians can be used to recover a signer of the multisig or change the threshold.
+
+Guardians can only update the validator configuration, they are not permitted to make any other transactions.
+
+<Warning>Set guardians carefully! They can change the ownership of a smart account without any approval from the previous owner. There is no timelock for the recovery transaction. Prefer setting multiple trusted guardians with a higher signature threshold.</Warning>
+
+### How it works
+
+Once installed, the Social Recovery module gives the selected guardians access to change the configuration of the validator modules.
+
+In other words, the guardian (or guardians) is allowed to make any transaction to any installed validator module, usually to add an owner, remove an owner, or update the signature threshold.
+
+<Note>Making recovery transactions requires setting up a [bundler](../customize/erc4337-infra).</Note>
+
+<Note>Account recovery may result in multiple account calls, each of them should be done separately (batching is not supported)</Note>
+
+## Installation
+
+To install a social recovery module during account deployment:
+
+```ts {6-8}
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [oldAccount],
+  },
+  recovery: {
+    guardians: [guardianAccount],
+  },
+  rhinestoneApiKey,
+})
+```
+
+To install the module separately (i.e., when the account is already deployed):
+
+```ts {5-8}
+import { setUpRecovery } from '@rhinestone/sdk'
+
+const setUpTransaction = await rhinestoneAccount.sendTransaction({
+  chain,
+  calls: setUpRecovery({
+    rhinestoneAccount,
+    guardians: [guardianAccount],
+  }),
+  tokenRequests: [],
+})
+await rhinestoneAccount.waitForExecution(setUpTransaction, true)
+```
+
+### Multiple Guardians
+
+You can also set multiple guardians for a single account, and use a custom signature threshold:
+
+```ts
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [oldAccount],
+  },
+  recovery: {
+    guardians: [guardianAccountA, guardianAccountB, guardianAccountC],
+    threshold: 2,
+  },
+  rhinestoneApiKey,
+})
+```
+
+## Usage
+
+### ECDSA Account
+
+To recover access to the account:
+
+```ts {7,16-19}
+import { recover } from '@rhinestone/sdk'
+
+const recoveryCalls = await recover(
+  address,
+  {
+    type: 'ecdsa',
+    accounts: [newOwnerAccount],
+  },
+  chain,
+)
+for (const call of recoveryCalls) {
+  const transaction = await rhinestoneAccount.sendTransaction({
+    chain,
+    calls: [call],
+    tokenRequests: [],
+    signers: {
+      type: 'guardians',
+      guardians: [guardianAccountA],
+    },
+  })
+  await rhinestoneAccount.waitForExecution(transaction, true)
+}
+```
+
+This will prompt a signature from the guardian account, and submit a transaction on its behalf to update the ownership.
+
+## Passkey Account
+
+We're working on recovery support for passkey-owned accounts. [Let us know](http://t.me/kurt_larsen) if you would benefit from that.

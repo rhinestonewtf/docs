@@ -67,7 +67,8 @@
 							"sdk/core/passkeys",
 							"sdk/core/ecdsa-signer",
 							"sdk/core/multisig",
-							"sdk/core/batch-transactions"
+							"sdk/core/batch-transactions",
+							"sdk/core/social-recovery"
 						]
 					},
 					{
