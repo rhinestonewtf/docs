@@ -5,15 +5,17 @@ description: "Recover an account using guardians"
 
 ## Overview
 
-Social Recovery lets you set an account or multiple accounts (_guardians_) that will be able to recover access to the account by changing the validator configuration.
+Social Recovery allows users to set one or multiple accounts as _guardians_. Guardians can recover access to the account by approving a change to the validator configuration.
 
-For example, you can add a new signer in case the user lost access to the old one, or lower the multisig threshold if one of the keys were lost.
+For example, if a user loses access to their key, guardians are able to rotate the signer to a new ECDSA key. Or if a smart account has a multisig configuration, guardians can be used to recover a signer of the multisig or change the threshold.
 
 Guardians can only update the validator configuration, they are not permitted to make any other transactions.
 
+<Warning>Set guardians carefully! They can change the ownership of a smart account without any approval from the previous owner. There is no timelock for the recovery transaction. Prefer setting multiple trusted guardians with a higher signature threshold.</Warning>
+
 ### How it works
 
-Once installed, the Social Recovery module gives the allowlisted guardian accounts to make calls to the account validators.
+Once installed, the Social Recovery module gives the selected guardians access to change the configuration of the validator modules.
 
 In other words, the guardian (or guardians) is allowed to make any transaction to any installed validator module, usually to add an owner, remove an owner, or update the signature threshold.
 
@@ -40,7 +42,9 @@ const rhinestoneAccount = await createRhinestoneAccount({
 
 To install the module separately (i.e., when the account is already deployed):
 
-```ts {3-6}
+```ts {5-8}
+import { setUpRecovery } from '@rhinestone/sdk'
+
 const setUpTransaction = await rhinestoneAccount.sendTransaction({
   chain,
   calls: setUpRecovery({
@@ -76,7 +80,9 @@ const rhinestoneAccount = await createRhinestoneAccount({
 
 To recover access to the account:
 
-```ts {5,14-17}
+```ts {7,16-19}
+import { recover } from '@rhinestone/sdk'
+
 const recoveryCalls = await recover(
   address,
   {
