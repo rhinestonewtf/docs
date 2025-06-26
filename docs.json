@@ -84,6 +84,7 @@
 						"group": "Smart Sessions",
 						"pages": [
 							"sdk/smart-sessions/overview",
+							"sdk/smart-sessions/multi-chain",
 							{
 								"group": "Signature Validators",
 								"pages": [

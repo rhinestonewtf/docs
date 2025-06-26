@@ -1,0 +1,243 @@
+---
+title: "Multi-Chain Sessions"
+description: "Create session keys that work across multiple chains with a single signature"
+---
+
+## Overview
+
+Multi-chain session keys allow you to create and manage session keys that work across multiple blockchains with a single signature
+
+- **Sign once, deploy everywhere**: Create multiple sessions for different chains and sign them all at once
+- **Flexible installation**: Install sessions in any order across different chains as needed
+- **Reduce user friction**: Users only need to sign once instead of multiple times for each chain
+- **Cross-chain automation**: Enable seamless automation across multiple chains with the same session key
+
+The key innovation is the “enable mode” — where you prepare all your sessions upfront, get a single signature from the user, and enable specific sessions on specific chains as needed.
+
+<Info>
+While this guide focuses on multi-chain usage, you can also use this pattern on a single chain to pre-sign multiple different sessions and enable them over time as your application needs to evolve.
+</Info>
+
+## Creating the Sessions
+
+First, define your sessions for different chains. Each session can have different owners, policies, and actions depending on your use case:
+
+```ts
+import { baseSepolia, optimismSepolia } from 'viem/chains'
+import { Session } from '@rhinestone/sdk'
+
+const sessions: Session[] = [
+  {
+    chain: baseSepolia,
+    owners: {
+      type: 'ecdsa',
+      accounts: [sessionOwnerAccountA],
+    },
+    // Add specific policies and actions as needed
+  },
+  {
+    chain: baseSepolia,
+    owners: {
+      type: 'ecdsa',
+      accounts: [sessionOwnerAccountB],
+    },
+  },
+  {
+    chain: optimismSepolia,
+    owners: {
+      type: 'ecdsa',
+      accounts: [sessionOwnerAccountA],
+    },
+  },
+]
+```
+
+## Enabling the Sessions
+
+To enable a session, you need to get the session details and enable data. This step prepares the session for installation on the target chain:
+
+```ts
+const sessionIndex = 0 // Which session to enable
+const sessionDetails = await rhinestoneAccount.getSessionDetails(
+  sessions,
+  sessionIndex,
+)
+```
+
+The method returns the data needed to install the session on-chain, including the signature required to enable sessions.
+
+## Reusing the Signature
+
+One of the most powerful features is the ability to reuse an existing signature across multiple session installations. Once you have an enable signature, you can use it for future session installations:
+
+```ts
+// First time: Get session details and signature
+const sessionDetails = await rhinestoneAccount.getSessionDetails(
+  sessions,
+  sessionIndex,
+)
+// Store the `sessionDetails` for later use
+
+// Later: Reuse the existing signature
+const enableSignature = sessionDetails.enableSessionData.signature
+const sessionDetailsReused = await rhinestoneAccount.getSessionDetails(
+  sessions,
+  sessionIndex,
+  enableSignature
+)
+```
+
+This pattern allows you to:
+- Pre-sign all your sessions during user onboarding
+- Enable specific sessions on-demand without additional signatures
+- Batch multiple session installations with the same signature
+
+## Using the Sessions
+
+Once your sessions are enabled, you can use them to sign transactions on any supported chain:
+
+```ts
+import { encodeSmartSessionSignature } from '@rhinestone/sdk'
+
+// Prepare transaction with session
+const { bundleData, transaction } = await rhinestoneAccount.prepareTransaction({
+  chain,
+  calls: [
+    {
+      to: targetAddress,
+      data: transactionData,
+    },
+  ],
+  signers: {
+    type: 'session',
+    session: sessions[sessionIndex],
+    enableData: sessionDetails.enableSessionData,
+  },
+})
+
+// Sign with session key
+const { userOp, hash } = bundleData
+const sessionSignature = await sessionOwnerAccount.signMessage({
+  message: { raw: hash },
+})
+
+// Encode and submit
+userOp.signature = encodeSmartSessionSignature(sessionDetails, sessionSignature)
+await rhinestoneAccount.submitTransaction({
+  transaction,
+  bundleData: { userOp, hash },
+  signature: userOp.signature,
+})
+```
+
+## Module Registry
+
+<Warning>
+This step is only required for [Kernel](../customize/smart-account-providers/kernel) smart accounts.
+</Warning>
+
+When using Kernel smart accounts, you need to trust the Rhinestone attester before using smart sessions. This is done once on each chain.
+
+```ts
+import { trustAttester } from '@rhinestone/sdk'
+
+// Only required for Kernel accounts
+const trustAttesterTx = await rhinestoneAccount.sendTransaction({
+  chain,
+  calls: [trustAttester(rhinestoneAccount)],
+  tokenRequests: [],
+})
+await rhinestoneAccount.waitForExecution(trustAttesterTx)
+```
+
+<Info>
+We're actively working on removing this requirement.
+</Info>
+
+## Complete Example
+
+Here's a complete working example that demonstrates the full multi-chain session workflow:
+
+```ts
+import {
+  createRhinestoneAccount,
+  encodeSmartSessionSignature,
+  type Session
+} from '@rhinestone/sdk'
+import { zeroAddress } from 'viem'
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import { baseSepolia, optimismSepolia } from 'viem/chains'
+
+const ownerAccount = privateKeyToAccount('0x…')
+const sessionOwnerAccount = privateKeyToAccount(generatePrivateKey())
+
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [ownerAccount],
+  },
+  sessions: [],
+  rhinestoneApiKey,
+})
+
+const sessions: Session[] = [
+  {
+    chain: baseSepolia,
+    owners: {
+      type: 'ecdsa',
+      accounts: [sessionOwnerAccount],
+    },
+  },
+  {
+    chain: optimismSepolia,
+    owners: {
+      type: 'ecdsa',
+      accounts: [sessionOwnerAccount],
+    },
+  },
+]
+
+const sessionIndex = 0
+const sessionDetails = await rhinestoneAccount.getSessionDetails(
+  sessions,
+  sessionIndex,
+  // Optional: reuse an existing session enable signature
+  // enableSignature,
+)
+
+const { bundleData, transaction } = await rhinestoneAccount.prepareTransaction({
+  chain: baseSepolia,
+  calls: [
+    {
+      to: zeroAddress,
+      data: '0xdeadbeef',
+    },
+  ],
+  tokenRequests: [],
+  signers: {
+    type: 'session',
+    session: sessions[sessionIndex],
+    enableData: sessionDetails.enableSessionData,
+  },
+})
+const { userOp, hash } = bundleData
+if (!userOp) {
+  throw new Error('No user op found')
+}
+
+const sessionSignature = await sessionOwnerAccount.signMessage({
+  message: {
+    raw: hash,
+  },
+})
+userOp.signature = encodeSmartSessionSignature(sessionDetails, sessionSignature)
+
+await rhinestoneAccount.submitTransaction({
+  transaction,
+  bundleData: {
+    userOp,
+    hash,
+  },
+  signature: userOp.signature,
+})
+```
