@@ -21,19 +21,6 @@ Subscription payments
   - Auto-repaying loans to prevent liquidation
   - This granular control enhances security, streamlines dapp interactions, and makes Web3 more user-friendly.
 
-# Security
-
-Smart Sessions is a powerful tool that unlocks a bunch of new opportunities and use cases. To keep your users secure when using sessions, follow these guidelines:
-
-* Store the session key securely. Depending on the use case, you can opt to store it in the browser or on your backend. Consider key management solutions like [KMS](https://aws.amazon.com/kms/) or [Lit Protocol](https://www.litprotocol.com).  
-* Stick to the [principle of least privilege](https://en.wikipedia.org/wiki/Principle_of_least_privilege): do not request more actions than you need.  
-* Guard your smart session with granular policies (e.g., restrict the amount of ETH that can be transacted through the session)  
-* If possible, timebox your session (e.g., make it valid for only 1 week)
-
-<Warning>By default, the SDK creates a session that allows any transaction. Make sure you restrict it with relevant actions and policies.</Warning>
-
-[Reach out to us](http://t.me/kurt_larsen) if you need any help!
-
 # How it works
 
 [Smart Sessions](https://github.com/erc7579/smartsessions) separates **owners**, **policies**, and **actions** to increase composability and component reuse, which improves developer efficiency and costs.
@@ -183,3 +170,16 @@ const transactionResult = await rhinestoneAccount.sendTransaction({
 ```
 
 This will prompt the signature request from the session owner(s) and submit the transaction on their behalf.
+
+# Security
+
+Smart Sessions is a powerful tool that unlocks a bunch of new opportunities and use cases. To keep your users secure when using sessions, follow these guidelines:
+
+* Store the session key securely. Depending on the use case, you can opt to store it in the browser or on your backend. Consider key management solutions like [KMS](https://aws.amazon.com/kms/) or [Lit Protocol](https://www.litprotocol.com).  
+* Stick to the [principle of least privilege](https://en.wikipedia.org/wiki/Principle_of_least_privilege): do not request more actions than you need.  
+* Guard your smart session with granular policies (e.g., restrict the amount of ETH that can be transacted through the session)  
+* If possible, timebox your session (e.g., make it valid for only 1 week)
+
+<Warning>By default, the SDK creates a session that allows any transaction. Make sure you restrict it with relevant actions and policies.</Warning>
+
+[Reach out to us](http://t.me/kurt_larsen) if you need any help!
