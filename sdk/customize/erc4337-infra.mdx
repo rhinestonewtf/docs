@@ -6,9 +6,11 @@ Internally, the SDK uses ERC-4337 bundlers to deploy and to submit transaction u
 
 Supplying the API key is optional, but highly recommended for production use.
 
-## Pimlico
+## Bundlers
 
-To use [Pimlico](https://www.pimlico.io/), provide an API key during account initialization:
+### Pimlico
+
+To use the [Pimlico](https://www.pimlico.io/) bundler, provide an API key during account initialization:
 
 ```ts {7-10}
 const rhinestoneAccount = await createRhinestoneAccount({
@@ -18,6 +20,27 @@ const rhinestoneAccount = await createRhinestoneAccount({
   },
   rhinestoneApiKey,
   bundler: {
+    type: 'pimlico',
+    apiKey: pimlicoApiKey,
+  },
+})
+```
+
+
+## Paymasters
+
+### Pimlico
+
+To use the [Pimlico](https://www.pimlico.io/) paymaster, provide an API key during account initialization:
+
+```ts {7-10}
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  },
+  rhinestoneApiKey,
+  paymaster: {
     type: 'pimlico',
     apiKey: pimlicoApiKey,
   },
