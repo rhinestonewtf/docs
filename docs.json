@@ -83,7 +83,6 @@
 					{
 						"group": "Smart Sessions",
 						"pages": [
-							"sdk/smart-sessions/introduction",
 							"sdk/smart-sessions/overview",
 							{
 								"group": "Signature Validators",
