@@ -78,3 +78,54 @@ const installPasskeyTransaction = await rhinestoneAccount.sendTransaction({
 ```
 
 <Note>Make sure to provide enough signers to meet the threshold; otherwise, the transaction validation will fail.</Note>
+
+## Management
+
+### Add Signer
+
+To add a new signer to your multisig:
+
+```ts
+// Add a new owner
+const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
+  chain,
+  calls: [addOwner(accountD.address)],
+  tokenRequests: [],
+})
+```
+
+### Remove Signer
+
+To remove an existing signer from your multisig:
+
+```ts
+// Remove an owner
+const removeOwnerTransaction = await rhinestoneAccount.sendTransaction({
+  chain,
+  calls: [removeOwner(accountC.address)],
+  tokenRequests: [],
+})
+```
+
+### Change Threshold
+
+To update the signature threshold for your multisig:
+
+```ts
+// Change threshold to 2-of-N
+const changeThresholdTransaction = await rhinestoneAccount.sendTransaction({
+  chain,
+  calls: [changeThreshold(2)],
+  tokenRequests: [],
+})
+```
+
+### Get Owners
+
+To retrieve the current list of owners along with the signature threshold:
+
+```ts
+// Get the list of owners
+const owners = await rhinestoneAccount.getOwners(chain)
+// → { "accounts": ["0xaaa…", "0xbbb…", "0xccc…"], "threshold": 2 }
+```
