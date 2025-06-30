@@ -18,9 +18,9 @@ Both our [ECDSA signer](./ecdsa-signer) (Ownable Validator) and [passkeys signer
 * **Workflow**:  
   1. Owners submit a signature.  
   2. The smart account aggregates signatures and iterates through them, calling the Ownable Validator or WebAuthn Validator to verify each against the stored owners.  
-  3. If the required number of valid signatures meets the account’s threshold, the action is approved.
+  3. If the required number of valid signatures meets the account's threshold, the action is approved.
 
-## Usage
+## Initialization
 
 ### ECDSA
 
@@ -55,3 +55,26 @@ By default, the `threshold` is 1 (any multisig owner can sign any transaction).
 ### Passkeys
 
 We're working on a multisig support for passkeys. [Let us know](http://t.me/kurt_larsen) if you would benefit from that.
+
+## Usage
+
+### Signer Selection
+
+For 1-of-N and M-of-N multisigs, you usually want to sign the transaction with a subset of owners instead of using all of them. You can choose which signers to use with `signers`:
+
+```ts {7-11}
+const installPasskeyTransaction = await rhinestoneAccount.sendTransaction({
+  chain,
+  calls: [
+    // …
+  ],
+  tokenRequests: [],
+  signers: {
+    type: 'owner',
+    kind: 'ecdsa',
+    accounts: [accountB],
+  },
+})
+```
+
+<Note>Make sure to provide enough signers to meet the threshold; otherwise, the transaction validation will fail.</Note>
