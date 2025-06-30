@@ -44,3 +44,11 @@ const rhinestoneAccount = await createRhinestoneAccount({
 ```
 
 <Note>Make sure the deployer EOA has enough ETH on the _source_ chains to cover deployment costs.</Note>
+
+## Manual deployments
+
+You can manually trigger an account deployment on any chain:
+
+```ts
+await rhinestoneAccount.deploy(chain)
+```
