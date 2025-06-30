@@ -26,11 +26,11 @@ Passkeys are powered by Rhinestone’s WebAuthn Validator module. This module en
 * **Flexible**: Supports both single and multisig setups, fitting various use cases.  
 * **Standardized**: Aligns with ERC-7579, ERC-4337, and ERC-1271 for broad adoption.
 
-## Usage
+## Initialization
 
 To create a passkey-owned account:
 
-```ts {3-5,8-11}
+```ts {3-5,9-12}
 import { toWebAuthnAccount } from 'viem/account-abstraction'
 
 const passkeyAccount = toWebAuthnAccount({
@@ -43,5 +43,21 @@ const rhinestoneAccount = await createRhinestoneAccount({
     account: passkeyAccount,
   },
   rhinestoneApiKey,
+})
+```
+
+You can also enable the passkey module in a separate transaction:
+
+```ts
+import { enablePasskeys } from '@rhinestone/sdk'
+
+const enablePasskeysTransaction = await rhinestoneAccount.sendTransaction({
+  chain,
+  calls: enablePasskeys({
+    rhinestoneAccount,
+    pubKey: passkeyAccount.publicKey,
+    authenticatorId: passkeyAccount.id,
+  }),
+  tokenRequests: [],
 })
 ```
