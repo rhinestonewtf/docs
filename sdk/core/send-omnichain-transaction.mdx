@@ -41,4 +41,55 @@ Assuming you have USDC on Base Sepolia, this will bridge some of that USDC to Ar
 
 If the smart account is not deployed on the target chain (i.e., Arbitrum Sepolia), it will also deploy the account code on that chain.
 
+<Note>Make sure the token address in `calls` and `tokenRequests` corresponds to the _target_ chain.</Note>
+
+## Granular APIs
+
+You can also use lower-level APIs to get more control over the transaction flow.
+
+This approach is useful when you need to:
+- Separate data fetching from signing (e.g., fetch intent data on your backend API, then sign on a mobile frontend)
+- Present transaction details to users before they sign
+- Manually control account deployment across chains
+
+Here's the same transaction as above made with the granular API methods:
+
+```ts
+const sourceChain = baseSepolia
+const targetChain = arbitrumSepolia
+
+const usdcTarget = getTokenAddress('USDC', targetChain.id)
+const usdcAmount = 1n
+const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
+
+// Manually trigger the account deployment
+await rhinestoneAccount.deploy(sourceChain)
+// Prepare the transaction by fetching the intent data
+const bundleData = await rhinestoneAccount.prepareTransaction({
+  sourceChain,
+  targetChain,
+  calls: [
+    {
+      to: usdcTarget as Address,
+      value: 0n,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [receiver, usdcAmount],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: usdcTarget as Address,
+      amount: usdcAmount,
+    },
+  ],
+})
+// Sign the transaction — this prompts the account owners to sign
+const signedBundleData = await rhinestoneAccount.signTransaction(bundleData)
+// Submit the transaction to the blockchain
+const transaction = await rhinestoneAccount.submitTransaction(signedBundleData)
+```
+
 <SnippetOmnichainTransactions />

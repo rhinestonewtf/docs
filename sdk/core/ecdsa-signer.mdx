@@ -11,7 +11,7 @@ The ECDSA signer uses the Ownable Validator module. This module provides a mecha
 
 The Ownable Validator stores a list of owners for a smart account using a mapping and tracks the number of owners. Owners are set during initialization, but can be added and removed later. The module implements two main validation functions. One for ERC-4337 userops and one for validating ERC-1271 signatures. Signatures are expected to include the owner's address and the actual signature, which is verified using ECDSA (Ethereum's standard signature scheme).
 
-## Usage
+## Initialization
 
 To create an account owned by a single EOA:
 
@@ -22,5 +22,20 @@ const rhinestoneAccount = await createRhinestoneAccount({
     accounts: [account],
   },
   rhinestoneApiKey,
+})
+```
+
+You can also enable the ECDSA module in a separate transaction:
+
+```ts
+import { enableEcdsa } from '@rhinestone/sdk'
+
+const enableEcdsaTransaction = await rhinestoneAccount.sendTransaction({
+  chain,
+  calls: enableEcdsa({
+    rhinestoneAccount,
+    owners: [account.address],
+  }),
+  tokenRequests: [],
 })
 ```
