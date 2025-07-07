@@ -171,6 +171,8 @@ const transactionResult = await rhinestoneAccount.sendTransaction({
 
 This will prompt the signature request from the session owner(s) and submit the transaction on their behalf.
 
+<Note>You don't have to create a separate transaction to enable the session; this is handled automatically for you. When making your first transaction with the session, the account owner will be prompted to enable it with a signature.</Note>
+
 ## Security
 
 Smart Sessions is a powerful tool that unlocks a bunch of new opportunities and use cases. To keep your users secure when using sessions, follow these guidelines:
