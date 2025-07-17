@@ -1,0 +1,29 @@
+---
+title: "JSON-RPC providers"
+---
+
+By default, the SDK uses public providers to make EVM read calls.
+
+Many public providers are heavily throttled and are not suitable for high traffic.
+
+For production use, we recommend setting up a custom JSON-RPC provider with your own API key.
+
+## Alchemy
+
+To use the [Alchemy](https://www.alchemy.com) bundler, provide an API key during account initialization:
+
+```ts {7-10}
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [accountA, accountB, accountC],
+    threshold: 2,
+  },
+  provider: {
+    type: 'alchemy',
+    apiKey: alchemyApiKey,
+  }
+})
+```
+
+[Reach out](https://github.com/rhinestonewtf/sdk/issues) if you need support for other JSON-RPC providers!
