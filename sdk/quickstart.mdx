@@ -109,7 +109,7 @@ const usdcTarget = getTokenAddress('USDC', targetChain.id)
 const usdcAmount = 1n
 
 const transaction = await rhinestoneAccount.sendTransaction({
-  sourceChain,
+  sourceChains: [sourceChain],
   targetChain,
   calls: [
     {

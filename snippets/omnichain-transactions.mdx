@@ -10,7 +10,7 @@ You can override the default gas limit for the target chain execution with `gasL
 
 ```ts {10}
 const transaction = await rhinestoneAccount.sendTransaction({
-  sourceChain: baseSepolia,
+  sourceChains: [baseSepolia],
   targetChain: arbitrumSepolia,
   calls: [
     // …
