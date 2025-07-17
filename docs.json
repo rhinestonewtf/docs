@@ -58,6 +58,7 @@
 					"sdk/overview",
 					"sdk/quickstart",
 					"sdk/demos",
+					"sdk/migration-guide",
 					{
 						"group": "Core",
 						"pages": [

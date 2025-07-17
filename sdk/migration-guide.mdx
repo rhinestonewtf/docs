@@ -1,0 +1,363 @@
+---
+title: "Migration Guide"
+---
+
+## Migrating from 0.x SDK
+
+To use the latest version of the SDK, install it with the `alpha` tag:
+
+```bash
+npm i @rhinestone/sdk@alpha
+```
+
+Note that the `deployerAccount` parameter has been removed, as all deployments are now handled via [the Orchestrator](../home/concepts/chain-abstraction#the-orchestrator).
+
+<Info>Due to the module address changes, you'd need to redeploy and refund the accounts.</Info>
+
+## Migrating from Orchestrator SDK
+
+This guide provides a detailed breakdown of the changes between the Orchestrator SDK and the new SDK. If you're looking for a fresh start, see our [Quickstart](quickstart).
+
+### Installation
+
+Previously:
+
+```bash
+npm i @rhinestone/module-sdk @rhinestone/orchestrator-sdk permissionless viem
+```
+
+Now:
+
+```bash
+npm i @rhinestone/sdk viem
+```
+
+### Account Creation
+
+#### Choosing an account implementation
+
+Before, you'd need to construct a smart account client with `permissionless`:
+
+```ts
+const sourceSafeAccount = await toSafeSmartAccount({
+  version: "1.4.1",
+  entryPoint: {
+    address: entryPoint07Address,
+    version: "0.7",
+  },
+  // …
+};);
+ 
+const smartAccountClient = createSmartAccountClient({
+  account: sourceSafeAccount,
+  chain: sourceChain,
+  // …
+}).extend(erc7579Actions());
+```
+
+Now:
+
+```ts
+const account = await createRhinestoneAccount({
+  account: {
+    type: 'safe'
+  }
+})
+```
+
+<Info>The `account` object is multi-chain; you don't need to create separate instances for each chain.</Info>
+
+See [Smart Account Providers](./customize/smart-account-providers/nexus) for details on choosing the account implementation.
+
+#### Choosing a validator
+
+Before, you'd specify the validator config in your smart account setup:
+
+```ts
+const owner = privateKeyToAccount(generatePrivateKey());
+
+const ownableValidator = getOwnableValidator({
+  owners: [owner.address],
+  threshold: 1,
+});
+
+const sourceSafeAccount = await toSafeSmartAccount({
+  validators: [
+    {
+      address: ownableValidator.address,
+      context: ownableValidator.initData,
+    },
+  ],
+  // …
+});
+
+const sourceSmartAccountClient = createSmartAccountClient({
+  account: sourceSafeAccount,
+  chain: sourceChain,
+  bundlerTransport: http(
+    `https://api.pimlico.io/v2/${sourceChain.id}/rpc?apikey=${pimlicoApiKey}`,
+  ),
+  paymaster: sourcePimlicoClient,
+  userOperation: {
+    estimateFeesPerGas: async () => {
+      return (await sourcePimlicoClient.getUserOperationGasPrice()).fast;
+    },
+  },
+}).extend(erc7579Actions());
+```
+
+Now, you can use `owners` when creating the account:
+
+```ts
+const account = privateKeyToAccount(generatePrivateKey());
+
+const account = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  },
+})
+```
+
+Learn more about using the [ECDSA](./core/ecdsa-signer) and [passkey](./core/passkeys) validators as the account owner.
+
+If you are using Smart Sessions, see the relevant [guide](./smart-sessions/overview).
+
+#### Setting up Omni Account modules
+
+Before, you'd need to provide the module configurations for the Omni Account manually:
+
+```ts 
+const sourceSafeAccount = await toSafeSmartAccount({
+  // …
+  executors: [
+    {
+      address: getSameChainModuleAddress(targetChain.id),
+      context: "0x",
+    },
+    {
+      address: getTargetModuleAddress(targetChain.id),
+      context: "0x",
+    },
+    {
+      address: getHookAddress(targetChain.id),
+      context: "0x",
+    },
+  ],
+  hooks: [
+    {
+      address: getHookAddress(targetChain.id),
+      context: encodeAbiParameters(
+        [
+          { name: "hookType", type: "uint256" },
+          { name: "hookId", type: "bytes4" },
+          { name: "data", type: "bytes" },
+        ],
+        [
+          0n,
+          "0x00000000",
+          encodeAbiParameters([{ name: "value", type: "bool" }], [true]),
+        ],
+      ),
+    },
+  ],
+  fallbacks: [
+    {
+      address: getTargetModuleAddress(targetChain.id),
+      context: encodeAbiParameters(
+        [
+          { name: "selector", type: "bytes4" },
+          { name: "flags", type: "bytes1" },
+          { name: "data", type: "bytes" },
+        ],
+        ["0x3a5be8cb", "0x00", "0x"],
+      ),
+    },
+  ],
+});
+```
+
+Now, that is handled automatically for you.
+
+<Info>Under the hood, the SDK installs a single executor module that handles chain abstraction operations.</Info>
+
+### Initializing the Orchestator Client
+
+Before, you'd initialize an Orchestrator API client:
+
+```ts
+const orchestrator = getOrchestrator(orchestratorApiKey);
+```
+
+Now, you need to pass the API key directly to the account instance:
+
+```ts
+const account = privateKeyToAccount(generatePrivateKey());
+
+const account = await createRhinestoneAccount({
+  rhinestoneApiKey: orchestratorApiKey,
+  // …
+})
+```
+
+### Funding
+
+As before, you can send the tokens or ETH directly to the account to fund it.
+
+### Deploying
+
+Before, you'd deploy the smart account using an ERC-4337 bundler:
+
+```ts
+const opHash = await sourceSmartAccountClient.sendTransaction({
+  to: zeroAddress,
+  data: "0x11111111",
+});
+
+await sourcePublicClient.waitForTransactionReceipt({
+  hash: opHash,
+});
+```
+
+Now, you can use the `deploy` method:
+
+```ts
+await rhinestoneAccount.deploy(chain)
+```
+
+### Fetching the Order Path
+
+Before, you define the intent and use `getOrderPath` to get the path.
+
+```ts
+const usdcAddress = getTokenAddress("USDC", targetChain.id);
+const usdcAmount = 2n;
+const recipient = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
+
+const metaIntent: MetaIntent = {
+  targetChainId: targetChain.id,
+  tokenTransfers: [
+    {
+      tokenAddress: usdcAddress,
+      amount: usdcAmount,
+    },
+  ],
+  targetAccount: targetSafeAccount.address,
+  targetExecutions: [
+    {
+      to: usdcAddress,
+      value: 0n,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: "transfer",
+        args: [recipient, usdcAmount],
+      }),
+    },
+  ],
+};
+
+const orderPath = await orchestrator.getOrderPath(
+  metaIntent,
+  targetAccount.address,
+);
+```
+
+Now, you can call `prepareTransaction`:
+
+```ts
+const usdcAmount = 2n;
+const recipient = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
+
+const transactionData = await rhinestoneAccount.prepareTransaction({
+  targetChain,
+  calls: [
+    {
+      to: 'USDC',
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [recipient, usdcAmount],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: 'USDC',
+      amount: usdcAmount,
+    },
+  ],
+})
+```
+
+### Signing the Intent
+
+Before, you'd craft the packed signature and pass that to the bundle structure:
+
+```ts
+const orderBundleHash = getOrderBundleHash(orderPath[0].orderBundle);
+ 
+const bundleSignature = await owner.signMessage({
+  message: { raw: orderBundleHash },
+});
+const packedSig = encodePacked(
+  ["address", "bytes"],
+  [ownableValidator.address, bundleSignature],
+);
+ 
+const signedOrderBundle: SignedMultiChainCompact = {
+  ...orderPath[0].orderBundle,
+  originSignatures: Array(orderPath[0].orderBundle.segments.length).fill(
+    packedSig,
+  ),
+  targetSignature: packedSig,
+};
+```
+
+Now, you can use the `signTransaction` method:
+
+```ts
+const signedTansactionData =
+  await rhinestoneAccount.signTransaction(transactionData)
+```
+
+### Sending the Intent
+
+Before, you'd use the `postSignedOrderBundle` to submit the intent to the orchestrator:
+
+```ts
+const bundleResults: PostOrderBundleResult = await orchestrator.postSignedOrderBundle([
+  {
+    signedOrderBundle,
+  },
+]);
+```
+
+Now, you can use the `submitTransaction` method:
+
+```ts
+const result = await rhinestoneAccount.submitTransaction(signedTansactionData)
+```
+
+### Getting the Intent Status
+
+Before, you'd poll the `getBundleStatus` method to get bundle status updates:
+
+```ts
+const bundleStatus = await orchestrator.getBundleStatus(
+  bundleResults[0].bundleId,
+);
+```
+
+Now, you can use the `waitForExecution` method:
+
+```ts
+const status = await rhinestoneAccount.waitForExecution(result)
+```
+
+### Using with Existing Accounts
+
+For now, using the SDK with existing accounts is not possible. Users would need to create a new smart account.
+
+We're working on making it possible to use the SDK with existing (deployed) smart accounts.
+
+[Reach out](http://t.me/kurt_larsen) if you need this.
