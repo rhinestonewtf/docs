@@ -1,0 +1,18 @@
+---
+title: "Startale"
+---
+
+To create a [Startale](https://github.com/StartaleLabs/scs-aa-account-contracts) smart account:
+
+```ts {2-4}
+const rhinestoneAccount = await createRhinestoneAccount({
+  account: {
+    type: 'startale',
+  },
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  },
+  rhinestoneApiKey,
+})
+```

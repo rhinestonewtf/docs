@@ -115,6 +115,7 @@
 									"sdk/customize/smart-account-providers/nexus",
 									"sdk/customize/smart-account-providers/safe",
 									"sdk/customize/smart-account-providers/kernel",
+									"sdk/customize/smart-account-providers/startale",
 									"sdk/customize/smart-account-providers/prime"
 								]
 							},
