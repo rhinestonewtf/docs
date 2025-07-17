@@ -2,50 +2,7 @@
 title: "Account Deployment"
 ---
 
-The Rhinestone SDK handles the account deployments for you.
-
-On the target chain, the deployments are handled by the orchestrator in most cases.
-
-On the source chains, you can either use an ERC-4337 bundler or a separate _deployer_ EOA to deploy.
-
-## Using a bundler
-
-By default, accounts are deployed with an ERC-4337 bundler. This requires the account to be prefunded on the source chains with ETH to pay for gas.
-
-See [ERC-4337 Infra](../customize/erc4337-infra) for more details on using bundlers.
-
-```ts {6-9}
-const rhinestoneAccount = await createRhinestoneAccount({
-  owners: {
-    type: 'ecdsa',
-    accounts: [account],
-  },
-  bundler: {
-    type: 'pimlico',
-    apiKey: pimlicoApiKey,
-  },
-})
-```
-
-<Warning>While the bundler configuration is not required to get started, it is highly recommended to provide the API key for production use.</Warning>
-
-## Using a deployer EOA
-
-Alternatively, you can use a separate EOA to deploy a smart account. This lets you sponsor the gas to cover the deployment cost in ETH.
-
-```ts {6}
-const rhinestoneAccount = await createRhinestoneAccount({
-  owners: {
-    type: 'ecdsa',
-    accounts: [account],
-  },
-  deployerAccount: deployerAccount,
-})
-```
-
-<Note>Make sure the deployer EOA has enough ETH on the _source_ chains to cover deployment costs.</Note>
-
-## Manual deployments
+The SDK handles the account deployments for you.
 
 You can manually trigger an account deployment on any chain:
 
