@@ -58,6 +58,7 @@
 					"sdk/overview",
 					"sdk/quickstart",
 					"sdk/demos",
+					"sdk/migration-guide",
 					{
 						"group": "Core",
 						"pages": [
@@ -114,9 +115,11 @@
 									"sdk/customize/smart-account-providers/nexus",
 									"sdk/customize/smart-account-providers/safe",
 									"sdk/customize/smart-account-providers/kernel",
+									"sdk/customize/smart-account-providers/startale",
 									"sdk/customize/smart-account-providers/prime"
 								]
 							},
+							"sdk/customize/json-rpc-providers",
 							"sdk/customize/erc4337-infra"
 						]
 					}
@@ -148,233 +151,260 @@
 							},
 							{
 								"group": "Deploying",
-								"pages": [
-									"build-modules/guides/deploying/deploying-modules"
-								]
+								"pages": ["build-modules/guides/deploying/deploying-modules"]
 							},
 							"build-modules/guides/migration-guide"
 						]
 					},
 					{
-					  "group": "Reference",
+						"group": "Reference",
 						"pages": [
-						  {
+							{
 								"group": "Building",
-								"pages": [{
-									"group": "Core",
-									"pages": [
-										"build-modules/reference/building/core/onInstall",
-										"build-modules/reference/building/core/onUninstall",
-										"build-modules/reference/building/core/isInitialized",
-										"build-modules/reference/building/core/name",
-										"build-modules/reference/building/core/version",
-										"build-modules/reference/building/core/isModuleType"
-									]
-								}, {
-									"group": "Validators",
-									"pages": [
-										"build-modules/reference/building/validators/validateUserOp",
-										"build-modules/reference/building/validators/isValidSignatureWithSender",
-										"build-modules/reference/building/validators/packValidationData",
-										"build-modules/reference/building/validators/unpackValidationData"
-									]
-								}, {
-									"group": "Executors",
-									"pages": [
-										"build-modules/reference/building/executors/execute",
-										"build-modules/reference/building/executors/executeDelegateCall"
-									]
-								}, {
-									"group": "Fallbacks",
-									"pages": [
-										"build-modules/reference/building/fallbacks/msgSender"
-									]
-								}, {
-									"group": "Hooks",
-									"pages": [
-										"build-modules/reference/building/hooks/preCheck",
-										"build-modules/reference/building/hooks/postCheck",
-										"build-modules/reference/building/hooks/onExecute",
-										"build-modules/reference/building/hooks/onExecuteBatch",
-										"build-modules/reference/building/hooks/onExecuteFromExecutor",
-										"build-modules/reference/building/hooks/onExecuteBatchFromExecutor",
-										"build-modules/reference/building/hooks/onInstallModule",
-										"build-modules/reference/building/hooks/onUninstallModule",
-										"build-modules/reference/building/hooks/onUnknownFunction",
-										"build-modules/reference/building/hooks/onPostCheck"
-									]
-								}, {
-									"group": "Scheduling Module",
-									"pages": [
-										"build-modules/reference/building/scheduling-module/executeOrder"
-									]
-								}, {
-									"group": "Trusted Forwarder",
-									"pages": [
-										"build-modules/reference/building/trusted-forwarder/getAccount"
-									]
-								}, {
-									"group": "Registry Adapter",
-									"pages": [
-										"build-modules/reference/building/registry-adapter/registry"
-									]
-								}, {
-									"group": "Smart Sessions",
-									"pages": [
-										"build-modules/reference/building/smart-sessions/initializeWithMultiplexer",
-										"build-modules/reference/building/smart-sessions/checkAction",
-										"build-modules/reference/building/smart-sessions/checkUserOp",
-										"build-modules/reference/building/smart-sessions/check1271SignedAction"
-									]
-								}
-							]
+								"pages": [
+									{
+										"group": "Core",
+										"pages": [
+											"build-modules/reference/building/core/onInstall",
+											"build-modules/reference/building/core/onUninstall",
+											"build-modules/reference/building/core/isInitialized",
+											"build-modules/reference/building/core/name",
+											"build-modules/reference/building/core/version",
+											"build-modules/reference/building/core/isModuleType"
+										]
+									},
+									{
+										"group": "Validators",
+										"pages": [
+											"build-modules/reference/building/validators/validateUserOp",
+											"build-modules/reference/building/validators/isValidSignatureWithSender",
+											"build-modules/reference/building/validators/packValidationData",
+											"build-modules/reference/building/validators/unpackValidationData"
+										]
+									},
+									{
+										"group": "Executors",
+										"pages": [
+											"build-modules/reference/building/executors/execute",
+											"build-modules/reference/building/executors/executeDelegateCall"
+										]
+									},
+									{
+										"group": "Fallbacks",
+										"pages": [
+											"build-modules/reference/building/fallbacks/msgSender"
+										]
+									},
+									{
+										"group": "Hooks",
+										"pages": [
+											"build-modules/reference/building/hooks/preCheck",
+											"build-modules/reference/building/hooks/postCheck",
+											"build-modules/reference/building/hooks/onExecute",
+											"build-modules/reference/building/hooks/onExecuteBatch",
+											"build-modules/reference/building/hooks/onExecuteFromExecutor",
+											"build-modules/reference/building/hooks/onExecuteBatchFromExecutor",
+											"build-modules/reference/building/hooks/onInstallModule",
+											"build-modules/reference/building/hooks/onUninstallModule",
+											"build-modules/reference/building/hooks/onUnknownFunction",
+											"build-modules/reference/building/hooks/onPostCheck"
+										]
+									},
+									{
+										"group": "Scheduling Module",
+										"pages": [
+											"build-modules/reference/building/scheduling-module/executeOrder"
+										]
+									},
+									{
+										"group": "Trusted Forwarder",
+										"pages": [
+											"build-modules/reference/building/trusted-forwarder/getAccount"
+										]
+									},
+									{
+										"group": "Registry Adapter",
+										"pages": [
+											"build-modules/reference/building/registry-adapter/registry"
+										]
+									},
+									{
+										"group": "Smart Sessions",
+										"pages": [
+											"build-modules/reference/building/smart-sessions/initializeWithMultiplexer",
+											"build-modules/reference/building/smart-sessions/checkAction",
+											"build-modules/reference/building/smart-sessions/checkUserOp",
+											"build-modules/reference/building/smart-sessions/check1271SignedAction"
+										]
+									}
+								]
 							},
 							{
 								"group": "Testing",
-								"pages": [{
-									"group": "Core",
-									"pages": [
-										"build-modules/reference/testing/core/makeAccountInstance",
-										"build-modules/reference/testing/core/exec",
-										"build-modules/reference/testing/core/getExecOps",
-										"build-modules/reference/testing/core/execUserOps"
-									]
-								}, {
-									"group": "Modules",
-									"pages": [
-										"build-modules/reference/testing/modules/installModule",
-										"build-modules/reference/testing/modules/isModuleInstalled",
-										"build-modules/reference/testing/modules/uninstallModule",
-										"build-modules/reference/testing/modules/getInstalledModules"
-									]
-								}, {
-									"group": "Signature Validation",
-									"pages": [
-										"build-modules/reference/testing/signature-validation/formatERC1271Hash",
-										"build-modules/reference/testing/signature-validation/isValidSignature",
-										"build-modules/reference/testing/signature-validation/formatERC1271Signature"
-									]
-								}, {
-									"group": "Smart Sessions",
-									"pages": [
-										"build-modules/reference/testing/smart-sessions/useSession",
-										"build-modules/reference/testing/smart-sessions/addSession",
-										"build-modules/reference/testing/smart-sessions/removeSession",
-										"build-modules/reference/testing/smart-sessions/isSessionEnabled",
-										"build-modules/reference/testing/smart-sessions/isPermissionEnabled",
-										"build-modules/reference/testing/smart-sessions/getPermissionId",
-										"build-modules/reference/testing/smart-sessions/getSessionDigest",
-										"build-modules/reference/testing/smart-sessions/getSessionNonce",
-										"build-modules/reference/testing/smart-sessions/makeMultiChainEnableData",
-										"build-modules/reference/testing/smart-sessions/encodeSignature"
-									]
-								}, {
-									"group": "Utilities",
-									"pages": [
-										"build-modules/reference/testing/utilities/expect4337Revert",
-										"build-modules/reference/testing/utilities/log4337Gas",
-										"build-modules/reference/testing/utilities/deployAccount",
-										"build-modules/reference/testing/utilities/simulateUserOp",
-										"build-modules/reference/testing/utilities/setAccountEnv",
-										"build-modules/reference/testing/utilities/withModuleStorageClearValidation"
-									]
-								}]
+								"pages": [
+									{
+										"group": "Core",
+										"pages": [
+											"build-modules/reference/testing/core/makeAccountInstance",
+											"build-modules/reference/testing/core/exec",
+											"build-modules/reference/testing/core/getExecOps",
+											"build-modules/reference/testing/core/execUserOps"
+										]
+									},
+									{
+										"group": "Modules",
+										"pages": [
+											"build-modules/reference/testing/modules/installModule",
+											"build-modules/reference/testing/modules/isModuleInstalled",
+											"build-modules/reference/testing/modules/uninstallModule",
+											"build-modules/reference/testing/modules/getInstalledModules"
+										]
+									},
+									{
+										"group": "Signature Validation",
+										"pages": [
+											"build-modules/reference/testing/signature-validation/formatERC1271Hash",
+											"build-modules/reference/testing/signature-validation/isValidSignature",
+											"build-modules/reference/testing/signature-validation/formatERC1271Signature"
+										]
+									},
+									{
+										"group": "Smart Sessions",
+										"pages": [
+											"build-modules/reference/testing/smart-sessions/useSession",
+											"build-modules/reference/testing/smart-sessions/addSession",
+											"build-modules/reference/testing/smart-sessions/removeSession",
+											"build-modules/reference/testing/smart-sessions/isSessionEnabled",
+											"build-modules/reference/testing/smart-sessions/isPermissionEnabled",
+											"build-modules/reference/testing/smart-sessions/getPermissionId",
+											"build-modules/reference/testing/smart-sessions/getSessionDigest",
+											"build-modules/reference/testing/smart-sessions/getSessionNonce",
+											"build-modules/reference/testing/smart-sessions/makeMultiChainEnableData",
+											"build-modules/reference/testing/smart-sessions/encodeSignature"
+										]
+									},
+									{
+										"group": "Utilities",
+										"pages": [
+											"build-modules/reference/testing/utilities/expect4337Revert",
+											"build-modules/reference/testing/utilities/log4337Gas",
+											"build-modules/reference/testing/utilities/deployAccount",
+											"build-modules/reference/testing/utilities/simulateUserOp",
+											"build-modules/reference/testing/utilities/setAccountEnv",
+											"build-modules/reference/testing/utilities/withModuleStorageClearValidation"
+										]
+									}
+								]
 							},
 							{
 								"group": "Deploying",
-								"pages": [{
-									"group": "Core",
-									"pages": [
-										"build-modules/reference/deploying/core/deployModule",
-										"build-modules/reference/deploying/core/predictModuleAddress",
-										"build-modules/reference/deploying/core/deployModuleViaFactory",
-										"build-modules/reference/deploying/core/registerModule"
-									]
-								}, {
-									"group": "Attestations",
-									"pages": [
-										"build-modules/reference/deploying/attestations/mockAttestToModule",
-										"build-modules/reference/deploying/attestations/isModuleAttestedMock"
-									]
-								}, {
-									"group": "Registry",
-									"pages": [
-										"build-modules/reference/deploying/registry/findResolver",
-										"build-modules/reference/deploying/registry/registerResolver",
-										"build-modules/reference/deploying/registry/findSchema",
-										"build-modules/reference/deploying/registry/registerSchema",
-										"build-modules/reference/deploying/registry/findModule",
-										"build-modules/reference/deploying/registry/setRegistry",
-										"build-modules/reference/deploying/registry/setResolverUID",
-										"build-modules/reference/deploying/registry/setSchemaUID"
-									]
-								}]
+								"pages": [
+									{
+										"group": "Core",
+										"pages": [
+											"build-modules/reference/deploying/core/deployModule",
+											"build-modules/reference/deploying/core/predictModuleAddress",
+											"build-modules/reference/deploying/core/deployModuleViaFactory",
+											"build-modules/reference/deploying/core/registerModule"
+										]
+									},
+									{
+										"group": "Attestations",
+										"pages": [
+											"build-modules/reference/deploying/attestations/mockAttestToModule",
+											"build-modules/reference/deploying/attestations/isModuleAttestedMock"
+										]
+									},
+									{
+										"group": "Registry",
+										"pages": [
+											"build-modules/reference/deploying/registry/findResolver",
+											"build-modules/reference/deploying/registry/registerResolver",
+											"build-modules/reference/deploying/registry/findSchema",
+											"build-modules/reference/deploying/registry/registerSchema",
+											"build-modules/reference/deploying/registry/findModule",
+											"build-modules/reference/deploying/registry/setRegistry",
+											"build-modules/reference/deploying/registry/setResolverUID",
+											"build-modules/reference/deploying/registry/setSchemaUID"
+										]
+									}
+								]
 							},
 							"build-modules/reference/glossary/types",
 							{
 								"group": "CheckNSignatures",
-								"pages": [{
-									"group": "CheckSignatures",
-									"pages": [
-										"build-modules/reference/checknsignatures/checksignatures/recoverNSignatures"
-									]
-								}, {
-									"group": "CheckNSignaturesFoundryHelper",
-									"pages": [
-										"build-modules/reference/checknsignatures/checknsignaturesfoundryhelper/sign"
-									]
-								}]
+								"pages": [
+									{
+										"group": "CheckSignatures",
+										"pages": [
+											"build-modules/reference/checknsignatures/checksignatures/recoverNSignatures"
+										]
+									},
+									{
+										"group": "CheckNSignaturesFoundryHelper",
+										"pages": [
+											"build-modules/reference/checknsignatures/checknsignaturesfoundryhelper/sign"
+										]
+									}
+								]
 							},
 							{
 								"group": "ERC4337 Data Libs",
-								"pages": [{
-									"group": "SentinelList",
-									"pages": [{
-										"group": "SentinelListLib",
+								"pages": [
+									{
+										"group": "SentinelList",
 										"pages": [
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/init",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/alreadyInitialized",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/getNext",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/push",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/safePush",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/pop",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/popAll",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/contains",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/getEntriesPaginated"
+											{
+												"group": "SentinelListLib",
+												"pages": [
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/init",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/alreadyInitialized",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/getNext",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/push",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/safePush",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/pop",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/popAll",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/contains",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/getEntriesPaginated"
+												]
+											},
+											{
+												"group": "SentinelList4337Lib",
+												"pages": [
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/init",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/alreadyInitialized",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/getNext",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/push",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/safePush",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/pop",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/popAll",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/contains",
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/getEntriesPaginated"
+												]
+											},
+											{
+												"group": "LinkedBytes32Lib",
+												"pages": [
+													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/init",
+													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/alreadyInitialized",
+													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/getNext",
+													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/push",
+													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/safePush",
+													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/pop",
+													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/popAll",
+													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/contains",
+													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/getEntriesPaginated"
+												]
+											},
+											{
+												"group": "SentinelListHelper",
+												"pages": [
+													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellisthelper/findPrevious"
+												]
+											}
 										]
-									}, {
-										"group": "SentinelList4337Lib",
-										"pages": [
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/init",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/alreadyInitialized",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/getNext",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/push",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/safePush",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/pop",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/popAll",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/contains",
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/getEntriesPaginated"
-										]
-									}, {
-										"group": "LinkedBytes32Lib",
-										"pages": [
-											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/init",
-											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/alreadyInitialized",
-											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/getNext",
-											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/push",
-											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/safePush",
-											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/pop",
-											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/popAll",
-											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/contains",
-											"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/getEntriesPaginated"
-										]
-									}, {
-										"group": "SentinelListHelper",
-										"pages": [
-											"build-modules/reference/erc4337-data-libs/sentinellist/sentinellisthelper/findPrevious"
-										]
-									}]
-								}]
+									}
+								]
 							},
 							{
 								"group": "ERC4337 Validation",
@@ -409,18 +439,21 @@
 							"build-modules/module-registry/getting-started",
 							{
 								"group": "Guides",
-								"pages": [{
-									"group": "Integrations",
-									"pages": [
-										"build-modules/module-registry/integrations/account",
-										"build-modules/module-registry/integrations/wallet"
-									]
-								}, {
-									"group": "Usage",
-									"pages": [
-										"build-modules/module-registry/usage/mock-attestation"
-									]
-								}]
+								"pages": [
+									{
+										"group": "Integrations",
+										"pages": [
+											"build-modules/module-registry/integrations/account",
+											"build-modules/module-registry/integrations/wallet"
+										]
+									},
+									{
+										"group": "Usage",
+										"pages": [
+											"build-modules/module-registry/usage/mock-attestation"
+										]
+									}
+								]
 							},
 							{
 								"group": "Reference",
@@ -433,7 +466,8 @@
 											"build-modules/module-registry/querying/trustAttesters",
 											"build-modules/module-registry/querying/findTrustedAttesters"
 										]
-									}, {
+									},
+									{
 										"group": "Modules",
 										"pages": [
 											"build-modules/module-registry/modules/deployModule",
@@ -451,9 +485,9 @@
 				]
 			},
 			{
-        "tab": "API Reference",
-        "openapi": "/openapi.json"
-    	}
+				"tab": "API Reference",
+				"openapi": "/openapi.json"
+			}
 		]
 	},
 	"navbar": {

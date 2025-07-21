@@ -2,9 +2,9 @@
 title: "ERC-4337 Infra"
 ---
 
-Internally, the SDK uses ERC-4337 bundlers to deploy and to submit transaction using UserOps (e.g., when using smart sessions).
+Internally, the SDK uses ERC-4337 bundlers to submit transactions as UserOps (e.g., when using smart sessions or social recovery).
 
-Supplying the API key is optional, but highly recommended for production use.
+Supplying the API key is optional and only recommended when using the ERC-4337 flow.
 
 ## Bundlers
 
@@ -26,6 +26,24 @@ const rhinestoneAccount = await createRhinestoneAccount({
 })
 ```
 
+### Biconomy
+
+To use the [Biconomy](https://www.biconomy.io) bundler, provide an API key during account initialization:
+
+```ts {7-10}
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  },
+  rhinestoneApiKey,
+  bundler: {
+    type: 'biconomy',
+    apiKey: biconomyApiKey,
+  },
+})
+```
+
 
 ## Paymasters
 
@@ -43,6 +61,24 @@ const rhinestoneAccount = await createRhinestoneAccount({
   paymaster: {
     type: 'pimlico',
     apiKey: pimlicoApiKey,
+  },
+})
+```
+
+### Biconomy
+
+To use the [Biconomy](https://www.biconomy.io) paymaster, provide an API key during account initialization:
+
+```ts {7-10}
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  },
+  rhinestoneApiKey,
+  bundler: {
+    type: 'biconomy',
+    apiKey: biconomyApiKey,
   },
 })
 ```
