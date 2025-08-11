@@ -60,7 +60,7 @@
 					"sdk/demos",
 					"sdk/migration-guide",
 					{
-						"group": "Core",
+						"group": "Smart Wallet",
 						"pages": [
 							"sdk/core/create-account",
 							"sdk/core/eip-7702",
@@ -68,19 +68,16 @@
 							"sdk/core/passkeys",
 							"sdk/core/ecdsa-signer",
 							"sdk/core/multisig",
-							"sdk/core/fee-sponsorship",
-							"sdk/core/batch-transactions",
-							"sdk/core/social-recovery",
-							"sdk/core/mfa",
-							"sdk/core/message-signing"
+							"sdk/core/batch-transactions"
 						]
 					},
 					{
-						"group": "Chain Abstraction",
+						"group": "Intents",
 						"pages": [
 							"sdk/chain-abstraction/omnichain-swaps",
 							"sdk/chain-abstraction/account-deployment",
 							"sdk/chain-abstraction/unified-balance",
+							"sdk/chain-abstraction/fee-sponsorship",
 							"sdk/chain-abstraction/orchestrator-errors"
 						]
 					},
@@ -107,6 +104,14 @@
 									"sdk/smart-sessions/policies/usage-limit"
 								]
 							}
+						]
+					},
+					{
+						"group": "Advanced",
+						"pages": [
+							"sdk/advanced/social-recovery",
+							"sdk/advanced/mfa",
+							"sdk/advanced/message-signing"
 						]
 					},
 					"sdk/module-sdk",
