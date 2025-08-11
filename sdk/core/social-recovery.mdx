@@ -21,7 +21,7 @@ In other words, the guardian (or guardians) is allowed to make any transaction t
 
 <Note>Making recovery transactions requires setting up a [bundler](../customize/erc4337-infra).</Note>
 
-<Note>Account recovery may result in multiple account calls, each of them should be done separately (batching is not supported)</Note>
+<Note>Account recovery may result in multiple account calls, each of them should be done separately (batching is not supported).</Note>
 
 ## Initialization
 
@@ -36,7 +36,6 @@ const rhinestoneAccount = await createRhinestoneAccount({
   recovery: {
     guardians: [guardianAccount],
   },
-  rhinestoneApiKey,
 })
 ```
 
@@ -81,9 +80,9 @@ const rhinestoneAccount = await createRhinestoneAccount({
 To recover access to the account:
 
 ```ts {7,16-19}
-import { recover } from '@rhinestone/sdk'
+import { recoverEcdsaOwnership } from '@rhinestone/sdk'
 
-const recoveryCalls = await recover(
+const recoveryCalls = await recoverEcdsaOwnership(
   address,
   {
     type: 'ecdsa',
@@ -107,6 +106,41 @@ for (const call of recoveryCalls) {
 
 This will prompt a signature from the guardian account, and submit a transaction on its behalf to update the ownership.
 
-## Passkey Account
+### Passkey Account
 
-We're working on recovery support for passkey-owned accounts. [Let us know](http://t.me/kurt_larsen) if you would benefit from that.
+To recover access to the account:
+
+```ts {7-10,15,24-27}
+import { recoverPasskeyOwnership } from '@rhinestone/sdk'
+
+const recoveryCalls = await recoverPasskeyOwnership(
+  address,
+  // List of existing owners: those will be removed
+  [
+    {
+      pubKeyX: BigInt(slice(passkeyAccountA.publicKey, 0, 32)),
+      pubKeyY: BigInt(slice(passkeyAccountA.publicKey, 32, 64)),
+    },
+  ],
+  // New owners: those will be added
+  {
+    type: "passkey",
+    accounts: [passkeyAccountB],
+  },
+  chain
+);
+for (const call of recoveryCalls) {
+  const transaction = await account.sendTransaction({
+    chain,
+    calls: [call],
+    tokenRequests: [],
+    signers: {
+      type: "guardians",
+      guardians: [guardianAccountA],
+    },
+  });
+  await account.waitForExecution(transaction, true);
+}
+```
+
+This will prompt a signature from the guardian account, and submit a transaction on its behalf to update the ownership.
