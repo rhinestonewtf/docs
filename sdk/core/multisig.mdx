@@ -53,7 +53,32 @@ By default, the `threshold` is 1 (any multisig owner can sign any transaction).
 
 ### Passkeys
 
-We're working on a multisig support for passkeys. [Let us know](http://t.me/kurt_larsen) if you would benefit from that.
+To create a multisig account:
+
+```ts {4}
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'passkey',
+    accounts: [passkeyAccountA, passkeyAccountB],
+  },
+  rhinestoneApiKey,
+})
+```
+
+You can also specify the signature threshold (i.e., how many signatures are required to authorize the transaction):
+
+```ts {5}
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'passkey',
+    accounts: [passkeyAccountA, passkeyAccountB],
+    threshold: 2,
+  },
+  rhinestoneApiKey,
+})
+```
+
+By default, the `threshold` is 1 (any multisig owner can sign any transaction).
 
 ## Usage
 
@@ -67,7 +92,6 @@ const installPasskeyTransaction = await rhinestoneAccount.sendTransaction({
   calls: [
     // …
   ],
-  tokenRequests: [],
   signers: {
     type: 'owner',
     kind: 'ecdsa',
@@ -89,7 +113,20 @@ To add a new signer to your multisig:
 const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
   chain,
   calls: [addOwner(accountD.address)],
-  tokenRequests: [],
+})
+```
+
+For passkeys:
+
+```ts
+const pubKeyX = BigInt(slice(passkeyAccountC.publicKey, 0, 32))
+const pubKeyY = BigInt(slice(passkeyAccountC.publicKey, 32))
+const requiresUV = false;
+
+// Add a new owner
+const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
+  chain,
+  calls: [addPasskeyOwner(pubKeyX, pubKeyY, requiresUV)],
 })
 ```
 
@@ -102,7 +139,16 @@ To remove an existing signer from your multisig:
 const removeOwnerTransaction = await rhinestoneAccount.sendTransaction({
   chain,
   calls: [removeOwner(accountC.address)],
-  tokenRequests: [],
+})
+```
+
+For passkeys:
+
+```ts
+// Add a new owner
+const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
+  chain,
+  calls: [removePasskeyOwner(pubKeyX, pubKeyY)],
 })
 ```
 
@@ -115,7 +161,16 @@ To update the signature threshold for your multisig:
 const changeThresholdTransaction = await rhinestoneAccount.sendTransaction({
   chain,
   calls: [changeThreshold(2)],
-  tokenRequests: [],
+})
+```
+
+For passkeys:
+
+```ts
+// Change threshold to 2-of-N
+const changeThresholdTransaction = await rhinestoneAccount.sendTransaction({
+  chain,
+  calls: [changePasskeyThreshold(2)],
 })
 ```
 
