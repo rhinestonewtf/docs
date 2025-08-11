@@ -6,9 +6,9 @@ In this guide, you will create your first Omni Account and make a cross-chain sw
 
 ## Prerequisites
 
-To get started, you'll need a Rhinestone API key. [Reach out to us](https://t.me/konradkopp) to get one.
+<Note>You don't need an API key to get started. For production use, you'll need one. [Reach out to us](https://t.me/konradkopp).</Note>
 
-You will also need some testnet funds. To get testnet ETH, you can use a faucet from [Quicknode](https://faucet.quicknode.com/drip) or [Alchemy](https://www.alchemy.com/faucets). To get testnet USDC, use [Circle Faucet](https://faucet.circle.com/).
+You will need some testnet funds. To get testnet ETH, you can use a faucet from [Quicknode](https://faucet.quicknode.com/drip) or [Alchemy](https://www.alchemy.com/faucets). To get testnet USDC, use [Circle Faucet](https://faucet.circle.com/).
 
 Install the Rhinestone SDK:
 
@@ -51,11 +51,6 @@ if (!fundingPrivateKey) {
   throw new Error('FUNDING_PRIVATE_KEY is not set')
 }
 
-const rhinestoneApiKey = process.env.RHINESTONE_API_KEY
-if (!rhinestoneApiKey) {
-  throw new Error('RHINESTONE_API_KEY is not set')
-}
-
 const sourceChain = baseSepolia
 const targetChain = arbitrumSepolia
 
@@ -69,7 +64,6 @@ const rhinestoneAccount = await createRhinestoneAccount({
     type: 'ecdsa',
     accounts: [account],
   },
-  rhinestoneApiKey,
 })
 const address = rhinestoneAccount.getAddress()
 console.log(`Smart account address: ${address}`)
