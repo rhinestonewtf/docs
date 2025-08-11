@@ -5,15 +5,15 @@ description: "Using multiple validators in tandem"
 
 MFA (multi-factor authorization) validator lets you use multiple validators for a single transaction.
 
-MFA works as a layer on top of other validator modules. It works as a multiplexer for the validator modules, calling the underlying validator implementations to validate the transaction. It also lets you to have multiple configurations for the same validator module.
+MFA works as a layer on top of other validator modules. It works as a multiplexer for the validator modules, calling the underlying validator implementations to validate the transaction. It also lets you have multiple configurations for the same validator module.
 
-For example, you can set up an MFA validator so that the user need to sign a transaction with both an EOA and a passkey.
+For example, you can set up an MFA validator so that the user needs to sign a transaction with both an EOA and a passkey.
 
 ## Subvalidators
 
-_Subvalidators_ are the validator modules that are used under-the-hood to validate the signature. Any ERC-7579 validator module can serve as a subvalidator.
+_Subvalidators_ are the validator modules that are used under the hood to validate the signature. Any ERC-7579 validator module can serve as a subvalidator.
 
-Subvalidator ID is the index of the validator in the . For example, if you installed the ECDSA and the passkey modules as subvalidators, the ECDSA validator will have index 0 and the passkey validator will have index 1.
+Subvalidator ID is the index of the validator in the validator list. For example, if you installed the ECDSA and the passkey modules as subvalidators, the ECDSA validator will have index 0 and the passkey validator will have index 1.
 
 ## Initialization
 
@@ -41,7 +41,7 @@ const rhinestoneAccount = await createRhinestoneAccount({
 })
 ```
 
-You can also install the MFA module to an existing account:
+You can also install the MFA module on an existing account:
 
 ```ts
 const rhinestoneAccount = await createRhinestoneAccount({
