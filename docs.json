@@ -71,7 +71,8 @@
 							"sdk/core/fee-sponsorship",
 							"sdk/core/batch-transactions",
 							"sdk/core/social-recovery",
-							"sdk/core/mfa"
+							"sdk/core/mfa",
+							"sdk/core/message-signing"
 						]
 					},
 					{
