@@ -92,7 +92,8 @@
 								"group": "Signature Validators",
 								"pages": [
 									"sdk/smart-sessions/signature-validators/ecdsa",
-									"sdk/smart-sessions/signature-validators/multisig"
+									"sdk/smart-sessions/signature-validators/multisig",
+									"sdk/smart-sessions/signature-validators/passkey"
 								]
 							},
 							{
