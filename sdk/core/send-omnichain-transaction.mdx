@@ -4,10 +4,9 @@ title: "Send Omnichain Transactions"
 
 import SnippetOmnichainTransactions from '/snippets/omnichain-transactions.mdx';
 
-To make your first cross-chain transaction, make sure that:
+## Cross-Chain Transactions
 
-1) The account is deployed on [any chain](../../home/introduction/supported-chains).
-2) The account has at least one of the [supported assets](../../home/introduction/supported-chains) on the chain with the deployed account.
+To make your first cross-chain transaction, make sure that the account has at least one of the [supported assets](../../home/introduction/supported-chains) on the source chain.
 
 ```ts
 const usdcTarget = getTokenAddress('USDC', arbitrumSepolia.id)
@@ -42,6 +41,39 @@ Assuming you have USDC on Base Sepolia, this will bridge some of that USDC to Ar
 If the smart account is not deployed on the target chain (i.e., Arbitrum Sepolia), it will also deploy the account code on that chain.
 
 <Note>Make sure the token address in `calls` and `tokenRequests` corresponds to the _target_ chain.</Note>
+
+## Same-Chain Transactions
+
+You can also send single-chain transactions using the same flow by using the `chain` option:
+
+```ts
+const usdcAddress = getTokenAddress('USDC', baseSepolia.id)
+const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
+
+const transaction = await rhinestoneAccount.sendTransaction({
+  chain: baseSepolia,
+  calls: [
+    {
+      to: usdcAddress,
+      value: 0n,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [receiver, usdcAmount],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: usdcAddress,
+      amount: usdcAmount,
+    },
+  ],
+})
+
+const transactionResult = await rhinestoneAccount.waitForExecution(transaction)
+console.log('Result', transactionResult)
+```
 
 ## Granular APIs
 
