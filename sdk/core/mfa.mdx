@@ -73,7 +73,7 @@ await rhinestoneAccount.waitForExecution(enableMfaTx)
 
 ### Signer Selection
 
-```ts
+```ts {10-26}
 const transactionData = await rhinestoneAccount.prepareTransaction({
   sourceChains: [sourceChain],
   targetChain,
