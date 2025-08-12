@@ -17,6 +17,25 @@
 	},
 	"favicon": "/favicon.svg",
 	"navigation": {
+		"global": {
+			"anchors": [
+				{
+					"anchor": "Create API Key",
+					"icon": "key",
+					"href": "https://dashboard.rhinestone.dev"
+				},
+				{
+					"anchor": "Demos",
+					"icon": "rocket",
+					"href": "https://demos.rhinestone.dev"
+				},
+				{
+					"anchor": "Examples",
+					"icon": "code",
+					"href": "https://github.com/rhinestonewtf/examples"
+				}
+			]
+		},
 		"tabs": [
 			{
 				"tab": "Home",
@@ -57,28 +76,34 @@
 				"pages": [
 					"sdk/overview",
 					"sdk/quickstart",
-					"sdk/demos",
-					"sdk/migration-guide",
 					{
 						"group": "Smart Wallet",
 						"pages": [
 							"sdk/core/create-account",
 							"sdk/core/eip-7702",
 							"sdk/core/send-omnichain-transaction",
+							"sdk/core/fee-sponsorship",
 							"sdk/core/passkeys",
 							"sdk/core/ecdsa-signer",
 							"sdk/core/multisig",
-							"sdk/core/batch-transactions"
+							"sdk/core/social-recovery"
 						]
 					},
 					{
-						"group": "Intents",
+						"group": "Multi-Chain Intents",
 						"pages": [
-							"sdk/chain-abstraction/omnichain-swaps",
+							"sdk/chain-abstraction/solver-based-swaps",
 							"sdk/chain-abstraction/account-deployment",
-							"sdk/chain-abstraction/unified-balance",
-							"sdk/chain-abstraction/fee-sponsorship",
 							"sdk/chain-abstraction/orchestrator-errors"
+						]
+					},
+					{
+						"group": "Use Cases",
+						"pages": [
+							{
+								"group": "Chain Abstraction",
+								"pages": ["sdk/use-cases/chain-abstraction/unified-balance"]
+							}
 						]
 					},
 					{
@@ -109,9 +134,10 @@
 					{
 						"group": "Advanced",
 						"pages": [
-							"sdk/advanced/social-recovery",
-							"sdk/advanced/mfa",
-							"sdk/advanced/message-signing"
+							"sdk/advanced/batch-transactions",
+							"sdk/advanced/message-signing",
+							"sdk/advanced/multi-factor-authentication",
+							"sdk/advanced/migration-guide"
 						]
 					},
 					"sdk/module-sdk",
