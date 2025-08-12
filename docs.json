@@ -20,19 +20,9 @@
 		"global": {
 			"anchors": [
 				{
-					"anchor": "Create API Key",
-					"icon": "key",
-					"href": "https://dashboard.rhinestone.dev"
-				},
-				{
 					"anchor": "Demos",
 					"icon": "rocket",
 					"href": "https://demos.rhinestone.dev"
-				},
-				{
-					"anchor": "Examples",
-					"icon": "code",
-					"href": "https://github.com/rhinestonewtf/examples"
 				}
 			]
 		},
