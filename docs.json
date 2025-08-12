@@ -105,6 +105,14 @@
 							}
 						]
 					},
+					{
+						"group": "Embedded Signers",
+						"pages": [
+							"sdk/embedded-signers/turnkey",
+							"sdk/embedded-signers/dynamic",
+							"sdk/embedded-signers/privy"
+						]
+					},
 					"sdk/module-sdk",
 					{
 						"group": "Customize",

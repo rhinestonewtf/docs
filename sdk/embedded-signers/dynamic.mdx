@@ -1,0 +1,154 @@
+---
+title: "Dynamic"
+description: "Integrate Dynamic signers with Rhinestone smart accounts."
+---
+
+## Overview
+
+Dynamic provides embedded wallet infrastructure that enables seamless user onboarding and wallet management. This guide shows you how to integrate Dynamic signers with Rhinestone smart accounts to create a unified, cross-chain wallet experience.
+
+## Prerequisites
+
+- A Dynamic account and project
+- Dynamic API key
+- React application setup (for frontend integration)
+
+## Installation
+
+Install the required dependencies:
+
+```bash
+npm install @dynamic-labs/sdk-react @rhinestone/sdk viem wagmi
+```
+
+## Setup Dynamic Provider
+
+First, set up the Dynamic provider in your React application:
+
+```tsx
+import { DynamicContextProvider } from '@dynamic-labs/sdk-react'
+
+function App() {
+  return (
+    <DynamicContextProvider
+      settings={{
+        environmentId: process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID,
+        walletConnectors: ['metamask', 'coinbase', 'walletconnect'],
+      }}
+    >
+      {/* Your app components */}
+    </DynamicContextProvider>
+  )
+}
+```
+
+## Create a Dynamic Integration Hook
+
+Create a custom hook that integrates Dynamic wallets with Rhinestone accounts:
+
+```tsx
+import { useAccount, useWalletClient } from "wagmi"
+import { createRhinestoneAccount } from "@rhinestone/sdk"
+
+export function useGlobalWallet() {
+  const { address, isConnected } = useAccount()
+  const { data: walletClient } = useWalletClient()
+  const [rhinestoneAccount, setRhinestoneAccount] = useState(null)
+
+  useEffect(() => {
+    async function initializeAccount() {
+      if (!isConnected || !address || !walletClient) return
+
+      const account = await createRhinestoneAccount({
+        owners: {
+          type: "ecdsa",
+          accounts: [walletClient],
+        },
+        rhinestoneApiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
+      })
+
+      setRhinestoneAccount(account)
+    }
+
+    initializeAccount()
+  }, [isConnected, address, walletClient])
+
+  return { rhinestoneAccount, address }
+}
+```
+
+## Usage
+
+### Basic Component Integration
+
+Use the hook in your React components:
+
+```tsx {5-7}
+import { useGlobalWallet } from './hooks/useGlobalWallet'
+import { useDynamicContext } from '@dynamic-labs/sdk-react'
+
+function WalletDashboard() {
+  const { setShowAuthFlow } = useDynamicContext()
+  const { rhinestoneAccount, address } = useGlobalWallet()
+
+  if (!rhinestoneAccount) {
+    return (
+      <button onClick={() => setShowAuthFlow(true)}>
+        Connect Wallet
+      </button>
+    )
+  }
+
+  return (
+    <div>
+      <h2>Connected: {address}</h2>
+      <p>Smart Account: {rhinestoneAccount.getAddress()}</p>
+    </div>
+  )
+}
+```
+
+### Cross-Chain Transactions
+
+Send transactions using the Dynamic-connected wallet:
+
+```tsx {2-14}
+async function handleCrossChainTransfer() {
+  const transaction = await rhinestoneAccount.sendTransaction({
+    sourceChains: [baseSepolia],
+    targetChain: arbitrumSepolia,
+    calls: [
+      {
+        to: "USDC",
+        data: encodeFunctionData({
+          abi: erc20Abi,
+          functionName: "transfer",
+          args: ["0xrecipient", parseUnits("10", 6)],
+        }),
+      },
+    ],
+    tokenRequests: [
+      {
+        address: "USDC",
+        amount: parseUnits("10", 6),
+      },
+    ],
+  })
+}
+```
+
+## Environment Variables
+
+Make sure to set the following environment variables:
+
+```bash
+NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
+NEXT_PUBLIC_RHINESTONE_API_KEY=your_rhinestone_api_key
+```
+
+## Next Steps
+
+- Learn more about [Dynamic's features](https://docs.dynamic.xyz/) for user onboarding
+- Explore [chain abstraction](../chain-abstraction/omnichain-swaps) capabilities  
+- Check out [unified balance](../chain-abstraction/unified-balance) management
+- See the [complete demo](https://github.com/rhinestonewtf/global-wallet-demo) on GitHub
