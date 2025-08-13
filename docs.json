@@ -72,6 +72,14 @@
 							"sdk/core/create-account",
 							"sdk/core/eip-7702",
 							"sdk/core/send-omnichain-transaction",
+							{
+								"group": "Integrate Embedded Signer",
+								"pages": [
+									"sdk/core/embedded-signers/dynamic",
+									"sdk/core/embedded-signers/privy",
+									"sdk/core/embedded-signers/turnkey"
+								]
+							},
 							"sdk/core/fee-sponsorship",
 							"sdk/core/passkeys",
 							"sdk/core/ecdsa-signer",
