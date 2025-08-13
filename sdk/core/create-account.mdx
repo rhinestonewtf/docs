@@ -2,7 +2,19 @@
 title: "Create an Account"
 ---
 
-Let's create a smart account with a single owner:
+Let's create a smart account with a single owner.
+
+## Choosing Your Signer
+
+Before creating your account, you need to decide how users will sign transactions:
+
+**Option 1: Generate a signer client** (like below) - Use this for testing or when you want full control over key generation.
+
+**Option 2: External wallet integration** - If you're building a dApp that connects to existing wallets (MetaMask, Coinbase, etc.), you'll use their provided signer instead.
+
+**Option 3: Embedded signers** - For the best UX in production apps, use embedded wallet providers like [Privy](./embedded-signers/privy), [Dynamic](./embedded-signers/dynamic), or [Turnkey](./embedded-signers/turnkey) that handle user onboarding and key management.
+
+## Basic Account Creation
 
 ```ts
 import { createRhinestoneAccount } from '@rhinestone/sdk'

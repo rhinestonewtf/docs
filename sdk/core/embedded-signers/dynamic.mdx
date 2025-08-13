@@ -7,6 +7,8 @@ description: "Integrate Dynamic signers with Rhinestone smart accounts."
 
 Dynamic provides embedded wallet infrastructure that enables seamless user onboarding and wallet management. This guide shows you how to integrate Dynamic signers with Rhinestone smart accounts to create a unified, cross-chain wallet experience.
 
+**How it works:** Dynamic handles user authentication and wallet connections, providing wagmi-compatible clients. We use wagmi hooks to access these clients and pass them to Rhinestone's SDK, which wraps them with cross-chain capabilities.
+
 ## Prerequisites
 
 - A Dynamic account and project
@@ -44,7 +46,9 @@ function App() {
 
 ## Create a Dynamic Integration Hook
 
-Create a custom hook that integrates Dynamic wallets with Rhinestone accounts:
+Create a custom hook that integrates Dynamic wallets with Rhinestone accounts. This demonstrates the core pattern: **get the wallet client from wagmi, then pass it to Rhinestone**.
+
+<Note>Dynamic automatically populates wagmi's `useAccount()` and `useWalletClient()` hooks when users connect their wallets.</Note>
 
 ```tsx
 import { useAccount, useWalletClient } from "wagmi"
@@ -59,15 +63,18 @@ export function useGlobalWallet() {
     async function initializeAccount() {
       if (!isConnected || !address || !walletClient) return
 
+      // Dynamic sometimes needs address explicitly added to the client
       const walletClientWithAddress = {
         ...walletClient,
         address: address,
       };
 
+      // Pass the wagmi client (from Dynamic) to Rhinestone
+      // Rhinestone wraps it with cross-chain transaction capabilities
       const account = await createRhinestoneAccount({
         owners: {
           type: "ecdsa",
-          accounts: [walletClientWithAddress as any],
+          accounts: [walletClientWithAddress as any], // wagmi client from Dynamic
         },
         rhinestoneApiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
       })
@@ -153,7 +160,7 @@ NEXT_PUBLIC_RHINESTONE_API_KEY=your_rhinestone_api_key
 
 ## Next Steps
 
+- **See it in action**: Check out our [complete Dynamic example](https://github.com/rhinestonewtf/e2e-examples/tree/main/dynamic) for a full working app
 - Learn more about [Dynamic's features](https://docs.dynamic.xyz/) for user onboarding
 - Explore [chain abstraction](../../use-cases/chain-abstraction/unified-balance) capabilities  
 - Check out [creating an account](../create-account) for more details
-- See the [complete demo](https://github.com/rhinestonewtf/global-wallet-demo/tree/dynamic) on GitHub

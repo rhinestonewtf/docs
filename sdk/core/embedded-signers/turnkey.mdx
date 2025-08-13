@@ -7,6 +7,8 @@ description: "Integrate Turnkey signers with Rhinestone smart accounts."
 
 Turnkey provides secure key management infrastructure that enables you to create and manage signing keys for your users. This guide shows you how to integrate Turnkey signers with Rhinestone smart accounts for secure, non-custodial wallet experiences.
 
+**How it works:** Unlike Privy and Dynamic, Turnkey operates at a lower level. You create a viem-compatible account that uses Turnkey's signing infrastructure, then pass that account to Rhinestone. Turnkey handles the secure key management while Rhinestone adds cross-chain capabilities.
+
 ## Prerequisites
 
 - A Turnkey account and organization
@@ -32,7 +34,9 @@ Using the Turnkey dashboard or API, create a new Ethereum (EVM) wallet. This wal
 
 ## Create a Turnkey Signer
 
-Create a viem Account instance that integrates with Turnkey for signing:
+Create a viem Account instance that integrates with Turnkey for signing. This creates a viem-compatible signer that Rhinestone can use, similar to how wagmi provides wallet clients in the other examples.
+
+<Note>Turnkey provides `@turnkey/viem` which creates viem-compatible accounts that work seamlessly with Rhinestone.</Note>
 
 ```tsx
 import { toAccount } from "viem";
@@ -68,17 +72,18 @@ function createTurnkeySigner(walletAddress: Address) {
 
 ## Initialize Rhinestone Account
 
-Create a new Rhinestone account using the Turnkey signer:
+Create a new Rhinestone account using the Turnkey signer. This is the same pattern as with other providers - pass the signer to Rhinestone, and it wraps it with cross-chain functionality:
 
 ```tsx {4-6}
 import { createRhinestoneAccount } from "@rhinestone/sdk";
 
 const turnkeySigner = createTurnkeySigner("0x..."); // Your Turnkey wallet address
 
+// Pass the Turnkey signer to Rhinestone just like wagmi clients
 const rhinestoneAccount = await createRhinestoneAccount({
   owners: {
     type: "ecdsa",
-    accounts: [turnkeySigner],
+    accounts: [turnkeySigner], // viem-compatible Turnkey signer
   },
   rhinestoneApiKey,
 });

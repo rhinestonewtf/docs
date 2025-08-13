@@ -7,6 +7,8 @@ description: "Integrate Privy signers with Rhinestone smart accounts."
 
 Privy provides simple, secure wallet infrastructure that enables seamless user authentication and wallet management. This guide shows you how to integrate Privy signers with Rhinestone smart accounts to create a smooth, cross-chain wallet experience.
 
+**How it works:** Privy handles user authentication and wallet creation, then provides a wagmi-compatible client that we wrap with Rhinestone's smart account functionality. You get the best of both worlds - Privy's seamless onboarding and Rhinestone's cross-chain capabilities.
+
 ## Prerequisites
 
 - A Privy account and application
@@ -60,7 +62,9 @@ function App() {
 
 ## Create a Privy Integration Hook
 
-Create a custom hook that integrates Privy authentication with Rhinestone accounts:
+Create a custom hook that integrates Privy authentication with Rhinestone accounts. This hook demonstrates the key pattern: **use wagmi to get the wallet client from Privy, then pass it to Rhinestone as a signer**.
+
+<Note>The `useWalletClient()` hook from wagmi automatically connects to Privy's embedded wallets and external wallet connections.</Note>
 
 ```tsx
 import { usePrivy, useWallets } from "@privy-io/react-auth"
@@ -78,10 +82,12 @@ export function usePrivyWallet() {
     async function initializeAccount() {
       if (!ready || !authenticated || !address || !walletClient) return
 
+      // The key step: pass the wagmi walletClient directly to Rhinestone
+      // Rhinestone SDK wraps it to add cross-chain capabilities
       const account = await createRhinestoneAccount({
         owners: {
           type: "ecdsa",
-          accounts: [walletClient],
+          accounts: [walletClient], // wagmi client from Privy
         },
         rhinestoneApiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
       })
@@ -161,6 +167,17 @@ async function handleCrossChainTransfer() {
 }
 ```
 
+## The Integration Pattern
+
+All embedded signer integrations follow the same pattern:
+
+1. **Provider Setup**: Configure the embedded wallet provider (Privy, Dynamic, Turnkey)
+2. **Get Wallet Client**: Use wagmi hooks (or viem accounts for Turnkey) to access the authenticated wallet
+3. **Pass to Rhinestone**: Create a Rhinestone account using the wallet client as a signer
+4. **Use Cross-Chain Features**: The resulting account has all of Rhinestone's capabilities
+
+This pattern means you can easily switch between providers or support multiple providers in the same app.
+
 ## Authentication Methods
 
 Privy supports multiple authentication methods out of the box:
@@ -183,6 +200,7 @@ NEXT_PUBLIC_RHINESTONE_API_KEY=your_rhinestone_api_key
 
 ## Next Steps
 
+- **See it in action**: Check out our [complete Privy example](https://github.com/rhinestonewtf/e2e-examples/tree/main/privy) for a full working app
 - Learn more about [Privy's authentication flows](https://docs.privy.io/) 
 - Explore [embedded wallet features](https://docs.privy.io/guide/frontend/embedded/overview)
 - Check out [creating an account](../create-account) for more account setup options
