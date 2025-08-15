@@ -7,30 +7,39 @@ import SnippetOmnichainTransactions from '/snippets/omnichain-transactions.mdx';
 
 ## Overview
 
-Intents are declarative transactions that describe **what you want to achieve** rather than **how to achieve it**. With Rhinestone, you can create intents that automatically handle cross-chain complexity, token bridging, and execution optimization.
+Intents are expressions of desired outcomes that sophisticated third-party actors fulfill. These third-party actors are often referred to as **solvers** or **relayers**. Importantly, intents are chain-agnostic. With the right settlement infrastructure and relayer marketplace, intents enable fast, cheap, and generalized executions to happen on any chain.
 
-<Note>The intent system uses the core `sendTransaction` API. Some advanced features shown in examples (like conditional execution, partial fills) represent the intent framework's capabilities and may require additional implementation.</Note>
+Rhinestone's intent system is a modular engine that aggregates settlement layers through one unified relayer market. It utilizes resource locks for asynchronous execution and blazing-fast speed.
+
+<Note>The intent system uses the core `sendTransaction` API. Some advanced features shown in examples may require additional implementation based on your account setup and the current intent system capabilities.</Note>
 
 **What makes intents powerful:**
-- Declare your end goal, not the steps
-- Automatic route optimization across chains
-- Built-in slippage protection and MEV resistance
-- Gas-efficient execution with solver competition
+- Express desired outcomes, not execution steps
+- Unified relayer market aggregates settlement layers
+- Atomic and deterministic cross-chain execution
+- Single signature for multi-chain, multi-token operations
 
 ## Intent Fundamentals
 
-### Simple Intent Structure
+### Intent Structure
 
-Every intent has three core components:
+Every intent is composed of **Elements**, where each Element represents a chain-specific commitment. An Element defines the settlement layer, chain ID, and locked token information, along with a **Mandate** that specifies the recipient, output tokens, expiry, and the destination chain.
 
 ```tsx
 const intent = {
-  sourceChains: [arbitrum, base], // Where to find tokens
-  targetChain: ethereum,          // Where to execute
-  calls: [...],                   // What to execute
-  tokenRequests: [...]           // What tokens you need
+  sourceChains: [arbitrum, base], // Origin chains with available tokens
+  targetChain: ethereum,          // Destination chain for execution
+  calls: [...],                   // Destination chain executions
+  tokenRequests: [...],           // Required output tokens
+  // Optional: origin chain executions (pre-claim operations)
 }
 ```
+
+**Key concepts:**
+- **Elements**: Chain-specific commitments with settlement layer info
+- **Mandate**: Defines recipient, output tokens, and destination execution
+- **Origin executions**: Pre-claim operations before settlement
+- **Destination executions**: Operations executed after token delivery
 
 ### Basic Cross-Chain Transfer
 

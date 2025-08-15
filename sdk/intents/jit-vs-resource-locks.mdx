@@ -1,22 +1,26 @@
 ---
 title: "JIT vs Resource Locks"
-description: "Understanding Just-In-Time execution versus Resource Locking strategies in Rhinestone's orchestrator."
+description: "Understanding Rhinestone's dual-mode execution: Just-In-Time flow versus Fill-First flow with The Compact."
 ---
 
 ## Overview
 
-Rhinestone's orchestrator uses two primary execution strategies to fulfill intents: **Just-In-Time (JIT) execution** and **Resource Locking**. The choice between these strategies depends on whether you're using ERC-4337 UserOperations or direct intent execution, and affects how your funds are managed during cross-chain operations.
+Rhinestone's intent system supports two distinct execution flows, each optimized for different use cases, chain conditions, and UX expectations: the **Fill-First flow** (which utilizes resource locks via The Compact) and the **Just-in-Time (JIT) flow** (which always processes claim transactions on the origin chain(s) first).
 
 **Key differences:**
-- **JIT (Unlocked funds)**: Tokens are sourced and bridged in real-time during execution
-- **Resource Locks (Locked funds)**: Tokens are pre-reserved and locked until the intent completes
-- **UserOp vs Intent**: The execution method determines which strategy is used
+- **JIT Flow**: Claims processed first, then fills executed - ideal for complex DeFi interactions
+- **Fill-First Flow**: Pre-locked funds enable instantaneous fills, then claims processed - optimized for blazing-fast UX
+- **The Compact**: An ownerless ERC-6909 contract that facilitates escrow-based resource locks
 
 ## Execution Strategies
 
-### Just-In-Time (JIT) Execution
+### Just-In-Time (JIT) Flow
 
-JIT execution sources tokens in real-time without pre-locking them:
+In the JIT flow, the system begins by processing claims across all relevant origin chains. These claims are submitted by relayers and executed using standard proof mechanisms provided by the selected settlement layer.
+
+Only once all origin claims have been successfully processed is the fill performed on the destination chain.
+
+The key advantage of this model is that user funds do not need to be pre-locked in a resource contract like The Compact. Instead, user signatures and the settlement layer's integrity (via proof systems or bridging assumptions) act as the enforcement mechanism.
 
 ```tsx
 // Standard intent execution (uses JIT by default)
@@ -41,17 +45,21 @@ const jitIntent = await rhinestoneAccount.sendTransaction({
   ],
 })
 
-// Execution flow:
+// JIT Execution flow:
 // 1. Intent submitted to orchestrator
-// 2. Solvers compete for execution  
-// 3. Winning solver sources tokens in real-time
-// 4. Tokens bridged and delivered just-in-time
-// 5. Your operation executes on target chain
+// 2. Relayers compete in the relayer market
+// 3. Claims processed on origin chains first
+// 4. Proof/settlement verification
+// 5. Fill executed on destination chain
 ```
 
-### Resource Locking
+### Fill-First Flow
 
-Resource locking pre-reserves tokens before execution:
+The Fill-First flow flips the process for one core goal: blazing-fast UX.
+
+The user pre-locks funds into The Compact. Once that lock is in place, relayers can immediately execute the fill on the destination chain without waiting for origin claims to be confirmed.
+
+After the fill has completed, relayers then return to the origin chains to claim the corresponding funds, using the original intent signature as a credible, onchain commitment. Since the user's intent was pre-authorized, the system guarantees that only valid fills can trigger unlocks from The Compact.
 
 ```tsx
 // UserOp execution (uses resource locking)
@@ -74,25 +82,23 @@ const lockedIntent = await rhinestoneAccount.sendTransaction({
       amount: parseUnits('500', 6),
     },
   ],
-  signers: {
-    type: 'session', // This triggers UserOp flow
-    session: sessionKey,
-  },
+  // Fill-First flow configuration
+  preDepositFunds: true, // Pre-lock funds in The Compact
 })
 
-// Execution flow:
-// 1. Tokens locked on source chain immediately
-// 2. UserOperation prepared and signed
-// 3. UserOp submitted to bundler
-// 4. Locked tokens used for fulfillment
-// 5. Remaining locks released after completion
+// Fill-First execution flow:
+// 1. Funds pre-locked in The Compact
+// 2. Relayer executes fill immediately on destination
+// 3. Fill transaction completes (1-2 seconds)
+// 4. Relayer processes claims on origin chains
+// 5. Compact unlocks claimed funds to relayer
 ```
 
-## When Each Strategy is Used
+## When Each Flow is Used
 
-### JIT Execution Triggers
+### JIT Flow Use Cases
 
-JIT execution is used when:
+This approach makes the JIT flow ideal for complex DeFi interactions that span multiple chains, or intents that require dynamic conditions to be validated before execution:
 
 ```tsx
 // 1. Standard intent execution (no session keys)
@@ -123,9 +129,9 @@ const crossChainIntent = await rhinestoneAccount.sendTransaction({
 })
 ```
 
-### Resource Locking Triggers
+### Fill-First Flow Use Cases
 
-Resource locking is used when:
+The Fill-First flow is optimized for blazing-fast UX where users want near-instantaneous execution:
 
 ```tsx
 // 1. Session key execution

@@ -5,27 +5,27 @@ description: "Understand injected executions in Rhinestone's intent system for s
 
 ## Overview
 
-Injected Executions are a powerful feature in Rhinestone's intent system that allows the orchestrator to inject additional operations during the fulfillment process. These executions happen at specific points in the cross-chain transaction flow and enable sophisticated operations like token wrapping, protocol interactions, and account setup.
+Rhinestone's intent system supports both **origin chain** and **destination chain** executions as part of a single intent. These executions enable sophisticated cross-chain operations by allowing the orchestrator to inject additional operations during the fulfillment process.
 
 **Key concepts:**
-- **Pre-claim operations**: Execute before tokens are claimed on destination chains
-- **Destination operations**: Execute as part of the main intent on the target chain
-- **Automatic injection**: The orchestrator automatically determines when injections are needed
-- **Protocol integration**: Seamless interaction with DeFi protocols and account management
+- **Origin executions**: User-authorized operations that run before funds are deposited into the settlement layer
+- **Destination executions**: Operations executed after tokens are delivered on the destination chain
+- **Automatic injection**: The Orchestrator determines when additional operations are needed for optimal routing
+- **Settlement integration**: Seamless coordination with multiple settlement layers and DeFi protocols
 
 ## How Injected Executions Work
 
 ### Execution Flow
 
 ```
-1. Intent Submission → 2. Route Planning → 3. Pre-claim Executions → 4. Token Bridging → 5. Destination Executions
+1. Intent Submission → 2. Origin Executions → 3. Settlement Layer Deposit → 4. Cross-Chain Settlement → 5. Destination Executions
 ```
 
-The orchestrator analyzes your intent and determines where additional operations are needed:
+The orchestrator analyzes your intent and determines where additional operations are needed for optimal execution:
 
-### Pre-Claim Executions
+### Origin Chain Executions
 
-Operations that happen before tokens are claimed on destination chains:
+Operations that happen before funds are deposited into the settlement layer. For example, if a user wishes to fund their intent using a token that is not supported by the settlement layer and relayer market, origin logic could include a swap into the correct token type.
 
 ```tsx
 // Example: WETH unwrapping on source chain before bridging
@@ -57,9 +57,9 @@ const intent = await rhinestoneAccount.sendTransaction({
 // 4. Execute your transfer on Arbitrum
 ```
 
-### Destination Executions
+### Destination Chain Executions
 
-Operations that happen on the target chain as part of your intent:
+Once the destination chain receives the proof (or fulfills the trust assumption) of a claim, the Intent Router ensures the user's tokens are delivered and their intent — such as interacting with a DeFi contract — is executed atomically and in the correct order. This includes enforcing timeouts, preventing misordered execution, and deploying the user's account on-the-fly if it hasn't yet been instantiated (supporting counterfactual accounts).
 
 ```tsx
 // Example: Account deployment + token transfer
