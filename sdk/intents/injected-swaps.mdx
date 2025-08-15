@@ -1,0 +1,414 @@
+---
+title: "Injected Swaps"
+description: "Advanced swap capabilities with automatic token sourcing and cross-chain execution."
+---
+
+## Overview
+
+Injected swaps are a specialized form of [injected executions](./injected-executions) that focus on token trading and liquidity operations. They allow you to automatically source tokens from multiple chains and execute complex swap strategies without manually managing cross-chain bridges. Rhinestone's intent system finds the best routes and handles all the complexity.
+
+Injected swaps combine the power of cross-chain token sourcing with sophisticated DEX routing to enable seamless trading experiences across the multi-chain ecosystem.
+
+**Key benefits:**
+- Source tokens from any supported chain automatically
+- Execute complex multi-hop swaps
+- Built-in MEV protection and slippage management
+- Gas-optimized execution across chains
+
+## Basic Injected Swap
+
+### Simple Token Swap
+
+Swap tokens with automatic sourcing:
+
+```tsx
+// Swap any USDC (from any chain) for WETH on Ethereum
+const swapIntent = await rhinestoneAccount.sendTransaction({
+  sourceChains: [arbitrum, polygon, base], // Check these chains for USDC
+  targetChain: ethereum,
+  calls: [
+    {
+      to: uniswapV3Router,
+      data: encodeFunctionData({
+        abi: uniswapV3RouterAbi,
+        functionName: 'exactInputSingle',
+        args: [{
+          tokenIn: ethereumUSDC,
+          tokenOut: weth,
+          fee: 3000, // 0.3% pool
+          recipient: rhinestoneAccount.getAddress(),
+          deadline: Math.floor(Date.now() / 1000) + 1800, // 30 min
+          amountIn: parseUnits('1000', 6), // 1000 USDC
+          amountOutMinimum: 0, // Will be calculated with slippage
+          sqrtPriceLimitX96: 0,
+        }],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: ethereumUSDC,
+      amount: parseUnits('1000', 6),
+    },
+  ],
+})
+```
+
+## Advanced Swap Strategies
+
+### Multi-Hop Cross-Chain Swaps
+
+Execute complex swap paths across multiple chains:
+
+```tsx
+// Use USDT on Polygon → Bridge to Ethereum → Swap USDT→USDC→WETH
+const multiHopSwap = await rhinestoneAccount.sendTransaction({
+  sourceChains: [polygon], // Source USDT from Polygon
+  targetChain: ethereum,
+  calls: [
+    // First swap: USDT → USDC
+    {
+      to: uniswapV3Router,
+      data: encodeFunctionData({
+        abi: uniswapV3RouterAbi,
+        functionName: 'exactInputSingle',
+        args: [{
+          tokenIn: ethereumUSDT,
+          tokenOut: ethereumUSDC,
+          fee: 100, // 0.01% pool
+          recipient: uniswapV3Router, // Route to next swap
+          deadline: Math.floor(Date.now() / 1000) + 1800,
+          amountIn: parseUnits('500', 6),
+          amountOutMinimum: 0,
+          sqrtPriceLimitX96: 0,
+        }],
+      }),
+    },
+    // Second swap: USDC → WETH
+    {
+      to: uniswapV3Router,
+      data: encodeFunctionData({
+        abi: uniswapV3RouterAbi,
+        functionName: 'exactInputSingle',
+        args: [{
+          tokenIn: ethereumUSDC,
+          tokenOut: weth,
+          fee: 500, // 0.05% pool
+          recipient: rhinestoneAccount.getAddress(),
+          deadline: Math.floor(Date.now() / 1000) + 1800,
+          amountIn: 0, // Will use output from previous swap
+          amountOutMinimum: 0,
+          sqrtPriceLimitX96: 0,
+        }],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: ethereumUSDT,
+      amount: parseUnits('500', 6), // Source 500 USDT
+    },
+  ],
+})
+```
+
+### Aggregated Liquidity Swaps
+
+Source tokens from multiple chains for large swaps:
+
+```tsx
+// Large swap using USDC from multiple chains
+const aggregatedSwap = await rhinestoneAccount.sendTransaction({
+  sourceChains: [arbitrum, polygon, base, optimism], // Check all chains
+  targetChain: ethereum,
+  calls: [
+    {
+      to: oneInchRouter, // Use 1inch for best execution
+      data: encodeFunctionData({
+        abi: oneInchAbi,
+        functionName: 'swap',
+        args: [
+          ethereumUSDC, // from
+          weth,         // to
+          parseUnits('10000', 6), // 10k USDC
+          parseEther('3.8'),      // min 3.8 WETH out
+          swapCalldata, // Pre-calculated route
+        ],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: ethereumUSDC,
+      amount: parseUnits('10000', 6), // Need 10k USDC total
+      sources: 'auto', // Automatically aggregate from all source chains
+    },
+  ],
+})
+```
+
+## DeFi Protocol Integration
+
+### Automated Yield Strategy
+
+Swap and stake in one transaction:
+
+```tsx
+// Source any stablecoin → Swap to USDC → Deposit in Compound
+const yieldStrategy = await rhinestoneAccount.sendTransaction({
+  sourceChains: [arbitrum, polygon, base],
+  targetChain: ethereum,
+  calls: [
+    // Swap to USDC if needed
+    {
+      to: curveStableswap,
+      data: encodeFunctionData({
+        abi: curveAbi,
+        functionName: 'exchange',
+        args: [
+          1, // USDT index
+          2, // USDC index
+          parseUnits('1000', 6), // 1000 USDT
+          parseUnits('995', 6),  // min 995 USDC (0.5% slippage)
+        ],
+      }),
+    },
+    // Deposit in Compound
+    {
+      to: compoundUSDC,
+      data: encodeFunctionData({
+        abi: compoundAbi,
+        functionName: 'mint',
+        args: [parseUnits('1000', 6)],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: ethereumUSDT, // Accept USDT (will be swapped)
+      amount: parseUnits('1000', 6),
+      alternatives: [
+        { address: ethereumUSDC, amount: parseUnits('1000', 6) },
+        { address: ethereumDAI, amount: parseUnits('1000', 18) },
+      ],
+    },
+  ],
+})
+```
+
+### Liquidity Provision
+
+Add liquidity with automatic token sourcing:
+
+```tsx
+// Source ETH and USDC from any chains → Add to Uniswap V3 pool
+const addLiquidity = await rhinestoneAccount.sendTransaction({
+  sourceChains: [arbitrum, polygon, optimism],
+  targetChain: ethereum,
+  calls: [
+    {
+      to: uniswapV3NonfungiblePositionManager,
+      data: encodeFunctionData({
+        abi: positionManagerAbi,
+        functionName: 'mint',
+        args: [{
+          token0: ethereumUSDC,
+          token1: weth,
+          fee: 3000,
+          tickLower: -887220, // Wide range
+          tickUpper: 887220,
+          amount0Desired: parseUnits('2000', 6), // 2000 USDC
+          amount1Desired: parseEther('1'),       // 1 WETH
+          amount0Min: parseUnits('1900', 6),     // 5% slippage
+          amount1Min: parseEther('0.95'),
+          recipient: rhinestoneAccount.getAddress(),
+          deadline: Math.floor(Date.now() / 1000) + 1800,
+        }],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: ethereumUSDC,
+      amount: parseUnits('2000', 6),
+    },
+    {
+      address: weth,
+      amount: parseEther('1'),
+    },
+  ],
+})
+```
+
+## MEV Protection
+
+### Private Mempool Execution
+
+Execute swaps with MEV protection:
+
+```tsx
+const protectedSwap = await rhinestoneAccount.sendTransaction({
+  sourceChains: [arbitrum],
+  targetChain: ethereum,
+  calls: [...],
+  tokenRequests: [...],
+  execution: {
+    privacy: 'private', // Use private mempool
+    maxSlippage: 0.5,   // 0.5% max slippage
+    mevProtection: true,
+  },
+})
+```
+
+### Sandwich Attack Protection
+
+Automatic protection against sandwich attacks:
+
+```tsx
+const sandwichProtected = await rhinestoneAccount.sendTransaction({
+  sourceChains: [polygon],
+  targetChain: ethereum,
+  calls: [
+    {
+      to: uniswapV3Router,
+      data: encodeFunctionData({
+        abi: uniswapV3RouterAbi,
+        functionName: 'exactInputSingle',
+        args: [{
+          tokenIn: ethereumUSDC,
+          tokenOut: weth,
+          fee: 3000,
+          recipient: rhinestoneAccount.getAddress(),
+          deadline: Math.floor(Date.now() / 1000) + 300, // Short deadline
+          amountIn: parseUnits('5000', 6), // Large trade
+          amountOutMinimum: 0,
+          sqrtPriceLimitX96: 0,
+        }],
+      }),
+    },
+  ],
+  tokenRequests: [...],
+  protection: {
+    antiSandwich: true,
+    flashloanProtection: true,
+    frontrunProtection: true,
+  },
+})
+```
+
+## Price Impact Optimization
+
+### Split Execution
+
+Automatically split large trades to minimize price impact:
+
+```tsx
+const splitExecution = await rhinestoneAccount.sendTransaction({
+  sourceChains: [arbitrum, polygon],
+  targetChain: ethereum,
+  calls: [...], // Single large swap call
+  tokenRequests: [
+    {
+      address: ethereumUSDC,
+      amount: parseUnits('50000', 6), // 50k USDC
+    },
+  ],
+  optimization: {
+    splitLargeOrders: true,
+    maxPriceImpact: 1.0, // 1% max price impact
+    timeWindow: 3600,    // Execute over 1 hour
+  },
+})
+```
+
+### TWAP Execution
+
+Execute Time-Weighted Average Price orders:
+
+```tsx
+const twapOrder = await rhinestoneAccount.sendTransaction({
+  sourceChains: [arbitrum],
+  targetChain: ethereum,
+  calls: [...],
+  tokenRequests: [...],
+  strategy: {
+    type: 'twap',
+    duration: 7200,      // 2 hours
+    intervals: 24,       // Execute every 5 minutes
+    randomization: 0.1,  // ±10% timing randomization
+  },
+})
+```
+
+## Cross-DEX Routing
+
+### Multi-DEX Comparison
+
+Automatically route through the best DEX:
+
+```tsx
+const bestRouteSwap = await rhinestoneAccount.sendTransaction({
+  sourceChains: [polygon],
+  targetChain: ethereum,
+  calls: [
+    // Rhinestone will choose best route from:
+    // Uniswap V2, V3, Sushiswap, Curve, Balancer, etc.
+    {
+      to: 'AUTO_ROUTER', // Special address for auto-routing
+      data: encodeFunctionData({
+        abi: autoRouterAbi,
+        functionName: 'swap',
+        args: [
+          ethereumUSDC,           // tokenIn
+          weth,                   // tokenOut
+          parseUnits('1000', 6),  // amountIn
+          parseEther('0.38'),     // minAmountOut
+          rhinestoneAccount.getAddress(), // recipient
+        ],
+      }),
+    },
+  ],
+  tokenRequests: [...],
+  routing: {
+    includeDEXs: ['uniswap-v3', 'curve', 'balancer', '1inch'],
+    excludeDEXs: ['uniswap-v2'], // Exclude V2 for better rates
+    maxHops: 3, // Allow up to 3-hop routes
+  },
+})
+```
+
+## Error Handling and Monitoring
+
+### Swap Failure Recovery
+
+```tsx
+try {
+  const swapIntent = await rhinestoneAccount.sendTransaction({...})
+  const result = await rhinestoneAccount.waitForExecution(swapIntent)
+} catch (error) {
+  if (error.code === 'SLIPPAGE_EXCEEDED') {
+    // Retry with higher slippage tolerance
+    console.log('Slippage exceeded, retrying with 1% slippage')
+  } else if (error.code === 'INSUFFICIENT_LIQUIDITY') {
+    // Try alternative DEX or route
+    console.log('Insufficient liquidity, trying alternative route')
+  }
+}
+```
+
+### Real-time Monitoring
+
+```tsx
+// Monitor swap execution progress
+const swapStatus = await rhinestoneAccount.getIntentStatus(swapIntent.id)
+console.log('Current step:', swapStatus.currentStep)
+console.log('Tokens bridged:', swapStatus.bridgedAmounts)
+console.log('Estimated completion:', swapStatus.estimatedCompletion)
+```
+
+## Next Steps
+
+- **Solver integration**: Learn about [solver-based swaps](../chain-abstraction/solver-based-swaps) for custom execution logic
+- **Advanced strategies**: Explore automated trading with [session keys](../smart-sessions/overview)
+- **Yield optimization**: See [unified balance](../use-cases/chain-abstraction/unified-balance) for portfolio management
+- **MEV protection**: Dive deeper into [transaction privacy and protection](../advanced/batch-transactions)

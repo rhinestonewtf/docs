@@ -1,0 +1,438 @@
+---
+title: "JIT vs Resource Locks"
+description: "Understanding Just-In-Time execution versus Resource Locking strategies in Rhinestone's orchestrator."
+---
+
+## Overview
+
+Rhinestone's orchestrator uses two primary execution strategies to fulfill intents: **Just-In-Time (JIT) execution** and **Resource Locking**. The choice between these strategies depends on whether you're using ERC-4337 UserOperations or direct intent execution, and affects how your funds are managed during cross-chain operations.
+
+**Key differences:**
+- **JIT (Unlocked funds)**: Tokens are sourced and bridged in real-time during execution
+- **Resource Locks (Locked funds)**: Tokens are pre-reserved and locked until the intent completes
+- **UserOp vs Intent**: The execution method determines which strategy is used
+
+## Execution Strategies
+
+### Just-In-Time (JIT) Execution
+
+JIT execution sources tokens in real-time without pre-locking them:
+
+```tsx
+// Standard intent execution (uses JIT by default)
+const jitIntent = await rhinestoneAccount.sendTransaction({
+  sourceChains: [arbitrum, polygon],
+  targetChain: ethereum,
+  calls: [
+    {
+      to: compoundUSDC,
+      data: encodeFunctionData({
+        abi: compoundAbi,
+        functionName: 'supply',
+        args: [parseUnits('1000', 6)],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: ethereumUSDC,
+      amount: parseUnits('1000', 6),
+    },
+  ],
+})
+
+// Execution flow:
+// 1. Intent submitted to orchestrator
+// 2. Solvers compete for execution  
+// 3. Winning solver sources tokens in real-time
+// 4. Tokens bridged and delivered just-in-time
+// 5. Your operation executes on target chain
+```
+
+### Resource Locking
+
+Resource locking pre-reserves tokens before execution:
+
+```tsx
+// UserOp execution (uses resource locking)
+const lockedIntent = await rhinestoneAccount.sendTransaction({
+  sourceChains: [base],
+  targetChain: arbitrum,
+  calls: [
+    {
+      to: arbitrumUSDC,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [recipient, parseUnits('500', 6)],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: arbitrumUSDC,
+      amount: parseUnits('500', 6),
+    },
+  ],
+  signers: {
+    type: 'session', // This triggers UserOp flow
+    session: sessionKey,
+  },
+})
+
+// Execution flow:
+// 1. Tokens locked on source chain immediately
+// 2. UserOperation prepared and signed
+// 3. UserOp submitted to bundler
+// 4. Locked tokens used for fulfillment
+// 5. Remaining locks released after completion
+```
+
+## When Each Strategy is Used
+
+### JIT Execution Triggers
+
+JIT execution is used when:
+
+```tsx
+// 1. Standard intent execution (no session keys)
+const standardIntent = await rhinestoneAccount.sendTransaction({
+  sourceChains: [ethereum],
+  targetChain: polygon,
+  calls: [...],
+  // No signers specified = JIT execution
+})
+
+// 2. Owner-signed transactions
+const ownerIntent = await rhinestoneAccount.sendTransaction({
+  sourceChains: [arbitrum],
+  targetChain: base,
+  calls: [...],
+  signers: {
+    type: 'owner',
+    kind: 'ecdsa',
+    accounts: [ownerAccount],
+  },
+})
+
+// 3. Cross-chain intents (preferred for efficiency)
+const crossChainIntent = await rhinestoneAccount.sendTransaction({
+  sourceChains: [ethereum, arbitrum, polygon], // Multiple source chains
+  targetChain: optimism,
+  calls: [...],
+})
+```
+
+### Resource Locking Triggers
+
+Resource locking is used when:
+
+```tsx
+// 1. Session key execution
+const sessionIntent = await rhinestoneAccount.sendTransaction({
+  sourceChains: [polygon],
+  targetChain: arbitrum,
+  calls: [...],
+  signers: {
+    type: 'session',
+    session: {
+      owners: {
+        type: 'ecdsa',
+        accounts: [sessionKeyAccount],
+      },
+      policies: [...],
+    },
+  },
+})
+
+// 2. Guardian recovery operations
+const guardianIntent = await rhinestoneAccount.sendTransaction({
+  sourceChains: [ethereum],
+  targetChain: arbitrum,
+  calls: [...],
+  signers: {
+    type: 'guardians',
+    guardians: [guardian1, guardian2],
+  },
+})
+
+// 3. UserOp-required operations
+const userOpIntent = await rhinestoneAccount.sendTransaction({
+  sourceChains: [base],
+  targetChain: optimism,
+  calls: [...],
+  // Any configuration that requires UserOp flow
+  requireUserOp: true,
+})
+```
+
+## Fund Management Implications
+
+### JIT (Unlocked Funds)
+
+Your funds remain available until execution:
+
+```tsx
+// Check unlocked vs locked balances
+const portfolio = await rhinestoneAccount.getPortfolio()
+
+portfolio.forEach(token => {
+  console.log(`${token.symbol}:`, {
+    unlocked: token.balances.unlocked, // Available for JIT execution
+    locked: token.balances.locked,     // Reserved for pending operations
+    total: token.balances.unlocked + token.balances.locked,
+  })
+})
+
+// Benefits of JIT:
+// ✅ Funds stay liquid until needed
+// ✅ Can cancel intents before execution
+// ✅ Optimal routing through solver competition
+// ✅ Lower latency for simple operations
+```
+
+### Resource Locking (Locked Funds)
+
+Funds are immediately reserved:
+
+```tsx
+// Funds locked immediately on submission
+const intentWithLocks = await rhinestoneAccount.sendTransaction({
+  sourceChains: [ethereum],
+  targetChain: arbitrum,
+  calls: [...],
+  signers: { type: 'session', session: sessionKey },
+})
+
+// Check locked amounts
+const balanceAfterLock = await rhinestoneAccount.getPortfolio()
+console.log('Locked for intent:', {
+  intentId: intentWithLocks.id,
+  lockedAmounts: balanceAfterLock.reduce((acc, token) => {
+    if (token.balances.locked > 0n) {
+      acc[token.symbol] = token.balances.locked
+    }
+    return acc
+  }, {}),
+})
+
+// Benefits of resource locking:
+// ✅ Guaranteed fund availability
+// ✅ Predictable execution timing
+// ✅ Better for automated/session operations
+// ✅ Prevents double-spending in automation
+```
+
+## Choosing the Right Strategy
+
+### Use JIT When:
+
+- **Interactive operations**: User is present to sign
+- **Cross-chain arbitrage**: Need optimal routing
+- **Large transactions**: Benefit from solver competition
+- **Flexible timing**: Can wait for best execution
+
+```tsx
+// Ideal for JIT: Large cross-chain DeFi operation
+const defiIntent = await rhinestoneAccount.sendTransaction({
+  sourceChains: [ethereum, arbitrum, polygon], // Multiple sources
+  targetChain: optimism,
+  calls: [
+    // Complex DeFi operation
+    {
+      to: velodromRouter,
+      data: encodeFunctionData({
+        abi: routerAbi,
+        functionName: 'swapExactTokensForTokens',
+        args: [amount, minOut, path, recipient, deadline],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: optimismUSDC,
+      amount: parseUnits('10000', 6), // Large amount benefits from competition
+    },
+  ],
+})
+```
+
+### Use Resource Locking When:
+
+- **Automated operations**: Session keys or guardians
+- **Time-sensitive**: Need guaranteed execution
+- **Regulated flows**: Require audit trails
+- **Batch processing**: Multiple related operations
+
+```tsx
+// Ideal for locking: Automated DCA with session keys
+const dcaIntent = await rhinestoneAccount.sendTransaction({
+  sourceChains: [base],
+  targetChain: ethereum,
+  calls: [
+    {
+      to: uniswapV3Router,
+      data: encodeFunctionData({
+        abi: uniswapAbi,
+        functionName: 'exactInputSingle',
+        args: [dcaParams],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: ethereumWETH,
+      amount: parseUnits('0.1', 18), // Regular DCA amount
+    },
+  ],
+  signers: {
+    type: 'session',
+    session: dcaSessionKey, // Automated execution
+  },
+})
+```
+
+## Monitoring and Analytics
+
+### Track Execution Strategies
+
+Monitor which strategy is being used:
+
+```tsx
+const intentDetails = await rhinestoneAccount.getIntentStatus(intent.id)
+
+console.log('Execution strategy:', {
+  strategy: intentDetails.executionStrategy, // 'JIT' | 'LOCKED'
+  fundSource: intentDetails.fundSource,      // 'unlocked' | 'locked'
+  lockTimestamp: intentDetails.lockTimestamp,
+  unlockTimestamp: intentDetails.unlockTimestamp,
+})
+
+// For resource-locked intents
+if (intentDetails.executionStrategy === 'LOCKED') {
+  console.log('Lock details:', {
+    lockedAmounts: intentDetails.lockedAmounts,
+    lockDuration: intentDetails.unlockTimestamp - intentDetails.lockTimestamp,
+    autoUnlockEnabled: intentDetails.autoUnlockEnabled,
+  })
+}
+```
+
+### Performance Comparison
+
+Compare strategies for your use case:
+
+```tsx
+// Analyze past intents
+const intentHistory = await rhinestoneAccount.getIntentHistory({
+  limit: 100,
+  includeMetrics: true,
+})
+
+const jitIntents = intentHistory.filter(i => i.executionStrategy === 'JIT')
+const lockedIntents = intentHistory.filter(i => i.executionStrategy === 'LOCKED')
+
+console.log('Strategy comparison:', {
+  jit: {
+    avgExecutionTime: average(jitIntents.map(i => i.executionTime)),
+    avgCost: average(jitIntents.map(i => i.totalCost)),
+    successRate: jitIntents.filter(i => i.status === 'COMPLETED').length / jitIntents.length,
+  },
+  locked: {
+    avgExecutionTime: average(lockedIntents.map(i => i.executionTime)),
+    avgCost: average(lockedIntents.map(i => i.totalCost)),
+    successRate: lockedIntents.filter(i => i.status === 'COMPLETED').length / lockedIntents.length,
+  },
+})
+```
+
+## Error Handling
+
+### JIT Execution Errors
+
+```tsx
+try {
+  const jitIntent = await rhinestoneAccount.sendTransaction({...})
+} catch (error) {
+  if (error.code === 'INSUFFICIENT_UNLOCKED_BALANCE') {
+    console.log('Not enough unlocked funds for JIT execution')
+    // Wait for pending operations to complete or add more funds
+  } else if (error.code === 'NO_SOLVER_AVAILABLE') {
+    console.log('No solvers willing to fulfill this intent')
+    // Adjust parameters or try resource locking
+  }
+}
+```
+
+### Resource Locking Errors
+
+```tsx
+try {
+  const lockedIntent = await rhinestoneAccount.sendTransaction({
+    signers: { type: 'session', session: sessionKey },
+    ...
+  })
+} catch (error) {
+  if (error.code === 'INSUFFICIENT_BALANCE_FOR_LOCK') {
+    console.log('Cannot lock required funds')
+    // Check total balance vs required amount
+  } else if (error.code === 'LOCK_TIMEOUT') {
+    console.log('Lock operation timed out')
+    // Retry or use JIT execution
+  }
+}
+```
+
+## Best Practices
+
+### 1. Strategy Selection
+
+```tsx
+// Choose based on use case
+const strategy = userPresent && !automated 
+  ? 'JIT'           // Interactive operations
+  : 'RESOURCE_LOCK' // Automated operations
+
+const intent = await rhinestoneAccount.sendTransaction({
+  sourceChains: [ethereum],
+  targetChain: arbitrum,
+  calls: [...],
+  signers: strategy === 'RESOURCE_LOCK' 
+    ? { type: 'session', session: sessionKey }
+    : undefined, // JIT execution
+})
+```
+
+### 2. Balance Management
+
+```tsx
+// Maintain appropriate unlocked/locked ratios
+const portfolio = await rhinestoneAccount.getPortfolio()
+const totalBalance = portfolio[0].balances.unlocked + portfolio[0].balances.locked
+const lockRatio = portfolio[0].balances.locked / totalBalance
+
+if (lockRatio > 0.8) {
+  console.warn('Too many funds locked - consider optimizing session operations')
+}
+```
+
+### 3. Monitoring and Optimization
+
+```tsx
+// Regular balance monitoring
+setInterval(async () => {
+  const portfolio = await rhinestoneAccount.getPortfolio()
+  const metrics = calculateBalanceMetrics(portfolio)
+  
+  if (metrics.inefficientLocks > 0) {
+    console.log('Consider releasing unused locks:', metrics.inefficientLocks)
+  }
+}, 60000) // Check every minute
+```
+
+## Next Steps
+
+- Learn about [injected executions](./injected-executions) for understanding execution injection
+- Explore [create intent](./create-intent) for basic intent creation patterns
+- See [solver-based swaps](../chain-abstraction/solver-based-swaps) for advanced execution logic
+- Check out [session keys](../smart-sessions/overview) for automated operation setup

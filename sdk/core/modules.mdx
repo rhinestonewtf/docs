@@ -1,0 +1,285 @@
+---
+title: "Modules"
+description: "Understand and integrate ERC-7579 modules with your Rhinestone smart accounts."
+---
+
+## Overview
+
+Modules are the building blocks that extend your smart account's functionality. Using the ERC-7579 standard, you can add custom validators, executors, hooks, and fallback handlers to create powerful, customized wallet experiences.
+
+**What are modules?** Think of modules as plugins for your smart account. Each module serves a specific purpose:
+- **Validators**: Handle signature validation (passkeys, multisig, session keys)
+- **Executors**: Execute transactions with special logic (batch operations, scheduled transactions)
+- **Hooks**: Run code before/after transactions (compliance checks, logging)
+- **Fallbacks**: Handle unknown function calls
+
+## Module Types
+
+### Validators
+Control how transactions are authorized:
+
+```tsx
+// Example: Adding a passkey validator
+import { getWebAuthnValidator } from '@rhinestone/module-sdk'
+
+const passkeyValidator = getWebAuthnValidator({
+  pubKeyX: '0x...',
+  pubKeyY: '0x...',
+})
+
+await rhinestoneAccount.installModule({
+  module: passkeyValidator.module,
+  data: passkeyValidator.data,
+  type: 'validator',
+})
+```
+
+### Executors
+Add custom execution logic:
+
+```tsx
+// Example: Adding a scheduled executor
+import { getScheduledOrdersExecutor } from '@rhinestone/module-sdk'
+
+const scheduledExecutor = getScheduledOrdersExecutor()
+
+await rhinestoneAccount.installModule({
+  module: scheduledExecutor.module,
+  data: scheduledExecutor.data,
+  type: 'executor',
+})
+```
+
+### Hooks
+Add middleware functionality:
+
+```tsx
+// Example: Adding a registry hook for attestations
+import { getRegistryHook } from '@rhinestone/module-sdk'
+
+const registryHook = getRegistryHook({
+  registryAddress: '0x...',
+})
+
+await rhinestoneAccount.installModule({
+  module: registryHook.module,
+  data: registryHook.data,
+  type: 'hook',
+})
+```
+
+## Installing Modules
+
+### Using ModuleKit
+
+The easiest way to work with modules is using our ModuleKit:
+
+```bash
+npm install @rhinestone/module-sdk
+```
+
+```tsx
+import { 
+  getOwnableValidator,
+  getWebAuthnValidator,
+  getAutoSavingsExecutor 
+} from '@rhinestone/module-sdk'
+
+// Get pre-built modules
+const modules = [
+  getOwnableValidator({ owner: '0x...' }),
+  getWebAuthnValidator({ pubKeyX: '0x...', pubKeyY: '0x...' }),
+  getAutoSavingsExecutor({ savingsRate: 500 }) // 5%
+]
+
+// Install multiple modules at once
+for (const moduleConfig of modules) {
+  await rhinestoneAccount.installModule({
+    module: moduleConfig.module,
+    data: moduleConfig.data,
+    type: moduleConfig.type,
+  })
+}
+```
+
+### Manual Module Installation
+
+For custom modules or fine-grained control:
+
+```tsx
+// Install a custom validator module
+await rhinestoneAccount.installModule({
+  module: '0x...', // Your module address
+  data: '0x...', // Initialization data
+  type: 'validator',
+})
+```
+
+## Popular Module Combinations
+
+### Multi-Factor Authentication Setup
+
+```tsx
+// Combine ECDSA + Passkey for 2FA
+const ecdsaValidator = getECDSAValidator({ owner: account.address })
+const passkeyValidator = getWebAuthnValidator({ 
+  pubKeyX: passkeyPublicKey.x,
+  pubKeyY: passkeyPublicKey.y 
+})
+
+// Install both validators
+await rhinestoneAccount.installModule(ecdsaValidator)
+await rhinestoneAccount.installModule(passkeyValidator)
+```
+
+### Session Key + Spending Limits
+
+```tsx
+// Session keys with built-in spending controls
+const sessionValidator = getSmartSessionValidator({
+  sessionKey: '0x...',
+  permissions: [
+    {
+      target: usdcAddress,
+      valueLimit: parseEther('100'), // Max 100 USDC per session
+      validUntil: Math.floor(Date.now() / 1000) + 86400, // 24h validity
+    }
+  ]
+})
+
+await rhinestoneAccount.installModule(sessionValidator)
+```
+
+### Automated Savings
+
+```tsx
+// Auto-save a percentage of incoming funds
+const savingsExecutor = getAutoSavingsExecutor({
+  savingsVault: '0x...', // Yield protocol address
+  savingsRate: 1000, // 10% of incoming funds
+  minAmount: parseEther('10'), // Only save if > 10 tokens
+})
+
+await rhinestoneAccount.installModule(savingsExecutor)
+```
+
+## Module Management
+
+### Checking Installed Modules
+
+```tsx
+// Check if a module is installed
+const isInstalled = await rhinestoneAccount.isModuleInstalled({
+  module: '0x...',
+  type: 'validator',
+})
+
+// Get all installed modules
+const installedModules = await rhinestoneAccount.getInstalledModules()
+```
+
+### Uninstalling Modules
+
+```tsx
+// Remove a module
+await rhinestoneAccount.uninstallModule({
+  module: '0x...',
+  data: '0x...', // Deinitialization data
+  type: 'validator',
+})
+```
+
+## Building Custom Modules
+
+### Using ModuleKit for Development
+
+For building your own modules, use our development toolkit:
+
+```bash
+npm install @rhinestone/modulekit-base
+```
+
+```solidity
+// Example: Custom spending limit validator
+pragma solidity ^0.8.0;
+
+import "@rhinestone/modulekit-base/ModuleKit.sol";
+
+contract SpendingLimitValidator is ERC7579ValidatorBase {
+    mapping(address => uint256) public dailyLimits;
+    mapping(address => uint256) public dailySpent;
+    mapping(address => uint256) public lastReset;
+
+    function validateUserOp(
+        UserOperation calldata userOp,
+        bytes32 userOpHash
+    ) external view override returns (ValidationData) {
+        // Implement spending limit logic
+        // Return VALIDATION_SUCCESS or VALIDATION_FAILED
+    }
+}
+```
+
+### Module Registry
+
+Register your modules for discoverability:
+
+```tsx
+import { registerModule } from '@rhinestone/module-sdk'
+
+await registerModule({
+  module: '0x...', // Your module address
+  resolverUID: '0x...', // Attestation resolver
+  metadata: {
+    name: 'Custom Spending Limit',
+    version: '1.0.0',
+    description: 'Daily spending limits with automatic reset',
+  }
+})
+```
+
+## Module Security
+
+### Attestations and Trust
+
+Always verify module attestations before installation:
+
+```tsx
+import { isModuleAttested } from '@rhinestone/module-sdk'
+
+// Check if module is attested by trusted parties
+const isAttested = await isModuleAttested({
+  module: '0x...',
+  attester: '0x...', // Trusted attester address
+})
+
+if (!isAttested) {
+  console.warn('Module is not attested by trusted parties')
+}
+```
+
+### Module Permissions
+
+Understand what each module can do:
+
+- **Validators**: Can authorize transactions
+- **Executors**: Can execute transactions on behalf of the account
+- **Hooks**: Can read/modify transaction data
+- **Fallbacks**: Can handle unknown function calls
+
+## Environment Variables
+
+For module development and testing:
+
+```bash
+RHINESTONE_API_KEY=your_rhinestone_api_key
+MODULE_REGISTRY_ADDRESS=0x... # Registry contract address
+ATTESTER_PRIVATE_KEY=your_attester_key # For creating attestations
+```
+
+## Next Steps
+
+- **Build your own modules**: Check out our [ModuleKit documentation](../../build-modules/overview)
+- **Browse existing modules**: Visit the [Module Registry](../../build-modules/module-registry/overview)
+- **See modules in action**: Try our [passkeys](./passkeys), [multisig](./multisig), or [session keys](../smart-sessions/overview) guides
+- **Module templates**: Start with our [module templates](https://github.com/rhinestonewtf/module-template)

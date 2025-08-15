@@ -82,12 +82,18 @@ export function usePrivyWallet() {
     async function initializeAccount() {
       if (!ready || !authenticated || !address || !walletClient) return
 
+      // Privy sometimes needs address explicitly added to the client
+      const walletClientWithAddress = {
+        ...walletClient,
+        address: address,
+      };
+
       // The key step: pass the wagmi walletClient directly to Rhinestone
       // Rhinestone SDK wraps it to add cross-chain capabilities
       const account = await createRhinestoneAccount({
         owners: {
           type: "ecdsa",
-          accounts: [walletClient], // wagmi client from Privy
+          accounts: [walletClientWithAddress], // wagmi client from Privy with address
         },
         rhinestoneApiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
       })

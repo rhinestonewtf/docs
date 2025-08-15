@@ -71,16 +71,18 @@
 						"pages": [
 							"sdk/core/create-account",
 							{
-								"group": "Integrate Embedded Signer",
+								"group": "Integrate Signer",
 								"pages": [
-									"sdk/core/embedded-signers/dynamic",
-									"sdk/core/embedded-signers/privy",
-									"sdk/core/embedded-signers/turnkey"
+									"sdk/core/signers/dynamic",
+									"sdk/core/signers/privy",
+									"sdk/core/signers/turnkey",
+									"sdk/core/signers/external-wallet"
 								]
 							},
 							"sdk/core/eip-7702",
 							"sdk/core/send-omnichain-transaction",
 							"sdk/core/fee-sponsorship",
+							"sdk/core/modules",
 							"sdk/core/passkeys",
 							"sdk/core/ecdsa-signer",
 							"sdk/core/multisig",
@@ -90,7 +92,12 @@
 					{
 						"group": "Multi-Chain Intents",
 						"pages": [
+							"sdk/intents/create-intent",
+							"sdk/intents/injected-executions",
+							"sdk/intents/injected-swaps",
+							"sdk/intents/jit-vs-resource-locks",
 							"sdk/chain-abstraction/solver-based-swaps",
+							"sdk/use-cases/chain-abstraction/unified-balance",
 							"sdk/chain-abstraction/account-deployment",
 							"sdk/chain-abstraction/orchestrator-errors"
 						]
@@ -98,23 +105,20 @@
 					{
 						"group": "Use Cases",
 						"pages": [
-							{
-								"group": "Chain Abstraction",
-								"pages": ["sdk/use-cases/chain-abstraction/unified-balance"]
-							}
+							"sdk/use-cases/multi-chain-deposit"
 						]
 					},
 					{
-						"group": "Smart Sessions",
+						"group": "Session Keys",
 						"pages": [
 							"sdk/smart-sessions/overview",
 							"sdk/smart-sessions/multi-chain",
 							{
 								"group": "Signature Validators",
 								"pages": [
+									"sdk/smart-sessions/signature-validators/passkey",
 									"sdk/smart-sessions/signature-validators/ecdsa",
-									"sdk/smart-sessions/signature-validators/multisig",
-									"sdk/smart-sessions/signature-validators/passkey"
+									"sdk/smart-sessions/signature-validators/multisig"
 								]
 							},
 							{
@@ -134,11 +138,10 @@
 						"pages": [
 							"sdk/advanced/batch-transactions",
 							"sdk/advanced/message-signing",
-							"sdk/advanced/multi-factor-authentication",
-							"sdk/advanced/migration-guide"
+							"sdk/advanced/migration-guide",
+							"sdk/advanced/multi-factor-authentication"
 						]
 					},
-					"sdk/module-sdk",
 					{
 						"group": "Customize",
 						"pages": [
