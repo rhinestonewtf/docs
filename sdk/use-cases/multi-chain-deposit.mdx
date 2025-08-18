@@ -13,466 +13,67 @@ A global wallet allows users to deposit tokens on any supported chain and spend 
 - Automatic liquidity aggregation
 - Simplified user experience
 
-## Architecture
-
-### Global Account Setup
-
-Create a Rhinestone account that works across all chains:
+## Create an Account
 
 ```tsx
 import { createRhinestoneAccount } from '@rhinestone/sdk'
-import { mainnet, arbitrum, polygon, base, optimism } from 'viem/chains'
+import { base, arbitrum } from 'viem/chains'
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 
-const globalAccount = await createRhinestoneAccount({
+const privateKey = generatePrivateKey()
+const owner = privateKeyToAccount(privateKey)
+
+const account = await createRhinestoneAccount({
   owners: {
     type: 'ecdsa',
-    accounts: [userSigner],
+    accounts: [owner],
   },
-  // Account will have the same address on all supported chains
   rhinestoneApiKey: process.env.RHINESTONE_API_KEY,
 })
 
-const accountAddress = globalAccount.getAddress()
-console.log('Global wallet address:', accountAddress)
-// This address works on: Ethereum, Arbitrum, Polygon, Base, Optimism, etc.
+const address = account.getAddress()
+console.log('Global wallet address:', address)
+// You can receive funds to this address on any supported chain.
 ```
 
-### Supported Chains Configuration
+## Deposits
 
-Configure which chains your global wallet supports:
+- Users can send tokens directly to the account address on any supported chain.
+- Deposits are available for cross-chain spending; no extra setup is required in the SDK.
 
-```tsx
-const supportedChains = [
-  { chain: mainnet, tokens: ['ETH', 'USDC', 'USDT', 'DAI'] },
-  { chain: arbitrum, tokens: ['ETH', 'USDC', 'USDT', 'ARB'] },
-  { chain: polygon, tokens: ['MATIC', 'USDC', 'USDT', 'DAI'] },
-  { chain: base, tokens: ['ETH', 'USDC', 'CBETH'] },
-  { chain: optimism, tokens: ['ETH', 'USDC', 'OP'] },
-]
-```
+## Spend Across Chains
 
-## Deposit Flow
-
-### Simple Deposit
-
-Users can send tokens to their global wallet address on any chain:
+Send tokens on a destination chain, sourcing funds from a source chain:
 
 ```tsx
-// User sends 100 USDC to their global wallet on Polygon
-// Address: 0x742... (same on all chains)
-// Amount: 100 USDC
-// Chain: Polygon
+import { encodeFunctionData, erc20Abi, parseUnits } from 'viem'
+import { arbitrum, base } from 'viem/chains'
 
-// The deposit is automatically tracked and available for spending
-const balance = await globalAccount.getBalance({
-  token: 'USDC',
-  chains: 'all', // Check all chains
-})
+const recipient = '0x0000000000000000000000000000000000000001'
+const baseUSDC = '0x0000000000000000000000000000000000000002' // USDC on Base
 
-console.log('Total USDC balance:', balance.total)
-console.log('Per-chain breakdown:', balance.breakdown)
-// {
-//   total: '100000000', // 100 USDC (6 decimals)
-//   breakdown: {
-//     polygon: '100000000',
-//     arbitrum: '0',
-//     ethereum: '0'
-//   }
-// }
-```
-
-### Multi-Chain Deposit Tracking
-
-Track deposits across all chains:
-
-```tsx
-import { parseUnits } from 'viem'
-
-// Hook to track global wallet balance
-export function useGlobalWalletBalance(accountAddress: string) {
-  const [balances, setBalances] = useState({})
-  const [totalBalance, setTotalBalance] = useState('0')
-
-  useEffect(() => {
-    async function fetchBalances() {
-      const chains = [mainnet, arbitrum, polygon, base]
-      const tokens = ['USDC', 'USDT', 'ETH']
-      
-      const balancePromises = chains.map(async (chain) => {
-        const chainBalances = {}
-        
-        for (const token of tokens) {
-          try {
-            const balance = await getTokenBalance({
-              address: accountAddress,
-              token,
-              chain,
-            })
-            chainBalances[token] = balance
-          } catch (error) {
-            chainBalances[token] = '0'
-          }
-        }
-        
-        return { chain: chain.name, balances: chainBalances }
-      })
-
-      const results = await Promise.all(balancePromises)
-      
-      // Aggregate total balances
-      const aggregated = {}
-      results.forEach(({ chain, balances }) => {
-        Object.entries(balances).forEach(([token, balance]) => {
-          if (!aggregated[token]) aggregated[token] = {}
-          aggregated[token][chain] = balance
-          aggregated[token].total = (
-            BigInt(aggregated[token].total || 0) + BigInt(balance)
-          ).toString()
-        })
-      })
-
-      setBalances(aggregated)
-    }
-
-    fetchBalances()
-    const interval = setInterval(fetchBalances, 30000) // Update every 30s
-    return () => clearInterval(interval)
-  }, [accountAddress])
-
-  return { balances, totalBalance }
-}
-```
-
-## Spending Flow
-
-### Cross-Chain Spending
-
-Spend tokens from any chain on any other chain:
-
-```tsx
-// User wants to buy an NFT on Ethereum using USDC from Polygon
-const nftPurchase = await globalAccount.sendTransaction({
-  sourceChains: [polygon, arbitrum], // Look for USDC on these chains
-  targetChain: mainnet, // Execute on Ethereum
+const tx = await account.sendTransaction({
+  sourceChains: [arbitrum],
+  targetChain: base,
   calls: [
     {
-      to: nftMarketplace,
-      value: 0n,
-      data: encodeFunctionData({
-        abi: marketplaceAbi,
-        functionName: 'buyNFT',
-        args: [tokenId, parseUnits('500', 6)], // 500 USDC
-      }),
-    },
-  ],
-  tokenRequests: [
-    {
-      address: ethereumUSDC,
-      amount: parseUnits('500', 6), // Need 500 USDC on Ethereum
-    },
-  ],
-})
-
-console.log('NFT purchase intent:', nftPurchase.id)
-// Rhinestone will:
-// 1. Find 500 USDC on Polygon
-// 2. Bridge it to Ethereum
-// 3. Execute the NFT purchase
-// 4. All in one transaction flow
-```
-
-### Intelligent Token Sourcing
-
-Automatically find the best tokens to use:
-
-```tsx
-// Smart sourcing - use cheapest gas chain first
-const optimizedSpending = await globalAccount.sendTransaction({
-  sourceChains: [polygon, arbitrum, base], // Check cheap chains first
-  targetChain: mainnet,
-  calls: [
-    {
-      to: defiProtocol,
-      data: encodeFunctionData({
-        abi: protocolAbi,
-        functionName: 'deposit',
-        args: [parseUnits('1000', 6)],
-      }),
-    },
-  ],
-  tokenRequests: [
-    {
-      address: ethereumUSDC,
-      amount: parseUnits('1000', 6),
-      preferences: {
-        preferCheapGas: true, // Use tokens from cheaper chains first
-        maxBridgeTime: 600,   // Max 10 minutes bridge time
-        minAmount: parseUnits('100', 6), // Don't use tiny amounts
-      },
-    },
-  ],
-})
-```
-
-## User Interface Components
-
-### Balance Display Component
-
-```tsx
-import { useGlobalWalletBalance } from './hooks/useGlobalWallet'
-
-function GlobalWalletBalance({ accountAddress }: { accountAddress: string }) {
-  const { balances } = useGlobalWalletBalance(accountAddress)
-
-  return (
-    <div className="global-wallet-balance">
-      <h3>Global Wallet Balance</h3>
-      
-      {Object.entries(balances).map(([token, tokenBalances]) => (
-        <div key={token} className="token-balance">
-          <div className="token-header">
-            <span className="token-name">{token}</span>
-            <span className="total-balance">
-              {formatUnits(tokenBalances.total, getTokenDecimals(token))}
-            </span>
-          </div>
-          
-          <div className="chain-breakdown">
-            {Object.entries(tokenBalances)
-              .filter(([chain]) => chain !== 'total')
-              .map(([chain, balance]) => (
-                <div key={chain} className="chain-balance">
-                  <span className="chain-name">{chain}</span>
-                  <span className="balance">
-                    {formatUnits(balance, getTokenDecimals(token))}
-                  </span>
-                </div>
-              ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-```
-
-### Cross-Chain Transfer Component
-
-```tsx
-function CrossChainTransfer({ globalAccount }: { globalAccount: any }) {
-  const [sourceChain, setSourceChain] = useState('')
-  const [targetChain, setTargetChain] = useState('')
-  const [token, setToken] = useState('USDC')
-  const [amount, setAmount] = useState('')
-  const [recipient, setRecipient] = useState('')
-
-  const handleTransfer = async () => {
-    const transfer = await globalAccount.sendTransaction({
-      sourceChains: sourceChain ? [sourceChain] : undefined,
-      targetChain,
-      calls: [
-        {
-          to: getTokenAddress(token, targetChain),
-          data: encodeFunctionData({
-            abi: erc20Abi,
-            functionName: 'transfer',
-            args: [recipient, parseUnits(amount, getTokenDecimals(token))],
-          }),
-        },
-      ],
-      tokenRequests: [
-        {
-          address: getTokenAddress(token, targetChain),
-          amount: parseUnits(amount, getTokenDecimals(token)),
-        },
-      ],
-    })
-
-    console.log('Transfer initiated:', transfer.id)
-  }
-
-  return (
-    <div className="cross-chain-transfer">
-      <h3>Send Tokens</h3>
-      
-      <select 
-        value={sourceChain} 
-        onChange={(e) => setSourceChain(e.target.value)}
-      >
-        <option value="">Any Chain (Auto-select)</option>
-        <option value="ethereum">Ethereum</option>
-        <option value="arbitrum">Arbitrum</option>
-        <option value="polygon">Polygon</option>
-        <option value="base">Base</option>
-      </select>
-
-      <select 
-        value={targetChain} 
-        onChange={(e) => setTargetChain(e.target.value)}
-      >
-        <option value="">Select Target Chain</option>
-        <option value="ethereum">Ethereum</option>
-        <option value="arbitrum">Arbitrum</option>
-        <option value="polygon">Polygon</option>
-        <option value="base">Base</option>
-      </select>
-
-      <input
-        type="text"
-        placeholder="Amount"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-      />
-
-      <input
-        type="text"
-        placeholder="Recipient Address"
-        value={recipient}
-        onChange={(e) => setRecipient(e.target.value)}
-      />
-
-      <button onClick={handleTransfer}>Send Tokens</button>
-    </div>
-  )
-}
-```
-
-## Advanced Features
-
-### Automated Yield Optimization
-
-Automatically move funds to highest-yield opportunities:
-
-```tsx
-// Move idle USDC to best yield across chains
-const yieldOptimization = await globalAccount.sendTransaction({
-  sourceChains: [polygon, arbitrum], // Check for idle USDC
-  targetChain: ethereum, // Compound has best rates
-  calls: [
-    {
-      to: compoundUSDC,
-      data: encodeFunctionData({
-        abi: compoundAbi,
-        functionName: 'mint',
-        args: [parseUnits('5000', 6)],
-      }),
-    },
-  ],
-  tokenRequests: [
-    {
-      address: ethereumUSDC,
-      amount: parseUnits('5000', 6),
-    },
-  ],
-  automation: {
-    trigger: 'idle_funds', // Trigger when funds are idle > 24h
-    minYieldDifference: 0.5, // Only move for >0.5% APY difference
-    maxGasCost: parseUnits('10', 6), // Max $10 gas cost
-  },
-})
-```
-
-### Gas Optimization
-
-Automatically use cheapest gas for operations:
-
-```tsx
-// Prefer cheap chains for non-urgent operations
-const gasOptimizedTransfer = await globalAccount.sendTransaction({
-  sourceChains: [polygon, arbitrum, base], // Cheap gas chains
-  targetChain: polygon, // Cheapest execution
-  calls: [...],
-  tokenRequests: [...],
-  execution: {
-    urgency: 'low', // Can wait for cheap gas
-    maxGasPrice: parseGwei('50'), // Only execute if gas < 50 gwei
-    gasOptimization: true,
-  },
-})
-```
-
-### Liquidity Management
-
-Automatically rebalance liquidity across chains:
-
-```tsx
-// Rebalance when one chain has too much/little liquidity
-const rebalancing = await globalAccount.sendTransaction({
-  sourceChains: [ethereum], // Source from expensive chain
-  targetChain: polygon,     // Move to cheap chain
-  calls: [
-    // Simple transfer to rebalance
-    {
-      to: polygonUSDC,
+      to: baseUSDC,
       data: encodeFunctionData({
         abi: erc20Abi,
         functionName: 'transfer',
-        args: [globalAccount.getAddress(), parseUnits('2000', 6)],
+        args: [recipient, parseUnits('100', 6)], // 100 USDC
       }),
     },
   ],
-  tokenRequests: [...],
-  rebalancing: {
-    targetDistribution: {
-      ethereum: 0.3,  // 30% on Ethereum
-      arbitrum: 0.3,  // 30% on Arbitrum  
-      polygon: 0.4,   // 40% on Polygon
-    },
-    minRebalanceThreshold: 0.1, // Rebalance if >10% off target
-  },
+  tokenRequests: [
+    { address: baseUSDC, amount: parseUnits('100', 6) },
+  ],
 })
+
+const result = await account.waitForExecution(tx)
+console.log('Status:', result.status)
 ```
 
-## Complete Example Application
+## Examples
 
-Here's a complete Next.js application implementing a global wallet:
-
-```tsx
-// pages/global-wallet.tsx
-import { useState, useEffect } from 'react'
-import { createRhinestoneAccount } from '@rhinestone/sdk'
-import { useAccount, useWalletClient } from 'wagmi'
-
-export default function GlobalWalletPage() {
-  const { address } = useAccount()
-  const { data: walletClient } = useWalletClient()
-  const [globalAccount, setGlobalAccount] = useState(null)
-  const [balances, setBalances] = useState({})
-
-  // Initialize global account
-  useEffect(() => {
-    async function initGlobalAccount() {
-      if (!address || !walletClient) return
-
-      const account = await createRhinestoneAccount({
-        owners: {
-          type: 'ecdsa',
-          accounts: [walletClient],
-        },
-        rhinestoneApiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
-      })
-
-      setGlobalAccount(account)
-    }
-
-    initGlobalAccount()
-  }, [address, walletClient])
-
-  return (
-    <div className="global-wallet">
-      <h1>Global Wallet</h1>
-      <p>Address: {globalAccount?.getAddress()}</p>
-      
-      <GlobalWalletBalance accountAddress={globalAccount?.getAddress()} />
-      <CrossChainTransfer globalAccount={globalAccount} />
-    </div>
-  )
-}
-```
-
-## Next Steps
-
-- **Complete examples**: Check out our [global wallet examples](https://github.com/rhinestonewtf/e2e-examples)
-- **Session keys**: Automate global wallet operations with [session keys](../smart-sessions/overview)
-- **Advanced intents**: Learn about [injected swaps](../intents/injected-swaps) for complex strategies
-- **Yield optimization**: Explore [unified balance](./chain-abstraction/unified-balance) features
+- See end-to-end apps in the examples repo: https://github.com/rhinestonewtf/e2e-examples

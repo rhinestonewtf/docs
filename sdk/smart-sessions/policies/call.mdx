@@ -1,15 +1,13 @@
 ---
-title: "Universal Action Policy"
+title: "Call Policy"
 sidebarTitle: "Call"
 ---
 
-The Universal Action Policy allows you to create fine-grained controls over function calls based on calldata parameters and value transfers. This policy lets you set up to 16 parameter rules to validate specific parts of transaction calldata.
+Call policy allows you to filter out transactions based on the call data and ether value.
 
-**Key features:**
-- Parameter-level validation with multiple conditions
-- Usage tracking for specific parameter values
-- Value limits per transaction
-- Flexible offset-based calldata inspection
+Within a policy, you can set up to 16 rules. Each rule consists of a condition, the calldata offset, and a reference value to compare.
+
+When checking a transaction, the policy checks it against every rule. For a policy to accept a transaction, *every* rule of that policy should pass.
 
 ## Conditions
 
