@@ -1,0 +1,19 @@
+---
+title: "Passkey"
+---
+
+To make a passkey account the session owner:
+
+```ts {2-5}
+const session: Session = {
+  owners: {
+    type: 'passkey',
+    accounts: [sessionOwnerAccount],
+  },
+  policies: [
+    {
+      type: 'sudo',
+    },
+  ],
+}
+```

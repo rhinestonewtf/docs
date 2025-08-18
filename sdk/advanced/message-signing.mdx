@@ -1,0 +1,78 @@
+---
+title: "Message Signing"
+---
+
+You can sign messages with your smart account. This can be helpful for [Permit2](https://github.com/Uniswap/permit2), [SIWE](https://eips.ethereum.org/EIPS/eip-4361), or signing the offchain orders.
+
+Signing works for both deployed and undeployed smart accounts (via [ERC-6492](https://eips.ethereum.org/EIPS/eip-6492)).
+
+## Ethereum Signed Message (EIP-191)
+
+To sign a message:
+
+```ts
+const signature = await rhinestoneAccount.signMessage(
+  'Hello, world!',
+  chain,
+)
+```
+
+You can also sign hex values directly:
+
+```ts
+const signature = await rhinestoneAccount.signMessage(
+  {
+    raw: '0x1234',
+  },
+  chain,
+)
+```
+
+## Typed Data (EIP-712)
+
+```ts
+const signature = await rhinestoneAccount.signTypedData(
+  params: {
+    domain: {
+      name: 'Ether Mail',
+      version: '1',
+      chainId: 1,
+      verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+    },
+    types: {
+      Person: [
+        { name: 'name', type: 'string' },
+        { name: 'wallet', type: 'address' },
+      ],
+      Mail: [
+        { name: 'from', type: 'Person' },
+        { name: 'to', type: 'Person' },
+        { name: 'contents', type: 'string' },
+      ],
+    },
+    primaryType: 'Mail',
+    message: {
+      from: {
+        name: 'Cow',
+        wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+      },
+      to: {
+        name: 'Bob',
+        wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+      },
+      contents: 'Hello, Bob!',
+    },
+  },
+  chain,
+)
+```
+
+## Configuration
+
+### Chain
+
+Signatures are chain-specific (they will vary based on whether the account is deployed or not).
+
+### Custom signers
+
+You can also choose which signers to sign the message with. This is helpful when you have multiple validators, use a multisig, or session keys.

@@ -1,0 +1,142 @@
+---
+title: "Multi-Factor Authentication"
+description: "Using multiple validators in tandem"
+---
+
+MFA (multi-factor authorization) validator lets you use multiple validators for a single transaction.
+
+MFA works as a layer on top of other validator modules. It works as a multiplexer for the validator modules, calling the underlying validator implementations to validate the transaction. It also lets you have multiple configurations for the same validator module.
+
+For example, you can set up an MFA validator so that the user needs to sign a transaction with both an EOA and a passkey.
+
+## Subvalidators
+
+_Subvalidators_ are the validator modules that are used under the hood to validate the signature. Any ERC-7579 validator module can serve as a subvalidator.
+
+Subvalidator ID is the index of the validator in the validator list. For example, if you installed the ECDSA and the passkey modules as subvalidators, the ECDSA validator will have index 0 and the passkey validator will have index 1.
+
+## Initialization
+
+To create an account with MFA:
+
+```ts
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'multi-factor',
+    // List of subvalidators to use
+    // Multiple validators can have the same type
+    validators: [
+      {
+        type: 'ecdsa',
+        accounts: [accountA, accountB],
+      },
+      {
+        type: 'passkey',
+        accounts: [passkeyAccount],
+      },
+      // Setting this will require a valid signature from both an EOA and a passkey signer
+      threshold: 2,
+    ],
+  },
+})
+```
+
+You can also install the MFA module on an existing account:
+
+```ts
+const rhinestoneAccount = await createRhinestoneAccount({
+  // …
+});
+
+const enableMfaTx = await rhinestoneAccount.sendTransaction({
+  chain: sourceChain,
+  calls: [
+    ...enableMultiFactor({
+      rhinestoneAccount,
+      validators: [
+        {
+          type: 'ecdsa',
+          accounts: [accountA, accountB],
+        },
+        {
+          type: 'passkey',
+          accounts: [passkeyAccount],
+        },
+      ],
+    }),
+  ],
+})
+await rhinestoneAccount.waitForExecution(enableMfaTx)
+```
+
+## Usage
+
+### Signer Selection
+
+```ts {10-26}
+const transactionData = await rhinestoneAccount.prepareTransaction({
+  sourceChains: [sourceChain],
+  targetChain,
+  calls: [
+    {
+      to: zeroAddress,
+      data: '0xdeadbeef',
+    },
+  ],
+  signers: {
+    type: 'owner',
+    kind: 'multi-factor',
+    validators: [
+      {
+        type: 'ecdsa',
+        id: 0,
+        // Since we didn't set the "threshold" for the ECDSA validator, we can sign with a single account here
+        accounts: [accountB],
+      },
+      {
+        type: 'ecdsa',
+        id: 1,
+        accounts: [passkeyAccount],
+      },
+    ],
+  },
+})
+```
+
+## Management
+
+### Adding a validator
+
+<Note>You can also use this to update the config of the existing subvalidator.</Note>
+
+```ts
+const validatorId = 2;
+
+const addSubValidatorTx = await rhinestoneAccount.sendTransaction({
+  chain: sourceChain,
+  calls: [
+    setSubValidator(validatorId, {
+      type: 'ecdsa',
+      accounts: [accountC],
+    }),
+  ],
+})
+await rhinestoneAccount.waitForExecution(addSubValidatorTx)
+```
+
+### Removing a validator
+
+```ts
+const validatorId = 2;
+
+const removeSubValidatorTx = await rhinestoneAccount.sendTransaction({
+  chain: sourceChain,
+  calls: [
+    removeSubValidator(validatorId, {
+      type: 'ecdsa',
+      accounts: [accountC],
+    }),
+  ],
+})
+await rhinestoneAccount.waitForExecution(removeSubValidatorTx)
+```

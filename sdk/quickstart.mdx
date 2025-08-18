@@ -6,9 +6,9 @@ In this guide, you will create your first Omni Account and make a cross-chain sw
 
 ## Prerequisites
 
-To get started, you'll need a Rhinestone API key. [Reach out to us](https://t.me/konradkopp) to get one.
+<Note>You don't need an API key to get started. For production use, you'll need one. [Reach out to us](https://t.me/konradkopp).</Note>
 
-You will also need some testnet funds. To get testnet ETH, you can use a faucet from [Quicknode](https://faucet.quicknode.com/drip) or [Alchemy](https://www.alchemy.com/faucets). To get testnet USDC, use [Circle Faucet](https://faucet.circle.com/).
+You will need some testnet funds. To get testnet ETH, you can use a faucet from [Quicknode](https://faucet.quicknode.com/drip) or [Alchemy](https://www.alchemy.com/faucets). To get testnet USDC, use [Circle Faucet](https://faucet.circle.com/).
 
 Install the Rhinestone SDK:
 
@@ -34,16 +34,14 @@ Let's create a smart account with a single owner:
 
 ```ts
 import { createRhinestoneAccount } from '@rhinestone/sdk'
-import { getTokenAddress } from '@rhinestone/sdk/orchestrator'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
-import { baseSepolia, arbitrumSepolia, optimismSepolia } from 'viem/chains'
+import { baseSepolia, arbitrumSepolia } from 'viem/chains'
 import {
-  Chain,
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
   erc20Abi,
-  Hex,
+  type Hex,
   http,
   parseEther,
 } from 'viem'
@@ -51,11 +49,6 @@ import {
 const fundingPrivateKey = process.env.FUNDING_PRIVATE_KEY
 if (!fundingPrivateKey) {
   throw new Error('FUNDING_PRIVATE_KEY is not set')
-}
-
-const rhinestoneApiKey = process.env.RHINESTONE_API_KEY
-if (!rhinestoneApiKey) {
-  throw new Error('RHINESTONE_API_KEY is not set')
 }
 
 const sourceChain = baseSepolia
@@ -71,9 +64,8 @@ const rhinestoneAccount = await createRhinestoneAccount({
     type: 'ecdsa',
     accounts: [account],
   },
-  rhinestoneApiKey,
 })
-const address = await rhinestoneAccount.getAddress()
+const address = rhinestoneAccount.getAddress()
 console.log(`Smart account address: ${address}`)
 ```
 
@@ -105,7 +97,6 @@ await publicClient.waitForTransactionReceipt({ hash: txHash })
 Finally, let's make a cross-chain token transfer:
 
 ```ts
-const usdcTarget = getTokenAddress('USDC', targetChain.id)
 const usdcAmount = 1n
 
 const transaction = await rhinestoneAccount.sendTransaction({
@@ -113,7 +104,7 @@ const transaction = await rhinestoneAccount.sendTransaction({
   targetChain,
   calls: [
     {
-      to: usdcTarget,
+      to: 'USDC',
       value: 0n,
       data: encodeFunctionData({
         abi: erc20Abi,
@@ -124,7 +115,7 @@ const transaction = await rhinestoneAccount.sendTransaction({
   ],
   tokenRequests: [
     {
-      address: usdcTarget,
+      address: 'USDC',
       amount: usdcAmount,
     },
   ],

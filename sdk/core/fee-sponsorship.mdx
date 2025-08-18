@@ -1,0 +1,80 @@
+---
+title: "Fee Sponsorship"
+description: "Sponsor gas, bridging, and swap fees for your users"
+---
+
+You can sponsor user fees in three ways:
+
+1) Cover the transaction gas
+2) Cover the bridging fee
+3) Cover the swap fee (when using intent-based or injected swaps)
+
+Sponsorship can be applied to all transactions or handled on a case-by-case basis.
+
+You can sponsor both cross-chain and same-chain transactions.
+
+<Note>You can test fee sponsorship on testnets with no additional setup. Reach out to us if you need to set this up in production.</Note>
+
+## Usage
+
+To sponsor a transaction:
+
+```ts {11}
+const transactionData = await rhinestoneAccount.prepareTransaction({
+  sourceChains: [sourceChain],
+  targetChain,
+  calls: [
+    {
+      to: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+      value: 0n,
+      data: '0xdeadbeef',
+    },
+  ],
+  sponsored: true,
+})
+```
+
+## Sponsorship Policies
+
+Currently, the SDK doesn't provide any policies out of the box. You can implement bespoke, flexible policies on your backend.
+
+Here's one example, where we only sponsor transactions that interact with a specific contract:
+
+```ts
+// Sponsors a transaction only if it interacts with our app
+function isSponsored(
+  sourceChains: Chain[],
+  targetChain: Chain,
+  calls: {
+    to: string
+    value: bigint
+    data: string
+  }[],
+): boolean {
+  const appContractAddress = '0xbeefbeefbeefbeefbeefbeefbeefbeefbeefbeef'
+  return calls.some((call) => call.to === appContractAddress)
+}
+```
+
+You can then use that function when handling the user's transaction request:
+
+```ts {12}
+const calls = [
+  {
+    to: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045' as Address,
+    value: 0n,
+    data: '0xdeadbeef' as Hex,
+  },
+]
+const transactionData = await rhinestoneAccount.prepareTransaction({
+  sourceChains: [sourceChain],
+  targetChain,
+  calls,
+  sponsored: isSponsored([sourceChain], targetChain, calls),
+})
+```
+
+
+## Sponsorship Types
+
+Currently, there is no way to enable sponsorship types granularly. Reach out to us if you would benefit from that.

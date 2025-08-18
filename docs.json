@@ -17,6 +17,15 @@
 	},
 	"favicon": "/favicon.svg",
 	"navigation": {
+		"global": {
+			"anchors": [
+				{
+					"anchor": "Demos",
+					"icon": "rocket",
+					"href": "https://demos.rhinestone.dev"
+				}
+			]
+		},
 		"tabs": [
 			{
 				"tab": "Home",
@@ -57,28 +66,34 @@
 				"pages": [
 					"sdk/overview",
 					"sdk/quickstart",
-					"sdk/demos",
-					"sdk/migration-guide",
 					{
-						"group": "Core",
+						"group": "Smart Wallet",
 						"pages": [
 							"sdk/core/create-account",
 							"sdk/core/eip-7702",
 							"sdk/core/send-omnichain-transaction",
+							"sdk/core/fee-sponsorship",
 							"sdk/core/passkeys",
 							"sdk/core/ecdsa-signer",
 							"sdk/core/multisig",
-							"sdk/core/batch-transactions",
 							"sdk/core/social-recovery"
 						]
 					},
 					{
-						"group": "Chain Abstraction",
+						"group": "Multi-Chain Intents",
 						"pages": [
-							"sdk/chain-abstraction/omnichain-swaps",
+							"sdk/chain-abstraction/solver-based-swaps",
 							"sdk/chain-abstraction/account-deployment",
-							"sdk/chain-abstraction/unified-balance",
 							"sdk/chain-abstraction/orchestrator-errors"
+						]
+					},
+					{
+						"group": "Use Cases",
+						"pages": [
+							{
+								"group": "Chain Abstraction",
+								"pages": ["sdk/use-cases/chain-abstraction/unified-balance"]
+							}
 						]
 					},
 					{
@@ -90,7 +105,8 @@
 								"group": "Signature Validators",
 								"pages": [
 									"sdk/smart-sessions/signature-validators/ecdsa",
-									"sdk/smart-sessions/signature-validators/multisig"
+									"sdk/smart-sessions/signature-validators/multisig",
+									"sdk/smart-sessions/signature-validators/passkey"
 								]
 							},
 							{
@@ -103,6 +119,15 @@
 									"sdk/smart-sessions/policies/usage-limit"
 								]
 							}
+						]
+					},
+					{
+						"group": "Advanced",
+						"pages": [
+							"sdk/advanced/batch-transactions",
+							"sdk/advanced/message-signing",
+							"sdk/advanced/multi-factor-authentication",
+							"sdk/advanced/migration-guide"
 						]
 					},
 					"sdk/module-sdk",
