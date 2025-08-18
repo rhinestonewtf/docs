@@ -3,49 +3,193 @@ title: "Modules Explained"
 icon: "component"
 ---
 
-Modules are smart contracts, usually singletons, that extend the functionality of smart accounts. Modular smart accounts allow users and developers to easily change how a smart account works. In order to understand more deeply what is possible with modules (spoiler: a lot), let’s quickly recap the transaction flow of a smart account.
+## Overview
 
-## ERC-4337 UserOperation flow
+Modules extend ERC-7579 smart accounts with pluggable functionality. In Rhinestone, you compose an account by installing:
+- **Validators**: signature/access control (e.g., ECDSA, Passkeys, Smart Sessions, Social Recovery)
+- **Executors**: execution-time extensions (e.g., Intent Executor)
+- **Fallbacks**: optional compatibility for certain account implementations
+- **Hooks**: optional pre-/post-execution logic
 
-While there are many different ways of implementing Account Abstraction on Ethereum, Rhinestone is built on top of ERC-4337, which is a standard for implementing Account Abstraction using an alternative mempool and without requiring protocol changes. If you want to read up more about this ERC, view the specs here and an excellent blog post here.
+## Validators
 
-In order to achieve Account Abstraction, ERC-4337 specifies a new type of transaction for this alternative mempool, termed a UserOperation. On a high level, this UserOperation goes through two distinct phases: validation and execution.
+### Owner (ECDSA / ECDSA-v0)
 
-### Validation Phase
+```ts
+import { encodeAbiParameters, type Address } from 'viem'
+import { MODULE_TYPE_ID_VALIDATOR, type Module } from '@rhinestone/sdk/modules/common'
 
-During the validation phase, the ERC-4337 Entrypoint calls the `validateUserOp` function on the smart account in order for it to determine whether a UserOperation is valid and should be executed. If this function returns 0, then the Entrypoint will consider it valid, if it returns 1 or reverts then the Entrypoint will halt execution there and move on to the next UserOperation.
+const OWNABLE_VALIDATOR_ADDRESS: Address = '0x000000000013fdB5234E4E3162a810F54d9f7E98'
 
-How exactly signature validation occurs is entirely up to the developer to decide, which enables the possibility of modular validation logic that can be added and replaced at any point.
+export function getOwnableValidator(
+  threshold: number,
+  owners: Address[],
+  address?: Address,
+): Module {
+  return {
+    address: address ?? OWNABLE_VALIDATOR_ADDRESS,
+    initData: encodeAbiParameters(
+      [
+        { name: 'threshold', type: 'uint256' },
+        { name: 'owners', type: 'address[]' },
+      ],
+      [BigInt(threshold), owners.map((o) => o.toLowerCase() as Address).sort()],
+    ),
+    deInitData: '0x',
+    additionalContext: '0x',
+    type: MODULE_TYPE_ID_VALIDATOR,
+  }
+}
+```
 
-    ERC-4337 places some storage and opcode restrictions on accounts during the validation phase, which impacts how
-    validation modules can be built. Read more about these below.
+### Passkeys (WebAuthn)
 
-### Execution Phase
+```ts
+import { encodeAbiParameters, type Address } from 'viem'
+import { MODULE_TYPE_ID_VALIDATOR, type Module } from '@rhinestone/sdk/modules/common'
 
-If the validation phase was successful, then the Entrypoint will call the smart account again, this time with the calldata provided in the UserOperation. While the Entrypoint always calls the `validateUserOp` function during the validation phase, there is no such restriction during execution, meaning that accounts can implement any number of execution functions and the wallet client can choose which exact one to call depending on the transaction intent.
+const WEBAUTHN_VALIDATOR_ADDRESS: Address = '0x0000000000578c4cB0e472a5462da43C495C3F33'
 
-Similar to the validation phase, ERC-4337 does not stipulate how execution occurs, enabling the possibility to build modules for the execution phase.
+type PublicKey = { x: bigint; y: bigint }
 
-## Module types
+export function getWebAuthnValidator(
+  threshold: number,
+  publicKeys: PublicKey[],
+): Module {
+  return {
+    address: WEBAUTHN_VALIDATOR_ADDRESS,
+    initData: encodeAbiParameters(
+      [
+        { name: 'threshold', type: 'uint256' },
+        {
+          name: 'credentials',
+          type: 'tuple[]',
+          components: [
+            { name: 'pubKeyX', type: 'uint256' },
+            { name: 'pubKeyY', type: 'uint256' },
+            { name: 'requireUV', type: 'bool' },
+          ],
+        },
+      ],
+      [
+        BigInt(threshold),
+        publicKeys.map((pk) => ({ pubKeyX: pk.x, pubKeyY: pk.y, requireUV: false })),
+      ],
+    ),
+    deInitData: '0x',
+    additionalContext: '0x',
+    type: MODULE_TYPE_ID_VALIDATOR,
+  }
+}
+```
 
-ERC-4337 breaks down the flow of a UserOperation into two distinct phases, validation and execution. The account functionality that is required in either of these two phases differs to that of the other, so there are at least two different types of modules: validators and executors. However, there are at least two more distinct types of modules that perform different functions to the aforementioned: hooks and fallback modules.
+### Smart Sessions
 
-### Validators
+```ts
+import { getSmartSessionValidator } from '@rhinestone/sdk/modules/validators/smart-sessions'
 
-Validators are modules that are called during the validation phase of a UserOperation. This means that their primary function is to verify the signature of a UserOperation and determine whether it is valid and should be executed. As a result, validators are the primary mechanism for enforcing access control on a smart account and are highly security critical.
+// Part of setup:
+const smartSessionValidator = getSmartSessionValidator(config)
+if (smartSessionValidator) validators.push(smartSessionValidator)
+```
 
-### Executors
+### Social Recovery
 
-Executors are modules that are called during the execution phase of a UserOperation. They extend the execution logic of the account and thus allow for a more diverse set of actions that the account can natively perform. On top of this, Executors can also be used to automate certain actions that are triggered outside of the regular ERC-4337 execution flow on the account. For example, a user could set up an executor that automatically swaps their tokens when the price of a token reaches a certain threshold.
+```ts
+import { encodeAbiParameters, type Address } from 'viem'
+import { MODULE_TYPE_ID_VALIDATOR, type Module } from '@rhinestone/sdk/modules/common'
 
-**Conditional Executors**
+const SOCIAL_RECOVERY_VALIDATOR_ADDRESS: Address = '0xA04D053b3C8021e8D5bF641816c42dAA75D8b597'
 
-Conditional executors extend the capabilities of normal executors, by allowing transactions to be executed based on checks performed by the ComposableConditionManager. This allows for more complex logic to be implemented in executors, such as the ability to execute transactions based on the price of a token or the current gas price. Importantly, these conditions are verified on-chain meaning that a user can be sure that the transaction will be executed only if the condition is met and does not need to trust a third party.
+export function getSocialRecoveryValidator(
+  guardians: Address[],
+  threshold = 1,
+): Module {
+  const sorted = [...guardians].sort()
+  return {
+    type: MODULE_TYPE_ID_VALIDATOR,
+    address: SOCIAL_RECOVERY_VALIDATOR_ADDRESS,
+    initData: encodeAbiParameters(
+      [
+        { type: 'uint256', name: 'threshold' },
+        { type: 'address[]', name: 'guardians' },
+      ],
+      [BigInt(threshold), sorted],
+    ),
+    deInitData: '0x',
+    additionalContext: '0x',
+  }
+}
+```
 
-### Hooks
+## Executors
 
-Hooks are modules that are triggered either before or after execution and can be used to enforce certain behavior. Some examples of hooks include spending limits, restricting tokens that can be transferred, ensuring that contracts that are interacted with are audited, and more.
+```ts
+import { MODULE_TYPE_ID_EXECUTOR, type Module } from '@rhinestone/sdk/modules/common'
+import { INTENT_EXECUTOR_ADDRESS, INTENT_EXECUTOR_ADDRESS_DEV } from '@rhinestone/sdk/modules/omni-account'
 
-### Fallbacks
+const executors: Module[] = [
+  {
+    address: config.useDev ? INTENT_EXECUTOR_ADDRESS_DEV : INTENT_EXECUTOR_ADDRESS,
+    initData: '0x',
+    deInitData: '0x',
+    additionalContext: '0x',
+    type: MODULE_TYPE_ID_EXECUTOR,
+  },
+]
+```
 
-Fallbacks are modules that can add additional functionality into the account. They are called by the fallback function of the account, meaning that they are triggered when a transaction is sent to the account that does not match any of the existing functions on the account. Fallbacks can, for example, implement logic for receiving tokens, allow smart accounts to be used for flashloans or potentially even as a paymaster for sub-accounts.
+## Fallbacks (Optional)
+
+```ts
+import { encodeAbiParameters, type Address } from 'viem'
+import { MODULE_TYPE_ID_FALLBACK, type Module } from '@rhinestone/sdk/modules/common'
+
+const SMART_SESSION_COMPATIBILITY_FALLBACK_ADDRESS: Address =
+  '0x12cae64c42f362e7d5a847c2d33388373f629177'
+
+const fallbacks: Module[] = [
+  {
+    address: SMART_SESSION_COMPATIBILITY_FALLBACK_ADDRESS,
+    initData: encodeAbiParameters(
+      [
+        { name: 'selector', type: 'bytes4' },
+        { name: 'flags', type: 'bytes1' },
+        { name: 'data', type: 'bytes' },
+      ],
+      ['0x84b0196e', '0xfe', '0x'],
+    ),
+    deInitData: '0x',
+    additionalContext: '0x',
+    type: MODULE_TYPE_ID_FALLBACK,
+  },
+]
+```
+
+## Helper: RIP-7212 Support
+
+```ts
+import { type Chain } from 'viem'
+import { optimism, optimismSepolia, polygon, base, baseSepolia, arbitrum, arbitrumSepolia } from 'viem/chains'
+
+export function isRip7212SupportedNetwork(chain: Chain) {
+  const supportedChains: Chain[] = [
+    optimism,
+    optimismSepolia,
+    polygon,
+    base,
+    baseSepolia,
+    arbitrum,
+    arbitrumSepolia,
+  ]
+  return supportedChains.includes(chain)
+}
+```
+
+This guide matches the SDK’s module composition pattern:
+- Install an owner validator (required)
+- Optionally, add Smart Sessions and Social Recovery
+- Add the Intent Executor
+- Include a compatibility fallback for Safe when sessions are enabled
+
+For account-specific details, refer to the SDK reference.
