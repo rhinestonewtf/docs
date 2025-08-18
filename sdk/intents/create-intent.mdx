@@ -68,247 +68,31 @@ const transferIntent = await rhinestoneAccount.sendTransaction({
 })
 ```
 
-## Intent Types
-
-### 1. Single-Chain Intents
+### Single-Chain Transaction
 
 Execute on one chain using local tokens:
 
 ```tsx
-// Swap tokens on the same chain
-const swapIntent = await rhinestoneAccount.sendTransaction({
+const singleChainTx = await rhinestoneAccount.sendTransaction({
   chain: ethereum,
   calls: [
     {
-      to: uniswapRouter,
+      to: tokenAddress,
       data: encodeFunctionData({
-        abi: uniswapV3RouterAbi,
-        functionName: 'exactInputSingle',
-        args: [swapParams],
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [recipient, parseUnits('1', 18)],
       }),
     },
   ],
-  tokenRequests: [
-    { address: weth, amount: parseEther('1') }
-  ],
 })
 ```
 
-### 2. Cross-Chain Intents
-
-Use tokens from multiple chains for execution on one chain:
+## Monitor Execution
 
 ```tsx
-// Use USDC from Arbitrum and Base to execute on Ethereum
-const crossChainIntent = await rhinestoneAccount.sendTransaction({
-  sourceChains: [arbitrum, base], // Check both chains for USDC
-  targetChain: ethereum,
-  calls: [
-    {
-      to: compound,
-      data: encodeFunctionData({
-        abi: compoundAbi,
-        functionName: 'supply',
-        args: [usdc, parseUnits('500', 6)],
-      }),
-    },
-  ],
-  tokenRequests: [
-    {
-      address: ethereumUSDC,
-      amount: parseUnits('500', 6), // Need 500 USDC on Ethereum
-    },
-  ],
-})
+const result = await rhinestoneAccount.waitForExecution(transferIntent)
+console.log('Status:', result.status)
 ```
-
-### 3. Multi-Call Intents
-
-Execute multiple operations in sequence:
-
-```tsx
-// Swap + Stake in one intent
-const multiCallIntent = await rhinestoneAccount.sendTransaction({
-  sourceChains: [polygon],
-  targetChain: ethereum,
-  calls: [
-    // First: Swap USDC for ETH
-    {
-      to: uniswapRouter,
-      data: encodeFunctionData({
-        abi: uniswapV3RouterAbi,
-        functionName: 'exactInputSingle',
-        args: [usdcToEthSwapParams],
-      }),
-    },
-    // Then: Stake ETH
-    {
-      to: stakingContract,
-      data: encodeFunctionData({
-        abi: stakingAbi,
-        functionName: 'stake',
-        args: [],
-      }),
-      value: parseEther('1'), // Stake 1 ETH
-    },
-  ],
-  tokenRequests: [
-    { address: ethereumUSDC, amount: parseUnits('2000', 6) },
-  ],
-})
-```
-
-## Advanced Intent Features
-
-### Conditional Execution
-
-Add conditions to your intents:
-
-```tsx
-// Only execute if gas price is below threshold
-const conditionalIntent = await rhinestoneAccount.sendTransaction({
-  sourceChains: [arbitrum],
-  targetChain: ethereum,
-  calls: [...],
-  tokenRequests: [...],
-  conditions: {
-    maxGasPrice: parseGwei('50'), // Only execute if gas < 50 gwei
-    deadline: Math.floor(Date.now() / 1000) + 3600, // 1 hour deadline
-  },
-})
-```
-
-### Partial Fills
-
-Allow partial execution when full amount isn't available:
-
-```tsx
-const partialFillIntent = await rhinestoneAccount.sendTransaction({
-  sourceChains: [arbitrum, polygon, base],
-  targetChain: ethereum,
-  calls: [...],
-  tokenRequests: [
-    {
-      address: ethereumUSDC,
-      amount: parseUnits('1000', 6),
-      minAmount: parseUnits('500', 6), // Accept partial fills >= 500 USDC
-    },
-  ],
-})
-```
-
-### Slippage Protection
-
-Built-in slippage protection for swaps:
-
-```tsx
-const protectedSwapIntent = await rhinestoneAccount.sendTransaction({
-  sourceChains: [arbitrum],
-  targetChain: ethereum,
-  calls: [
-    {
-      to: uniswapRouter,
-      data: encodeFunctionData({
-        abi: uniswapV3RouterAbi,
-        functionName: 'exactInputSingle',
-        args: [{
-          ...swapParams,
-          amountOutMinimum: calculateMinimumOut(expectedOutput, 0.5), // 0.5% slippage
-        }],
-      }),
-    },
-  ],
-  tokenRequests: [...],
-})
-```
-
-## Intent Execution Flow
-
-### 1. Intent Submission
-
-```tsx
-// Submit intent to Rhinestone Orchestrator
-const intent = await rhinestoneAccount.sendTransaction({...})
-console.log('Intent ID:', intent.id)
-```
-
-### 2. Solver Competition
-
-The Orchestrator runs a competitive auction where solvers:
-- Analyze your intent requirements
-- Find optimal cross-chain routes
-- Compete on execution price and speed
-- Submit execution bundles
-
-### 3. Execution Monitoring
-
-```tsx
-// Monitor intent execution
-const result = await rhinestoneAccount.waitForExecution(intent)
-console.log('Execution status:', result.status)
-console.log('Transaction hashes:', result.transactions)
-```
-
-## Error Handling
-
-### Common Intent Failures
-
-```tsx
-try {
-  const intent = await rhinestoneAccount.sendTransaction({...})
-  const result = await rhinestoneAccount.waitForExecution(intent)
-} catch (error) {
-  if (error.code === 'INSUFFICIENT_BALANCE') {
-    console.log('Not enough tokens on source chains')
-  } else if (error.code === 'NO_ROUTE_FOUND') {
-    console.log('No solvers can fulfill this intent')
-  } else if (error.code === 'EXECUTION_FAILED') {
-    console.log('Intent failed during execution:', error.reason)
-  }
-}
-```
-
-### Intent Debugging
-
-```tsx
-// Get detailed intent information
-const intentStatus = await rhinestoneAccount.getIntentStatus(intent.id)
-console.log('Solver bids:', intentStatus.bids)
-console.log('Execution attempts:', intentStatus.attempts)
-console.log('Failure reasons:', intentStatus.failures)
-```
-
-## Gas and Fees
-
-### Gas Estimation
-
-```tsx
-// Estimate gas for intent execution
-const gasEstimate = await rhinestoneAccount.estimateGas({
-  sourceChains: [arbitrum],
-  targetChain: ethereum,
-  calls: [...],
-  tokenRequests: [...],
-})
-
-console.log('Estimated gas:', gasEstimate.totalGas)
-console.log('Estimated cost:', gasEstimate.totalCostUSD)
-```
-
-### Fee Structure
-
-Intent fees include:
-- **Source chain gas**: For token transfers
-- **Target chain gas**: For execution
-- **Bridge fees**: For cross-chain transfers
-- **Solver fees**: Competitive market rates
-- **Protocol fees**: Rhinestone protocol fee
 
 <SnippetOmnichainTransactions />
-
-## Next Steps
-
-- **Advanced swaps**: Learn about [injected swaps](./injected-swaps) for complex trading strategies
-- **Solver integration**: Explore [solver-based swaps](../chain-abstraction/solver-based-swaps) for custom execution
-- **Use cases**: See [multi-chain deposits](../use-cases/multi-chain-deposit) for real-world examples
-- **Session keys**: Automate intents with [session keys](../smart-sessions/overview)
