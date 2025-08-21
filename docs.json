@@ -82,18 +82,11 @@
 					{
 						"group": "Multi-Chain Intents",
 						"pages": [
+							"sdk/chain-abstraction/create-intent",
 							"sdk/chain-abstraction/solver-based-swaps",
 							"sdk/chain-abstraction/account-deployment",
-							"sdk/chain-abstraction/orchestrator-errors"
-						]
-					},
-					{
-						"group": "Use Cases",
-						"pages": [
-							{
-								"group": "Chain Abstraction",
-								"pages": ["sdk/use-cases/chain-abstraction/unified-balance"]
-							}
+							"sdk/chain-abstraction/orchestrator-errors",
+							"sdk/use-cases/chain-abstraction/unified-balance"
 						]
 					},
 					{
