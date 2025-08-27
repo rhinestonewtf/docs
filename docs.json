@@ -70,6 +70,15 @@
 						"group": "Smart Wallet",
 						"pages": [
 							"sdk/core/create-account",
+							{
+								"group": "Integrate Signer",
+								"pages": [
+									"sdk/core/signers/dynamic",
+									"sdk/core/signers/privy",
+									"sdk/core/signers/turnkey",
+									"sdk/core/signers/external-wallet"
+								]
+							},
 							"sdk/core/eip-7702",
 							"sdk/core/send-omnichain-transaction",
 							"sdk/core/fee-sponsorship",
@@ -169,7 +178,9 @@
 							},
 							{
 								"group": "Deploying",
-								"pages": ["build-modules/guides/deploying/deploying-modules"]
+								"pages": [
+									"build-modules/guides/deploying/deploying-modules"
+								]
 							},
 							"build-modules/guides/migration-guide"
 						]
