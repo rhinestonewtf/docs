@@ -1,14 +1,21 @@
 ---
 title: "Modular Smart Accounts"
-icon: "puzzle"
 mode: "wide"
-sidebarTitle: "Modular Smart Accounts"
-description: "Read about modular account abstraction"
+sidebarTitle: "Smart Accounts"
+description: "Read about account abstraction and smart accounts"
 ---
 
-There are two types of blockchain accounts: externally owned accounts (EOAs) and smart accounts. Most wallets today use EOAs under the hood – e.g., MetaMask and Phantom Wallet. Smart accounts are smart contracts that can transact on behalf of the user. Smart accounts are programmable, allowing developers to modify and add custom logic for authentication and execution through modules. Modules should be thought of as smart account features, and they are the core ingredient to unlocking UX- and security-enhancing properties without compromising on self-custody.
+A smart account is a smart contract that stores assets for the user and contains the logic for authenticating user signatures and executing transactions. A modular smart account allows signature authentication and transaction execution to be customizable via modules.
 
-Rhinestone led the development of ERC-7579, a minimal standard for modular smart accounts. The goal of this standard is to achieve portability, extensibility, and compatibility between different smart account implementations by standardizing the types and interfaces of smart account modules.
+## Modules
+
+Modules are self-contained smart contracts that extend a smart account’s feature set. This allows developers to access the programmable signature validation and transaction execution of smart accounts by building a custom module or reusing existing modules. This is a powerful shift in wallet development as it transforms the underlying account contract into an open platform.
+
+There are four types of modules:
+- **Validators**: Modifies how transactions are authenticated or what can be authorized against an account. The passkeys module is an example.
+- **Executors**: Enables executions on an account with custom logic. For example, this can unlock portfolio management products like a take-profit or stop-loss feature on a DeFi platform.
+- **Hooks**: Augment a smart account’s execution flow by hooking in pre- or post-execution and enforcing conditions or any custom logic. A simple example is a spending limit.
+- **Fallbacks**: Extends the account logic to add further functionality. For example, this can allow an account to be compatible with new module types in the future.
 
 <img
   className="block dark:hidden"
@@ -20,33 +27,29 @@ Rhinestone led the development of ERC-7579, a minimal standard for modular smart
   src="/images/modular_accounts_dark.png"
 />
 
-### Modules
-
-Modules are self-contained smart contracts that extend a smart account's feature set. This allows developers to access the programmable validation and execution of smart accounts by building a custom module or reusing existing modules. This is a powerful shift in wallet development as it transforms the underlying account contract into an open platform. 
-
-There are four types of modules:
-
-- **Validators:** Modifies how transactions are authenticated or what can be authorized against an account. The passkeys module is an example.
-- **Executors:** Enables executions on an account with custom logic. For example, this can unlock portfolio management products like a take-profit or stop-loss feature on a DeFi platform. 
-- **Hooks:** Augment a smart account's execution flow by hooking in pre- or post-execution and enforcing conditions or any custom logic. A simple example is a spending limit.
-- **Fallbacks:** Extends the account logic to add further functionality. For example, this can allow an account to be compatible with new module types in the future.
-
-### Core Modules
-
-Rhinestone maintains a set of Core Modules that provide the table-stakes features any developer needs when building on a Smart Account. These modules include:
-
-- **Ownable Validator (ECDSA)** enables an EOA as a signer on a smart account. It is ideal for product use cases where users are expected to connect an existing EOA wallet. It can also be combined with MPC providers to enable social login.
-- **Webauthn (Passkeys) Validator** enables a passkey as a signer on a smart account, allowing users to sign cryptographic messages with their biometrics via the secure enclave of their device or use a preferred password manager.
-- **Social Recovery** allows users to specify one or multiple guardians with an m-of-n threshold for account recovery. To recover the account, the guardians are able to override the existing account validation logic.
-- **Validator Multiplexer** allows developers to compose any set of signer modules together. For example, passkeys can be set as the main signer, but both the passkey and the ECDSA signature are required when making high-value transfers.
-- **Scheduled Transfers and Scheduled Orders** allows for automated transfers and swaps to be triggered on a smart account. This module must be paired with an offchain automation system to trigger transactions.
-- **Auto Save** is a more opinionated version of the Scheduled Transfers module. It allows a user to automatically transfer a set percentage of any received token to a target ERC-4626 yield-bearing vault.
-- **Ownable Executor** creates a hierarchy of ownership structure across smart accounts. This module allows one smart account to have execution rights on another smart account. The execution rights can trigger any transaction with the owner account paying for gas.
-- **Deadman Switch** recovers an account after a specified inactive period. The user sets the target recovery address (this could be another smart account or a typical EOA wallet) along with the required period of inactivity.
-- **Hook Multiplexer** is an opinionated router for combining multiple hook modules. This is an important module where a developer has multiple hook use cases, as most account implementations only have one global hook slot.
-
 [Core Modules Repository](https://github.com/rhinestonewtf/core-modules)
 
 <Info>
   Note: Only a subset of the Core Modules have been integrated into the latest version of the SDK. For access to all modules, check out the [ModuleSDK](https://docs.rhinestone.wtf/module-sdk) or get in touch to request a feature update to the latest SDK.
 </Info>
+
+Smart accounts must always be configured with a signer (which is a validator module). The entity that controls the signer is the entity that owns the account. Typical methods for signing include:
+- Passkeys
+- Embedded wallets, such as key management providers like Dynamic, Turnkey, or Privy
+- External wallets, such as MetaMask or Rabby
+
+## Resources
+
+[Make into buttons:]
+
+ERC-7579 Spec: A Minimal Standard for Modular Smart Account
+A proposed standard for modular smart accounts that looks to establish common module types and module interfaces, ensuring smart account module interoperability without reducing experimentation at the account level.
+
+ERC-7579 Resources
+An open source website with tools, documentation, and example code to further explore the ERC-7579 smart account ecosystem.
+
+Modular Smart Account Blog Posts
+Rhinestone research articles covering topics related to modular smart accounts.
+
+Open Zeppelin ERC-7579 Resource
+A guide that shows how to build modular accounts with ERC-7579. Detailing the four module types (validators, executors, fallbacks & hooks), social recovery with customizable guardians, and time-delayed execution to enhance security. 
