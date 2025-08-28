@@ -75,6 +75,7 @@
 								"pages": [
 									"sdk/core/signers/dynamic",
 									"sdk/core/signers/privy",
+									"sdk/core/signers/magic",
 									"sdk/core/signers/turnkey",
 									"sdk/core/signers/external-wallet"
 								]
