@@ -1,0 +1,657 @@
+---
+title: "External Wallet"
+description: "Integrate external wallets (MetaMask, Coinbase, etc.) with Rhinestone smart accounts."
+---
+
+## Overview
+
+External wallets like MetaMask, Coinbase Wallet, and WalletConnect-compatible wallets can be easily integrated with Rhinestone smart accounts. This approach is perfect for dApps that want to support users who already have established wallets.
+
+**How it works:** External wallets provide access through window.ethereum, ethers providers, or WalletConnect. You can create viem-compatible signers from these providers and pass them to Rhinestone's SDK for cross-chain capabilities.
+
+## Prerequisites
+
+- React application setup  
+- External wallet installed (MetaMask, Coinbase Wallet, etc.)
+- Basic familiarity with wallet connections
+
+## Installation
+
+Install the required dependencies:
+
+```bash
+# Core dependencies
+npm install @rhinestone/sdk viem
+
+# For AppKit (recommended for WalletConnect)
+npm install @reown/appkit @reown/appkit-adapter-wagmi wagmi
+
+# For custom WalletConnect integration
+npm install @walletconnect/sign-client
+
+# Optional: for ethers integration
+npm install ethers
+```
+
+## Viem Integration
+
+### Using window.ethereum
+
+Create a signer from MetaMask or other injected wallets:
+
+```tsx
+import { createWalletClient, custom } from 'viem'
+import { mainnet } from 'viem/chains'
+import { createRhinestoneAccount } from '@rhinestone/sdk'
+
+// Check if wallet is available
+if (typeof window !== 'undefined' && window.ethereum) {
+  // Create viem wallet client from injected provider
+  const walletClient = createWalletClient({
+    chain: mainnet,
+    transport: custom(window.ethereum)
+  })
+  
+  // Request account access
+  const [address] = await walletClient.requestAddresses()
+  
+  // Create Rhinestone account with the wallet client
+  const rhinestoneAccount = await createRhinestoneAccount({
+    owners: {
+      type: 'ecdsa',
+      accounts: [walletClient],
+    },
+    rhinestoneApiKey: process.env.RHINESTONE_API_KEY,
+  })
+}
+```
+
+### Wallet Detection
+
+Detect specific wallet types:
+
+```tsx
+export function detectWallet() {
+  if (!window.ethereum) {
+    return null
+  }
+  
+  if (window.ethereum.isMetaMask) {
+    return 'metamask'
+  }
+  
+  if (window.ethereum.isCoinbaseWallet) {
+    return 'coinbase'
+  }
+  
+  if (window.ethereum.isRabby) {
+    return 'rabby'
+  }
+  
+  return 'unknown'
+}
+
+// Usage
+const walletType = detectWallet()
+if (walletType) {
+  const walletClient = createWalletClient({
+    transport: custom(window.ethereum)
+  })
+  
+  // Use with Rhinestone
+  const rhinestoneAccount = await createRhinestoneAccount({
+    owners: { type: 'ecdsa', accounts: [walletClient] },
+    rhinestoneApiKey: process.env.RHINESTONE_API_KEY,
+  })
+}
+```
+
+## Ethers.js Integration
+
+### Converting Ethers Signers
+
+Integrate with existing Ethers.js applications:
+
+```tsx
+import { ethers } from 'ethers'
+import { createRhinestoneAccount } from '@rhinestone/sdk'
+
+// Connect to MetaMask
+const provider = new ethers.BrowserProvider(window.ethereum)
+await provider.send("eth_requestAccounts", [])
+const ethersSigner = await provider.getSigner()
+
+// Convert ethers signer to viem-compatible format
+const viemCompatibleSigner = {
+  address: await ethersSigner.getAddress(),
+  signMessage: async ({ message }) => {
+    return await ethersSigner.signMessage(message)
+  },
+  signTransaction: async (transaction) => {
+    return await ethersSigner.signTransaction(transaction)
+  },
+  signTypedData: async (typedData) => {
+    return await ethersSigner.signTypedData(
+      typedData.domain,
+      typedData.types,
+      typedData.message
+    )
+  },
+}
+
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [viemCompatibleSigner],
+  },
+  rhinestoneApiKey: process.env.RHINESTONE_API_KEY,
+})
+```
+
+### Ethers Provider Types
+
+Handle different provider types:
+
+```tsx
+export async function createSignerFromEthers() {
+  let provider
+  
+  if (window.ethereum) {
+    // MetaMask or other injected wallet
+    provider = new ethers.BrowserProvider(window.ethereum)
+  } else if (window.web3) {
+    // Legacy web3 provider
+    provider = new ethers.BrowserProvider(window.web3.currentProvider)
+  } else {
+    throw new Error('No Ethereum provider found')
+  }
+  
+  await provider.send("eth_requestAccounts", [])
+  const signer = await provider.getSigner()
+  
+  return {
+    address: await signer.getAddress(),
+    signMessage: async ({ message }) => signer.signMessage(message),
+    signTransaction: async (tx) => signer.signTransaction(tx),
+    signTypedData: async (typedData) => 
+      signer.signTypedData(typedData.domain, typedData.types, typedData.message),
+  }
+}
+```
+
+## WalletConnect Integration
+
+### AppKit (Recommended)
+
+The easiest way to integrate multiple wallets including WalletConnect. AppKit provides a beautiful, pre-built UI:
+
+```bash
+npm install @reown/appkit @reown/appkit-adapter-wagmi wagmi viem
+```
+
+```tsx
+import { createAppKit } from '@reown/appkit'
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
+import { mainnet, arbitrum, base } from '@reown/appkit/networks'
+import { createRhinestoneAccount } from '@rhinestone/sdk'
+import { useAccount, useWalletClient } from 'wagmi'
+
+// 1. Get projectId from https://cloud.reown.com
+const projectId = 'your-project-id'
+
+// 2. Set up the Wagmi adapter
+const wagmiAdapter = new WagmiAdapter({
+  networks: [mainnet, arbitrum, base],
+  projectId,
+})
+
+// 3. Configure the modal
+createAppKit({
+  adapters: [wagmiAdapter],
+  networks: [mainnet, arbitrum, base],
+  projectId,
+  metadata: {
+    name: 'Your dApp',
+    description: 'Your dApp description',
+    url: 'https://yourdapp.com',
+    icons: ['https://yourdapp.com/icon.png']
+  }
+})
+
+// 4. Use in your React component
+export function WalletConnector() {
+  const { isConnected } = useAccount()
+  const { data: walletClient } = useWalletClient()
+  const [rhinestoneAccount, setRhinestoneAccount] = useState(null)
+
+  useEffect(() => {
+    async function setupAccount() {
+      if (!isConnected || !walletClient) return
+
+      const account = await createRhinestoneAccount({
+        owners: {
+          type: 'ecdsa',
+          accounts: [walletClient],
+        },
+        rhinestoneApiKey: process.env.RHINESTONE_API_KEY,
+      })
+
+      setRhinestoneAccount(account)
+    }
+
+    setupAccount()
+  }, [isConnected, walletClient])
+
+  return (
+    <div>
+      <w3m-button />
+      {rhinestoneAccount && (
+        <p>Smart Account: {rhinestoneAccount.getAddress()}</p>
+      )}
+    </div>
+  )
+}
+```
+
+### WalletConnect v2 (Advanced)
+
+For custom implementations, use WalletConnect directly:
+
+```tsx
+import { SignClient } from '@walletconnect/sign-client'
+import { createWalletClient, custom } from 'viem'
+
+// Initialize WalletConnect client
+const signClient = await SignClient.init({
+  projectId: 'your-project-id', // Get from https://cloud.reown.com
+  metadata: {
+    name: 'Your dApp Name',
+    description: 'Your dApp description',
+    url: 'https://yourdapp.com',
+    icons: ['https://yourdapp.com/icon.png'],
+  },
+})
+
+// Connect to wallet
+const { uri, approval } = await signClient.connect({
+  requiredNamespaces: {
+    eip155: {
+      methods: [
+        'eth_sendTransaction',
+        'eth_signTransaction', 
+        'eth_sign',
+        'personal_sign',
+        'eth_signTypedData'
+      ],
+      chains: ['eip155:1', 'eip155:137', 'eip155:42161'], // Ethereum, Polygon, Arbitrum
+      events: ['accountsChanged', 'chainChanged'],
+    },
+  },
+})
+
+// Display QR code with `uri` for user to scan
+console.log('Scan QR code:', uri)
+
+// Wait for approval
+const session = await approval()
+const address = session.namespaces.eip155.accounts[0].split(':')[2]
+
+// Create wallet client
+const walletClient = createWalletClient({
+  account: address as `0x${string}`,
+  transport: custom({
+    async request({ method, params }) {
+      return await signClient.request({
+        topic: session.topic,
+        chainId: 'eip155:1',
+        request: { method, params },
+      })
+    },
+  }),
+})
+
+// Create Rhinestone account
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [walletClient],
+  },
+  rhinestoneApiKey: process.env.RHINESTONE_API_KEY,
+})
+```
+
+## Reusable Signer Factory
+
+### Multi-Wallet Support
+
+Create a factory function to handle different wallet types:
+
+```tsx
+import { createWalletClient, custom } from 'viem'
+import { createRhinestoneAccount } from '@rhinestone/sdk'
+
+export type WalletType = 'metamask' | 'coinbase' | 'walletconnect' | 'appkit' | 'rabby'
+
+export async function createSignerFromWallet(walletType: WalletType) {
+  let walletClient
+  
+  switch (walletType) {
+    case 'metamask':
+      if (!window.ethereum?.isMetaMask) {
+        throw new Error('MetaMask not detected')
+      }
+      walletClient = createWalletClient({
+        transport: custom(window.ethereum)
+      })
+      break
+      
+    case 'coinbase':
+      if (!window.ethereum?.isCoinbaseWallet) {
+        throw new Error('Coinbase Wallet not detected')
+      }
+      walletClient = createWalletClient({
+        transport: custom(window.ethereum)
+      })
+      break
+      
+    case 'rabby':
+      if (!window.ethereum?.isRabby) {
+        throw new Error('Rabby Wallet not detected')
+      }
+      walletClient = createWalletClient({
+        transport: custom(window.ethereum)
+      })
+      break
+      
+    case 'walletconnect':
+      // WalletConnect setup (shown above)
+      throw new Error('WalletConnect setup required - see WalletConnect v2 section')
+      
+    case 'appkit':
+      // AppKit setup (use wagmi hooks when AppKit is configured)
+      throw new Error('AppKit setup required - see AppKit section above')
+      
+    default:
+      throw new Error(`Unsupported wallet type: ${walletType}`)
+  }
+  
+  // Request connection
+  await walletClient.requestAddresses()
+  
+  return walletClient
+}
+
+// Usage
+const walletClient = await createSignerFromWallet('metamask')
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [walletClient],
+  },
+  rhinestoneApiKey: process.env.RHINESTONE_API_KEY,
+})
+```
+
+### React Hook for External Wallets
+
+```tsx
+import { useState, useEffect } from 'react'
+import { createRhinestoneAccount } from '@rhinestone/sdk'
+
+export function useExternalWallet() {
+  const [account, setAccount] = useState(null)
+  const [isConnected, setIsConnected] = useState(false)
+  const [currentWallet, setCurrentWallet] = useState(null)
+  
+  const connectWallet = async (walletType: WalletType) => {
+    try {
+      const walletClient = await createSignerFromWallet(walletType)
+      const rhinestoneAccount = await createRhinestoneAccount({
+        owners: {
+          type: 'ecdsa',
+          accounts: [walletClient],
+        },
+        rhinestoneApiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
+      })
+      
+      setAccount(rhinestoneAccount)
+      setCurrentWallet(walletType)
+      setIsConnected(true)
+    } catch (error) {
+      console.error('Failed to connect wallet:', error)
+      throw error
+    }
+  }
+  
+  const disconnect = () => {
+    setAccount(null)
+    setCurrentWallet(null)
+    setIsConnected(false)
+  }
+  
+  // Listen for account changes
+  useEffect(() => {
+    if (window.ethereum) {
+      const handleAccountsChanged = (accounts) => {
+        if (accounts.length === 0) {
+          disconnect()
+        }
+      }
+      
+      const handleChainChanged = () => {
+        // Optionally handle chain changes
+      }
+      
+      window.ethereum.on('accountsChanged', handleAccountsChanged)
+      window.ethereum.on('chainChanged', handleChainChanged)
+      
+      return () => {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
+        window.ethereum.removeListener('chainChanged', handleChainChanged)
+      }
+    }
+  }, [])
+  
+  return {
+    account,
+    isConnected,
+    currentWallet,
+    connectWallet,
+    disconnect,
+  }
+}
+```
+
+## Usage Examples
+
+### Basic Connection UI
+
+```tsx
+import { useExternalWallet } from './hooks/useExternalWallet'
+
+function WalletConnection() {
+  const { account, isConnected, connectWallet, disconnect, currentWallet } = useExternalWallet()
+  
+  if (isConnected) {
+    return (
+      <div>
+        <h3>Connected to {currentWallet}</h3>
+        <p>Address: {account?.getAddress()}</p>
+        <button onClick={disconnect}>Disconnect</button>
+      </div>
+    )
+  }
+  
+  return (
+    <div>
+      <h3>Connect Your Wallet</h3>
+      <button onClick={() => connectWallet('metamask')}>
+        Connect MetaMask
+      </button>
+      <button onClick={() => connectWallet('coinbase')}>
+        Connect Coinbase Wallet
+      </button>
+      <button onClick={() => connectWallet('rabby')}>
+        Connect Rabby
+      </button>
+    </div>
+  )
+}
+```
+
+### Cross-Chain Transaction
+
+```tsx
+async function sendCrossChainTransaction(rhinestoneAccount) {
+  const transaction = await rhinestoneAccount.sendTransaction({
+    sourceChains: [arbitrumSepolia],
+    targetChain: baseSepolia,
+    calls: [
+      {
+        to: "USDC",
+        data: encodeFunctionData({
+          abi: erc20Abi,
+          functionName: "transfer",
+          args: ["0xrecipient", parseUnits("10", 6)],
+        }),
+      },
+    ],
+    tokenRequests: [
+      {
+        address: "USDC",
+        amount: parseUnits("10", 6),
+      },
+    ],
+  })
+  
+  console.log('Transaction submitted:', transaction.id)
+}
+```
+
+## Error Handling
+
+### Common Connection Issues
+
+```tsx
+export async function connectWithRetry(walletType: WalletType, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await createSignerFromWallet(walletType)
+    } catch (error) {
+      console.log(`Connection attempt ${attempt} failed:`, error.message)
+      
+      if (error.message.includes('not detected')) {
+        throw new Error(`${walletType} wallet is not installed`)
+      }
+      
+      if (error.message.includes('User rejected')) {
+        throw new Error('User rejected the connection request')
+      }
+      
+      if (attempt === maxRetries) {
+        throw new Error(`Failed to connect after ${maxRetries} attempts`)
+      }
+      
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+    }
+  }
+}
+```
+
+### Wallet Detection
+
+```tsx
+export function getAvailableWallets() {
+  const wallets = []
+  
+  if (window.ethereum?.isMetaMask) wallets.push('metamask')
+  if (window.ethereum?.isCoinbaseWallet) wallets.push('coinbase')
+  if (window.ethereum?.isRabby) wallets.push('rabby')
+  
+  return wallets
+}
+
+// Usage
+const availableWallets = getAvailableWallets()
+if (availableWallets.length === 0) {
+  console.log('No compatible wallets detected')
+} else {
+  console.log('Available wallets:', availableWallets)
+}
+```
+
+## Best Practices
+
+### 1. Graceful Degradation
+
+Always check for wallet availability:
+
+```tsx
+if (typeof window === 'undefined' || !window.ethereum) {
+  // Show wallet installation prompt
+  return <WalletInstallPrompt />
+}
+```
+
+### 2. User Experience
+
+Provide clear feedback during connection:
+
+```tsx
+const [isConnecting, setIsConnecting] = useState(false)
+
+const handleConnect = async (walletType) => {
+  setIsConnecting(true)
+  try {
+    await connectWallet(walletType)
+  } catch (error) {
+    setError(error.message)
+  } finally {
+    setIsConnecting(false)
+  }
+}
+```
+
+### 3. Security Considerations
+
+Validate addresses and signatures:
+
+```tsx
+const validateConnection = async (walletClient) => {
+  const addresses = await walletClient.requestAddresses()
+  if (addresses.length === 0) {
+    throw new Error('No accounts available')
+  }
+  
+  // Test signing capability
+  const testMessage = 'Rhinestone connection test'
+  await walletClient.signMessage({ message: testMessage })
+  
+  return addresses[0]
+}
+```
+
+## Complete Example
+
+Try the full integration in our example repository:
+
+```bash
+git clone https://github.com/rhinestonewtf/e2e-examples.git
+cd e2e-examples/reown
+npm install && npm run dev
+```
+
+The example demonstrates:
+- MetaMask and injected wallet detection
+- WalletConnect/AppKit integration
+- Multi-wallet support and switching
+- Error handling and user experience patterns
+
+## Next Steps
+
+- **See it in action**: [External Wallet + Rhinestone Example](https://github.com/rhinestonewtf/e2e-examples/tree/main/external-wallet)
+- **Wagmi integration**: Learn about [wagmi connectors](https://wagmi.sh/react/connectors) for more sophisticated wallet management
+- **Session keys**: Set up [session keys](../../smart-sessions/overview) for automated operations
+- **Cross-chain transactions**: Explore [chain abstraction](../../chain-abstraction/create-intent) for complex multi-chain operations
+- **Account customization**: Check out [account providers](../../customize/smart-account-providers/nexus) for different smart account implementations

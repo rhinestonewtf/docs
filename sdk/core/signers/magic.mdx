@@ -1,0 +1,305 @@
+---
+title: "Magic"
+description: "Integrate Magic signers with Rhinestone smart accounts."
+---
+
+## Overview
+
+Magic provides passwordless authentication and embedded wallet infrastructure that enables seamless user onboarding. This guide shows you how to integrate Magic signers with Rhinestone smart accounts to create a unified, cross-chain wallet experience.
+
+**How it works:** Magic handles user authentication and provides wallet clients. We use Magic's authenticated user data to create Rhinestone smart accounts, which enables cross-chain functionality with a single wallet experience.
+
+## Prerequisites
+
+- A Magic account and API key
+- Rhinestone API key
+- React/Next.js application setup
+
+## Installation
+
+Install the required dependencies:
+
+```bash
+npm install magic-sdk @rhinestone/sdk viem
+```
+
+## Setup Magic Provider
+
+First, set up the Magic provider in your React application:
+
+```tsx
+import { Magic } from 'magic-sdk'
+import { OAuthExtension } from '@magic-ext/oauth'
+
+const magic = new Magic(process.env.NEXT_PUBLIC_MAGIC_API_KEY, {
+  network: {
+    rpcUrl: 'https://eth-sepolia.g.alchemy.com/v2/your-api-key',
+    chainId: 11155111, // Sepolia
+  },
+  extensions: [new OAuthExtension()],
+})
+
+function App() {
+  return (
+    <MagicProvider value={{ magic }}>
+      {/* Your app components */}
+    </MagicProvider>
+  )
+}
+```
+
+## Create a Magic Integration Hook
+
+Create a custom hook that integrates Magic authentication with Rhinestone accounts. This demonstrates the core pattern: **get the wallet client from Magic, then pass it to Rhinestone**.
+
+<Note>Magic provides a direct RPC provider that we convert to a viem wallet client compatible with Rhinestone.</Note>
+
+```tsx
+import { useState, useEffect, useCallback } from "react"
+import { useMagic } from "./MagicProvider"
+import { createRhinestoneAccount } from "@rhinestone/sdk"
+import { createWalletClient, custom } from "viem"
+
+export function useMagicWallet() {
+  const { magic } = useMagic()
+  const [rhinestoneAccount, setRhinestoneAccount] = useState(null)
+  const [magicAddress, setMagicAddress] = useState(null)
+  const [isConnected, setIsConnected] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const initializeRhinestoneAccount = useCallback(async () => {
+    if (!magic) return
+
+    setIsLoading(true)
+
+    try {
+      // Check if user is logged in with Magic
+      const isLoggedIn = await magic.user.isLoggedIn()
+      if (!isLoggedIn) {
+        setIsConnected(false)
+        return
+      }
+
+      // Get user's Magic wallet address
+      const userMetadata = await magic.user.getMetadata()
+      const address = userMetadata.publicAddress
+
+      if (!address) {
+        throw new Error("No Magic wallet address found")
+      }
+
+      // Create a viem wallet client using Magic's provider
+      const walletClient = createWalletClient({
+        account: address as `0x${string}`,
+        transport: custom(magic.rpcProvider as any),
+      })
+
+      // Ensure the wallet client has the address property for Rhinestone
+      const walletClientWithAddress = {
+        ...walletClient,
+        address: address as `0x${string}`,
+      }
+
+      // Pass the Magic wallet client to Rhinestone
+      // Rhinestone wraps it with cross-chain transaction capabilities
+      const account = await createRhinestoneAccount({
+        owners: {
+          type: "ecdsa",
+          accounts: [walletClientWithAddress as any],
+        },
+        rhinestoneApiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
+      })
+
+      setRhinestoneAccount(account)
+      setMagicAddress(address)
+      setIsConnected(true)
+    } catch (error) {
+      console.error("Failed to initialize Rhinestone account:", error)
+      setIsConnected(false)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [magic])
+
+  useEffect(() => {
+    initializeRhinestoneAccount()
+  }, [initializeRhinestoneAccount])
+
+  return {
+    rhinestoneAccount,
+    magicAddress,
+    isConnected,
+    isLoading,
+    reconnect: initializeRhinestoneAccount,
+  }
+}
+```
+
+## Usage
+
+### Basic Authentication Flow
+
+Use the hook to handle Magic authentication and smart account creation:
+
+```tsx {4-6}
+import { useMagicWallet } from './hooks/useMagicWallet'
+import { useMagic } from './hooks/MagicProvider'
+
+function MagicWalletDashboard() {
+  const { magic } = useMagic()
+  const { rhinestoneAccount, magicAddress, isConnected, isLoading } = useMagicWallet()
+
+  const handleLogin = async () => {
+    try {
+      await magic.auth.loginWithEmailOTP({ email: 'user@example.com' })
+      // Account will be automatically initialized via the hook
+    } catch (error) {
+      console.error('Login failed:', error)
+    }
+  }
+
+  if (isLoading) {
+    return <div>Setting up your global wallet...</div>
+  }
+
+  if (!isConnected) {
+    return (
+      <div>
+        <h2>Welcome to Rhinestone</h2>
+        <button onClick={handleLogin}>Sign in with Magic</button>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <h2>Connected!</h2>
+      <p>Magic Address: {magicAddress}</p>
+      <p>Smart Account: {rhinestoneAccount?.getAddress()}</p>
+    </div>
+  )
+}
+```
+
+### Cross-Chain Transactions
+
+Send transactions using the Magic-connected wallet:
+
+```tsx {2-14}
+async function handleCrossChainTransfer() {
+  const transaction = await rhinestoneAccount.sendTransaction({
+    sourceChains: [{ chainId: 42161 }], // Arbitrum
+    targetChain: { chainId: 8453 }, // Base
+    calls: [
+      {
+        to: "USDC",
+        data: encodeFunctionData({
+          abi: erc20Abi,
+          functionName: "transfer",
+          args: ["0xrecipient", parseUnits("10", 6)],
+        }),
+      },
+    ],
+    tokenRequests: [
+      {
+        address: "USDC",
+        amount: parseUnits("10", 6),
+      },
+    ],
+  })
+}
+```
+
+## Authentication Methods
+
+Magic supports multiple authentication methods:
+
+- **Email OTP**: `magic.auth.loginWithEmailOTP({ email })`
+- **SMS**: `magic.auth.loginWithSMS({ phoneNumber })`
+- **Social**: `magic.oauth.loginWithRedirect({ provider: 'google' })`
+- **WebAuthn**: `magic.webauthn.loginWithWebAuthn({})`
+
+Each method provides the same wallet client that can be used with Rhinestone.
+
+## Environment Variables
+
+Make sure to set the following environment variables:
+
+```bash
+NEXT_PUBLIC_MAGIC_API_KEY=pk_live_your_magic_publishable_key
+NEXT_PUBLIC_RHINESTONE_API_KEY=your_rhinestone_api_key
+```
+
+## Complete Example
+
+Here's a minimal working example that demonstrates the integration:
+
+```tsx
+import { useState, useEffect } from 'react'
+import { Magic } from 'magic-sdk'
+import { createRhinestoneAccount } from '@rhinestone/sdk'
+import { createWalletClient, custom } from 'viem'
+
+const magic = new Magic(process.env.NEXT_PUBLIC_MAGIC_API_KEY)
+
+export function MagicDemo() {
+  const [account, setAccount] = useState(null)
+  const [email, setEmail] = useState('')
+
+  const login = async () => {
+    try {
+      // 1. Login with Magic
+      await magic.auth.loginWithEmailOTP({ email })
+      
+      // 2. Get user address
+      const { publicAddress } = await magic.user.getMetadata()
+      
+      // 3. Create wallet client
+      const walletClient = createWalletClient({
+        account: publicAddress as `0x${string}`,
+        transport: custom(magic.rpcProvider),
+      })
+
+      // 4. Create Rhinestone account
+      const rhinestoneAccount = await createRhinestoneAccount({
+        owners: {
+          type: "ecdsa",
+          accounts: [{ ...walletClient, address: publicAddress }],
+        },
+        rhinestoneApiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
+      })
+
+      setAccount(rhinestoneAccount)
+    } catch (error) {
+      console.error('Setup failed:', error)
+    }
+  }
+
+  return (
+    <div>
+      {!account ? (
+        <div>
+          <input 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter email"
+          />
+          <button onClick={login}>Login with Magic</button>
+        </div>
+      ) : (
+        <div>
+          <p>Global Wallet: {account.getAddress()}</p>
+          <p>Ready for cross-chain transactions!</p>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+## Next Steps
+
+- **See it in action**: Check out our [complete Magic example](https://github.com/rhinestonewtf/e2e-examples/tree/main/magic) for a full working app
+- Learn more about [Magic's authentication methods](https://magic.link/docs/auth/overview)
+- Explore [chain abstraction](../../use-cases/chain-abstraction/unified-balance) capabilities
+- Check out [creating an account](../create-account) for more account setup options
