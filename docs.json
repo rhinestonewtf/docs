@@ -73,11 +73,11 @@
 							{
 								"group": "Integrate Signer",
 								"pages": [
+									"sdk/core/signers/external-wallet",
 									"sdk/core/signers/dynamic",
 									"sdk/core/signers/privy",
 									"sdk/core/signers/magic",
-									"sdk/core/signers/turnkey",
-									"sdk/core/signers/external-wallet"
+									"sdk/core/signers/turnkey"
 								]
 							},
 							"sdk/core/eip-7702",
