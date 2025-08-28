@@ -70,10 +70,10 @@
 						"group": "Smart Wallet",
 						"pages": [
 							"sdk/core/create-account",
+							"sdk/core/signers/external-wallet-signer",
 							{
-								"group": "Integrate Signer",
+								"group": "Embedded Wallet Signer",
 								"pages": [
-									"sdk/core/signers/external-wallet",
 									"sdk/core/signers/dynamic",
 									"sdk/core/signers/privy",
 									"sdk/core/signers/magic",
