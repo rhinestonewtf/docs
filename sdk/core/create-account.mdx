@@ -9,25 +9,25 @@ Smart accounts in Rhinestone require at least one **signer** (owner) to authoriz
 
 Before creating your account, you need to decide how users will sign transactions:
 
-### 🔐 Passkeys
+### Passkeys
 Biometric authentication using WebAuthn for password-free, secure signing. Perfect for consumer applications prioritizing security and UX.
 
 - **Best for**: Consumer apps, high-security applications
 - **Guide**: [Passkeys Integration](./passkeys)
 
-### 📱 Embedded Wallets  
+### Embedded Wallets  
 Third-party providers handle key management and user onboarding. Users don't need existing wallets.
 
 - **Best for**: New-to-crypto users, seamless onboarding
 - **Providers**: [Dynamic](./signers/dynamic), [Privy](./signers/privy), [Magic](./signers/magic), [Turnkey](./signers/turnkey)
 
-### 🦊 External Wallets
+### External Wallets
 Connect to existing wallets like MetaMask, Coinbase Wallet, or any WalletConnect-compatible wallet.
 
 - **Best for**: Existing crypto users, dApps, DeFi applications  
 - **Guide**: [External Wallet Integration](./signers/external-wallet)
 
-### 🔑 Generated Keys
+### Generated Keys
 Programmatically generated private keys for testing or specialized use cases.
 
 - **Best for**: Testing, backend services, specialized applications
@@ -60,9 +60,10 @@ const address = await rhinestoneAccount.getAddress()
 console.log(`Smart account address: ${address}`)
 ```
 
-<Note>
-**⚠️ Important**: Save the private key securely. You'll need it to sign transactions. In production, use embedded wallets or external wallet connections instead of generated keys.
-</Note>
+<Warning>
+**Important**: Save the private key securely. You'll need it to sign transactions. In production, use embedded wallets or external wallet connections instead of generated keys.
+</Warning>
+
 
 ## Making Your First Transaction
 
@@ -111,7 +112,9 @@ Rhinestone supports multiple ERC-7579 compatible smart account implementations:
 ```ts
 const account = await createRhinestoneAccount({
   owners: { type: 'ecdsa', accounts: [signer] },
-  accountProvider: 'nexus', // 'safe', 'kernel', 'startale', 'prime'
+  account: {
+    type: 'nexus', // 'safe', 'kernel', 'startale', 'prime'
+  },
   rhinestoneApiKey,
 })
 ```
@@ -125,7 +128,7 @@ Create accounts requiring multiple signatures:
 ```ts
 const multiSigAccount = await createRhinestoneAccount({
   owners: {
-    type: 'multisig',
+    type: 'ecdsa', // ecdsa, passkey, multi-factor
     accounts: [owner1, owner2, owner3],
     threshold: 2, // 2-of-3 signatures required
   },
