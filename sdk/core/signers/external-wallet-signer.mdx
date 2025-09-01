@@ -37,7 +37,7 @@ npm install @reown/appkit @reown/appkit-adapter-wagmi wagmi viem
 import { createAppKit } from '@reown/appkit'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 import { mainnet, arbitrum, base } from '@reown/appkit/networks'
-import { createRhinestoneAccount } from '@rhinestone/sdk'
+import { createRhinestoneAccount, walletClientToAccount } from '@rhinestone/sdk'
 import { useAccount, useWalletClient } from 'wagmi'
 
 // 1. Get projectId from https://dashboard.reown.com
@@ -72,16 +72,14 @@ export function WalletConnector() {
     async function setupAccount() {
       if (!isConnected || !walletClient) return
 
-      const walletClientWithAddress = {
-        ...walletClient,
-        address: walletClient.address,
-      };
+      // wrap the wagmi client for the sdk
+      const wrappedWalletClient = walletClientToAccount(walletClient)
 
       // Use the connected wallet client
       const account = await createRhinestoneAccount({
         owners: {
           type: "ecdsa",
-          accounts: [walletClientWithAddress as any],
+          accounts: [wrappedWalletClient],
         },
         rhinestoneApiKey: process.env.RHINESTONE_API_KEY,
       });
