@@ -69,7 +69,7 @@ Create a custom hook that integrates Privy authentication with Rhinestone accoun
 ```tsx
 import { usePrivy, useWallets } from "@privy-io/react-auth"
 import { useWalletClient, useAccount } from "wagmi"
-import { createRhinestoneAccount } from "@rhinestone/sdk"
+import { createRhinestoneAccount, walletClientToAccount } from "@rhinestone/sdk"
 
 export function usePrivyWallet() {
   const { ready, authenticated, login, logout } = usePrivy()
@@ -82,18 +82,14 @@ export function usePrivyWallet() {
     async function initializeAccount() {
       if (!ready || !authenticated || !address || !walletClient) return
 
-      // Privy sometimes needs address explicitly added to the client
-      const walletClientWithAddress = {
-        ...walletClient,
-        address: address,
-      };
+      // wrap the wagmi client for the sdk
+      const wrappedWalletClient = walletClientToAccount(walletClient)
 
-      // The key step: pass the wagmi walletClient directly to Rhinestone
-      // Rhinestone SDK wraps it to add cross-chain capabilities
+      // create the rhinestone account
       const account = await createRhinestoneAccount({
         owners: {
           type: "ecdsa",
-          accounts: [walletClientWithAddress], // wagmi client from Privy with address
+          accounts: [wrappedWalletClient],
         },
         rhinestoneApiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
       })
