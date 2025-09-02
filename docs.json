@@ -92,6 +92,7 @@
 					{
 						"group": "Multi-Chain Intents",
 						"pages": [
+							"sdk/chain-abstraction/single-chain-intent",
 							"sdk/chain-abstraction/create-intent",
 							"sdk/chain-abstraction/solver-based-swaps",
 							"sdk/chain-abstraction/account-deployment",
@@ -179,9 +180,7 @@
 							},
 							{
 								"group": "Deploying",
-								"pages": [
-									"build-modules/guides/deploying/deploying-modules"
-								]
+								"pages": ["build-modules/guides/deploying/deploying-modules"]
 							},
 							"build-modules/guides/migration-guide"
 						]
