@@ -20,9 +20,19 @@
 		"global": {
 			"anchors": [
 				{
+					"anchor": "Create API Key",
+					"icon": "key",
+					"href": "https://t.me/kurt_larsen"
+				},
+				{
 					"anchor": "Demos",
 					"icon": "rocket",
 					"href": "https://demos.rhinestone.dev"
+				},
+				{
+					"anchor": "Examples",
+					"icon": "code",
+					"href": "https://github.com/rhinestonewtf/e2e-examples/"
 				}
 			]
 		},
