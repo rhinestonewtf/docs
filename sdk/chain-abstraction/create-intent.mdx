@@ -1,57 +1,29 @@
 ---
-title: "Create an Intent"
-description: "Learn how to create and execute multi-chain intents with Rhinestone."
+title: "Multi-Chain Intent"
+description: "Make cross-chain transactions with intents"
 ---
 
-import SnippetOmnichainTransactions from '/snippets/omnichain-transactions.mdx';
+Multi-chain intents let you make cross-chain transactions.
 
-## Overview
+Those intents specify both target (destination) and source chain(s). The actual transaction (_fill_) happens on the target chain, while the funds are taken on the source chains (_claims_). Specifying source chains is optional — Rhinestone finds the most optimal path automatically.
 
-Intents are expressions of desired outcomes that sophisticated third-party actors fulfill. These third-party actors are often referred to as **solvers** or **relayers**. Importantly, intents are chain-agnostic. With the right settlement infrastructure and relayer marketplace, intents enable fast, cheap, and generalized executions to happen on any chain.
+Multi-chain intents work similar to single-chain intents, but with the introduction of settlement layers. From your perspective, making cross-chain transactions is as simple as making normal Ethereum transactions. The Rhinestone Orchestrator handles path finding, liquidity management, and the intent exectuion for you.
 
-Rhinestone's intent system is a modular engine that aggregates settlement layers through one unified relayer market. It utilizes resource locks for asynchronous execution and blazing-fast speed.
+Learn more about how Rhinestone intents work [here](../../home/concepts/rhinestone-intent-architecture).
 
-<Note>The intent system uses the core `sendTransaction` API. Some advanced features shown in examples may require additional implementation based on your account setup and the current intent system capabilities.</Note>
+## Example
 
-**What makes intents powerful:**
-- Express desired outcomes, not execution steps
-- Unified relayer market aggregates settlement layers
-- Atomic and deterministic cross-chain execution
-- Single signature for multi-chain, multi-token operations
-
-## Intent Fundamentals
-
-### Intent Structure
-
-Every intent is composed of **Elements**, where each Element represents a chain-specific commitment. An Element defines the settlement layer, chain ID, and locked token information, along with a **Mandate** that specifies the recipient, output tokens, expiry, and the destination chain.
+We will make a cross-chain token transfer using multi-chain intents.
 
 ```tsx
-const intent = {
-  sourceChains: [arbitrum, base], // Origin chains with available tokens
-  targetChain: ethereum,          // Destination chain for execution
-  calls: [...],                   // Destination chain executions
-  tokenRequests: [...],           // Required output tokens
-  // Optional: origin chain executions (pre-claim operations)
-}
-```
+const amount = parseUnits('100', 6) // 100 USDC
 
-**Key concepts:**
-- **Elements**: Chain-specific commitments with settlement layer info
-- **Mandate**: Defines recipient, output tokens, and destination execution
-- **Origin executions**: Pre-claim operations before settlement
-- **Destination executions**: Operations executed after token delivery
-
-### Basic Cross-Chain Transfer
-
-The simplest intent - move tokens from one chain to another:
-
-```tsx
 const transferIntent = await rhinestoneAccount.sendTransaction({
   sourceChains: [arbitrum],
   targetChain: base,
   calls: [
     {
-      to: baseUSDC,
+      to: 'USDC',
       data: encodeFunctionData({
         abi: erc20Abi,
         functionName: 'transfer',
@@ -61,38 +33,56 @@ const transferIntent = await rhinestoneAccount.sendTransaction({
   ],
   tokenRequests: [
     {
-      address: baseUSDC,
-      amount: parseUnits('100', 6), // 100 USDC
+      address: 'USDC',
+      amount,
     },
   ],
 })
 ```
 
-### Single-Chain Transaction
+Under the hood, this will:
 
-Execute on one chain using local tokens:
-
-```tsx
-const singleChainTx = await rhinestoneAccount.sendTransaction({
-  chain: ethereum,
-  calls: [
-    {
-      to: tokenAddress,
-      data: encodeFunctionData({
-        abi: erc20Abi,
-        functionName: 'transfer',
-        args: [recipient, parseUnits('1', 18)],
-      }),
-    },
-  ],
-})
-```
+1) Get a quote from the Rhinestone backend
+2) Sign the intent using the account owner(s)
+3) Submit the intent
+4) Execute the _claim_ transaction on Arbitrum
+5) Execute the _fill_ transaction on Base
 
 ## Monitor Execution
+
+You can wait until the target chain transaction is submitted to the blockchain:
 
 ```tsx
 const result = await rhinestoneAccount.waitForExecution(transferIntent)
 console.log('Status:', result.status)
 ```
 
-<SnippetOmnichainTransactions />
+## Token Requests
+
+`tokenRequests` is a list of token assets and their amounts that are required on the target chain to make the transaction. It tells the solvers to ensure those assets are present before executing the transaction `calls`. If you don't need any assets on the target chain, you can omit this.
+
+<Note>Solvers will supply all assets specified in the `tokenRequests`. If the user already has the required assets, don't add them into `tokenRequests`.</Note>
+
+## Gas Limit
+
+You can override the default gas limit for the target chain execution with `gasLimit`. Doing this will make the intent better priced, because we can more accurately calculate the fee that a solver needs to be reimbursed with for paying the gas. If this is not provided, we calculate using a gas limit of 1_000_000.
+
+```ts {10}
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChains: [baseSepolia],
+  targetChain: arbitrumSepolia,
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+  gasLimit: 200_000n,
+})
+```
+
+## Source Chain
+
+Providing the source chain deploys the account on that chain, as well as uses the funds on that chain to fulfill the intent.
+
+If you already have an account deployed on one or more source chains, you can omit the `sourceChain`. In that case, the orchestrator will use the best chain(s) to source funds.
