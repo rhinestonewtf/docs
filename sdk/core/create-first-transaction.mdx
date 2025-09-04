@@ -1,0 +1,89 @@
+---
+title: "Create First Transaction"
+---
+
+Rhinestone uses intents to send transactions.
+
+Intents are high-level instructions that can span across multiple chains. They are fulfilled by _relayers_ — actors that compete to offer the best execution for the intent.
+
+Unlike classical transactions, intents are very flexible. With intents, you can make both single-chain and cross-chain transactions. You can use ERC-20 tokens (e.g., USDC) to pay for gas, or you can sponsor the gas fees for your users. Intents can be funded with multiple source tokens, and tokens can be swapped as part of the intent, all while only requiring one signature from the user.
+
+In many ways, intents are similar to ERC-4337 User Operations. Unlike userops, intents are multi-chain by design (a single signature can authorize a cross-chain transaction), have less latency (especially when used with resource locking), and generally consume less gas.
+
+## Single-Chain Transactions
+
+Let's create a transaction that sends some USDC:
+
+```ts
+const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
+const usdcAmount = 1n
+
+const transaction = await rhinestoneAccount.sendTransaction({
+  chain: baseSepolia,
+  calls: [
+    {
+      to: 'USDC',
+      value: 0n,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [receiver, usdcAmount],
+      }),
+    },
+  ],
+})
+
+const transactionResult = await rhinestoneAccount.waitForExecution(transaction)
+console.log('Result', transactionResult)
+```
+
+Under the hood, this will:
+
+1) Get a quote from the Rhinestone backend
+2) Sign the intent using the account owner(s)
+3) Submit the intent
+4) Wait until the intent is submitted to the blockchain
+
+## Granular APIs
+
+You can also use lower-level APIs to get more control over the transaction flow.
+
+This approach is useful when you need to:
+- Separate data fetching from signing (e.g., fetch intent data on your backend API, then sign on a mobile frontend)
+- Present transaction details to users before they sign
+- Manually control account deployment across chains
+
+Here's the same transaction as above made with the granular API methods:
+
+```ts
+const usdcAmount = 1n
+const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
+
+// Manually trigger the account deployment
+await rhinestoneAccount.deploy(sourceChain)
+// Prepare the transaction by fetching the intent data
+const bundleData = await rhinestoneAccount.prepareTransaction({
+  chain: baseSepolia,
+  calls: [
+    {
+      to: 'USDC',
+      value: 0n,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [receiver, usdcAmount],
+      }),
+    },
+  ],
+})
+// Sign the transaction — this prompts the account owners to sign
+const signedBundleData = await rhinestoneAccount.signTransaction(bundleData)
+// Submit the transaction to the blockchain
+const transaction = await rhinestoneAccount.submitTransaction(signedBundleData)
+```
+
+## Going Cross-Chain
+
+Similarly, you can also send cross-chain transactions. For example, you can send ETH on Base, receive USDC on Arbitrum, and deposit that to a savings vault, all in one go.
+
+See [our guide](../chain-abstraction/create-intent) to get started with cross-chain transaction.

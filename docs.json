@@ -81,7 +81,7 @@
 								]
 							},
 							"sdk/core/eip-7702",
-							"sdk/core/send-omnichain-transaction",
+							"sdk/core/create-first-transaction",
 							"sdk/core/fee-sponsorship",
 							"sdk/core/passkeys",
 							"sdk/core/ecdsa-signer",
