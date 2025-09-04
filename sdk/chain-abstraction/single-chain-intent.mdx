@@ -1,0 +1,30 @@
+---
+title: "Single-Chain Intent"
+description: "Use intents to create same-chain transactions"
+---
+
+Single-chain intents let you make transactions on a chain of your choice.
+
+These intents are similar to ERC-4337 User Operations. See our [concepts section on intents vs userops](../../home/concepts/chain-abstraction#general-purpose-transaction-infrastructure) to better understand the difference.
+
+Relayers execute single-chain intents through the intent executor module. For a breakdown of the high-level flow, please take a look at the [Rhinestone Intents concepts section](../../home/concepts/rhinestone-intent-architecture).
+
+## Example
+
+Here's how you can make a token transfer:
+
+```ts
+const singleChainTx = await rhinestoneAccount.sendTransaction({
+  chain: base,
+  calls: [
+    {
+      to: 'USDC',
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [recipient, parseUnits('5', 6)],
+      }),
+    },
+  ],
+})
+```

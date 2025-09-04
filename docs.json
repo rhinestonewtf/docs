@@ -92,6 +92,7 @@
 					{
 						"group": "Multi-Chain Intents",
 						"pages": [
+							"sdk/chain-abstraction/single-chain-intent",
 							"sdk/chain-abstraction/create-intent",
 							"sdk/chain-abstraction/swaps",
 							"sdk/chain-abstraction/account-deployment",
