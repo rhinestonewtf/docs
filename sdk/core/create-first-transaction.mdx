@@ -6,7 +6,7 @@ Rhinestone uses intents to send transactions.
 
 Intents are high-level instructions that can span across multiple chains. They are fulfilled by _relayers_ — actors that compete to offer the best execution for the intent.
 
-Unlike classical transactions, intents are very flexible. With intents, you can make both single-chain and multi-chain transactions. You can use tokens (e.g., USDC) to pay for gas, or you can sponsor the gas fees for your users. Intents let you provide multiple source tokens, and you can swap tokens as part of the intent without having to go through an aggregator service.
+Unlike classical transactions, intents are very flexible. With intents, you can make both single-chain and cross-chain transactions. You can use ERC-20 tokens (e.g., USDC) to pay for gas, or you can sponsor the gas fees for your users. Intents can be funded with multiple source tokens, and tokens can be swapped as part of the intent, all while only requiring one signature from the user.
 
 In many ways, intents are similar to ERC-4337 User Operations. Unlike userops, intents are multi-chain by design (a single signature can authorize a cross-chain transaction), have less latency (especially when used with resource locking), and generally consume less gas.
 
