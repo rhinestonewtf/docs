@@ -13,7 +13,7 @@ Solver-based swaps use solver liquidity to make swaps. They are simpler to get s
 
 ## Injected Swaps
 
-We will use 1inch API to make a WETH -> cbBTC swap on Base chain using funds on Arbitrum:
+We will use 1inch API to make a WETH -> cbBTC swap on Base chain using funds on Arbitrum.
 
 First, let's initialize 1inch API client:
 
@@ -32,16 +32,16 @@ const config = {
   slippage: 1,
 };
 
-function buildQueryURL(path: string, params: Record<string, string>): string {
-  const url = new URL(baseUrl + path);
-  url.search = new URLSearchParams(params).toString();
-  return url.toString();
-}
-
 async function call1inchAPI<T>(
   endpointPath: string,
   queryParams: Record<string, string>
 ): Promise<T> {
+  function buildQueryURL(path: string, params: Record<string, string>): string {
+    const url = new URL(baseUrl + path);
+    url.search = new URLSearchParams(params).toString();
+    return url.toString();
+  }
+
   const url = buildQueryURL(endpointPath, queryParams);
 
   const response = await fetch(url, {
@@ -61,29 +61,19 @@ async function call1inchAPI<T>(
 }
 ```
 
-Then, let's fetch the allowance data:
+Then, let's fetch the allowance data and get the swap quote:
 
 ```ts
 const approveTx = await call1inchAPI<ApproveTransactionResponse>(
   "/approve/transaction",
   {
     tokenAddress: config.tokenAddress,
-    amount: requiredAmount.toString(),
+    amount: config.amountToSwap.toString(),
   }
 );
 
 console.log("Approval transaction details:", approveTx);
 
-const txHash = await signAndSendTransaction({
-  to: approveTx.to,
-  data: approveTx.data,
-  value: approveTx.value,
-});
-```
-
-Now, let's get the swap quote:
-
-```ts
 const swapTx = await call1inchAPI<TxResponse>("/swap", {
   src: config.tokenAddress,
   dst: config.dstToken,
@@ -94,7 +84,7 @@ const swapTx = await call1inchAPI<TxResponse>("/swap", {
   allowPartialFill: "false",
 });
 
-const txHash = await signAndSendTransaction(swapTx.tx);
+console.log("Swap transaction details:", approveTx);
 ```
 
 Finally, let's submit the swap transaction:
@@ -105,8 +95,14 @@ const transferIntent = await rhinestoneAccount.sendTransaction({
   targetChain: base,
   calls: [
     {
+      to: approveTx.to,
+      data: approveTx.data,
+      value: approveTx.value,
+    },
+    {
       to: swapTx.tx.to,
       data: swapTx.tx.data,
+      value: swapTx.tx.value,
     },
   ],
   tokenRequests: [
