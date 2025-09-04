@@ -96,7 +96,8 @@
 							"sdk/chain-abstraction/solver-based-swaps",
 							"sdk/chain-abstraction/account-deployment",
 							"sdk/chain-abstraction/orchestrator-errors",
-							"sdk/use-cases/chain-abstraction/unified-balance"
+							"sdk/use-cases/chain-abstraction/unified-balance",
+							"sdk/use-cases/chain-abstraction/max-spendable-amount"
 						]
 					},
 					{
@@ -179,9 +180,7 @@
 							},
 							{
 								"group": "Deploying",
-								"pages": [
-									"build-modules/guides/deploying/deploying-modules"
-								]
+								"pages": ["build-modules/guides/deploying/deploying-modules"]
 							},
 							"build-modules/guides/migration-guide"
 						]

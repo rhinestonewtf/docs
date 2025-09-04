@@ -1,0 +1,20 @@
+---
+title: "Max Spendable Amount"
+---
+
+Often, you want to let the user spend the maximum possible amount of a specific tokens for a transaction (e.g. deposit all available funds as USDC into a savings vault).
+
+While the `getPortfolio` utility provides the total balance, it doesn't consider the execution fee, as this fee is chain-specific and depends on the transaction gas cost.
+
+To get an estimate of the maximum amount of tokens you can spend on a given transaction, use `getMaxSpendableAmount`. This will take all the gas and bridging fees for a given chain into consideration, as well as the user's token portfolio across all chains, and output the max amount of tokens you can spend
+
+In this case, we get the maximum spendable USDC amount on Base Sepolia:
+
+```ts
+const chain = baseSepolia.id
+const token = getTokenAddress('USDC', baseSepolia.id)
+const gasUnits = 200_000n
+
+const tokenAmount = await rhinestoneAccount.getMaxSpendableAmount(chain, token, gasUnits)
+// Output in wei
+```
