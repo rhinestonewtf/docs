@@ -1,151 +1,99 @@
 ---
-title: "Create an Account"
+title: "Create Account"
 description: "Learn how to create Rhinestone smart accounts with different signer types for various use cases."
 ---
 
-Smart accounts in Rhinestone require at least one **signer** (owner) to authorize transactions. The type of signer you choose depends on your application's needs and user experience requirements.
+When creating an account, you can specify the signers that will be used to authorize the transactions.
 
-## Signer Types Overview
+The SDK will install and set up the corresponding validator modules to authorize the signers of your choice. The account will use the same configuration across all chains.
 
-Before creating your account, you need to decide how users will sign transactions:
+## Signers
 
-### Passkeys
-Biometric authentication using WebAuthn for password-free, secure signing. Perfect for consumer applications prioritizing security and UX.
+At its core, Rhinestone accounts support two validation modules: ECDSA (for EOAs) and WebAuthn (for passkeys). You can then mix and match those validators to tailor them to your use case.
 
-- **Best for**: Consumer apps, high-security applications
-- **Guide**: [Passkeys Integration](./passkeys)
+* **EOAs**: you can use embedded wallets (Privy, Dynamic), external wallets (MetaMask, Coinbase), and server-side (agent) wallets. See below for an example of using an external wallet as the account owner.
+* **Passkey**: use device biometrics to authorize transactions. [Learn more](../core/passkeys) about using passkeys.
+* **Multisig**: use multiple signers of the same type to validate transactions. [Learn more](../core/multisig) about using multisigs.
+* **MFA**: use passkeys _and_ EOAs at the same time. [Learn more](../advanced/multi-factor-authentication) about using MFAs.
 
-### Embedded Wallets  
-Third-party providers handle key management and user onboarding. Users don't need existing wallets.
+## Example
 
-- **Best for**: New-to-crypto users, seamless onboarding
-- **Guides**: [Dynamic](./signers/dynamic), [Privy](./signers/privy), [Magic](./signers/magic), [Turnkey](./signers/turnkey)
+Here, we create an account owned by an external wallet like MetaMask and send our first transaction.
 
-### External Wallets
-Connect to existing wallets like MetaMask, Coinbase Wallet, or any WalletConnect-compatible wallet.
+<Steps>
+  <Step title="Install dependencies">
+    Install `viem` and `@rhinestone/sdk`:
 
-- **Best for**: Existing crypto users, dApps, DeFi applications  
-- **Guide**: [External Wallet Integration](./signers/external-wallet)
+    <CodeGroup>
+      ```bash npm
+      npm install viem @rhinestone/sdk
+      ```
+      ```bash pnpm
+      pnpm add viem @rhinestone/sdk
+      ```
+      ```bash bun
+      bun install viem @rhinestone/sdk
+      ```
+    </CodeGroup>
+  </Step>
+  <Step title="Initialize Viem">
+    Initialize Viem client for the browser wallet:
 
-### Generated Keys
-Programmatically generated private keys for testing or specialized use cases.
+    ```ts
+    const chain = sepolia;
 
-- **Best for**: Testing, backend services, specialized applications
-- **Guide**: Shown in examples below
+    const accountClient = createWalletClient({
+      chain,
+      transport: custom(window.ethereum!),
+      account: eoaAddress,
+    });
+    ```
+  </Step>
+  <Step title="Initialize Rhinestone account">
+    Create an account using the external wallet as the sole owner:
 
-## Quick Start: Generated Key Account
+    ```ts
+    const account = walletClientToAccount(accountClient);
+    console.log(account);
 
-Here's the fastest way to create a smart account for testing or development:
+    const rhinestoneAccount = await createRhinestoneAccount({
+      owners: {
+        type: "ecdsa",
+        accounts: [account],
+      },
+    });
+    console.log(rhinestoneAccount);
 
-```ts
-import { createRhinestoneAccount } from '@rhinestone/sdk'
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
-import { baseSepolia, arbitrumSepolia } from 'viem/chains'
+    const accountAddress = rhinestoneAccount.getAddress();
+    console.log(accountAddress);
+    ```
+  </Step>
+  <Step title="Make a transaction">
+    Make your first transaction with the smart account:
 
-const rhinestoneApiKey = process.env.RHINESTONE_API_KEY
+    ```ts
+    const transactionResult = await rhinestoneAccount.sendTransaction({
+      chain,
+      calls: [
+        {
+          to: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+          data: "0x",
+        },
+      ],
+    });
+    console.log(transactionResult);
+    ```
 
-// You can use an existing PK here
-const privateKey = generatePrivateKey()
-console.log(`Owner private key: ${privateKey}`)
-const account = privateKeyToAccount(privateKey)
+    This will prompt a signature request from the browser wallet and create and submit the transaction from the smart account. 
+  </Step>
+</Steps>
 
-const rhinestoneAccount = await createRhinestoneAccount({
-  owners: {
-    type: 'ecdsa',
-    accounts: [account],
-  },
-  rhinestoneApiKey,
-})
-const address = await rhinestoneAccount.getAddress()
-console.log(`Smart account address: ${address}`)
-```
+<Columns cols={2}>
+  <Card title="External Wallets" icon="globe" href="./signers/external-wallet-signer">
+    Learn how to use Rhinestone accounts with WalletConnect.
+  </Card>
 
-<Warning>
-**Important**: Save the private key securely. You'll need it to sign transactions. In production, use embedded wallets or external wallet connections instead of generated keys.
-</Warning>
-
-
-## Making Your First Transaction
-
-Once your account is created and funded, you can send transactions:
-
-```ts
-import { getTokenAddress } from '@rhinestone/sdk/orchestrator'
-import { baseSepolia } from 'viem/chains'
-
-const chain = baseSepolia
-const usdcTarget = getTokenAddress('USDC', chain)
-const usdcAmount = 1n
-const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
-
-const transaction = await rhinestoneAccount.sendTransaction({
-  chain,
-  calls: [
-    {
-      to: usdcTarget,
-      data: encodeFunctionData({
-        abi: erc20Abi,
-        functionName: 'transfer',
-        args: [receiver, wethAmount],
-      }),
-    },
-  ],
-})
-console.log('Transaction', transaction)
-```
-
-## Embedded Wallet Integration
-
-For production applications, choose the appropriate signer type:
-
-- **New users**: Use embedded wallets like [Dynamic](./signers/dynamic) or [Privy](./signers/privy)
-- **Existing crypto users**: Support [external wallets](./signers/external-wallet) 
-- **High security**: Implement [passkeys](./passkeys) for biometric authentication
-- **Enterprise**: Use [Turnkey](./signers/turnkey) for robust key management
-
-## Advanced Configuration
-
-### Account Providers
-
-Rhinestone supports multiple ERC-7579 compatible smart account implementations:
-
-```ts
-const account = await createRhinestoneAccount({
-  owners: { type: 'ecdsa', accounts: [signer] },
-  account: {
-    type: 'nexus', // 'safe', 'kernel', 'startale', 'prime'
-  },
-  rhinestoneApiKey,
-})
-```
-
-**Learn more**: [Smart Account Providers](../customize/smart-account-providers/nexus)
-
-### Multi-Signature Accounts
-
-Create accounts requiring multiple signatures:
-
-```ts
-const multiSigAccount = await createRhinestoneAccount({
-  owners: {
-    type: 'ecdsa', // ecdsa, passkey, multi-factor
-    accounts: [owner1, owner2, owner3],
-    threshold: 2, // 2-of-3 signatures required
-  },
-  rhinestoneApiKey,
-})
-```
-
-**Learn more**: [Multisig Setup](./multisig)
-
-## Next Steps
-
-### Core Features
-- [Send Cross-Chain Transactions](./send-omnichain-transaction) - Transfer assets between chains
-- [Fee Sponsorship](./fee-sponsorship) - Sponsor user transactions
-- [Social Recovery](./social-recovery) - Add account recovery mechanisms
-
-### Advanced Features  
-- [Smart Sessions](../smart-sessions/overview) - Delegate permissions to apps/users
-- [Batch Transactions](../advanced/batch-transactions) - Execute multiple operations
-- [Message Signing](../advanced/message-signing) - Sign off-chain messages
+  <Card title="Embedded Wallets" icon="wallet-cards" href="./signers/privy">
+    Use providers like Privy and Dynamic as account owners.
+  </Card>
+</Columns>
