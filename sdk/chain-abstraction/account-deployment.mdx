@@ -8,6 +8,14 @@ It's possible to make the deployment completely gasless for the user if you're u
 
 Otherwise, the user needs to have some tokens on either the chain you're deploying to, or one of the other chains (provided the account is already deployed there).
 
+## Check Status
+
+You can check if the account is deployed on a specific chain:
+
+```ts
+await rhinestoneAccount.isDeployed(chain)
+```
+
 ## Manual Deployments
 
 You can manually trigger an account deployment on any chain:
