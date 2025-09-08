@@ -1,0 +1,19 @@
+---
+title: "Resource Locks"
+---
+
+Rhinestone supports both locked and unlocked funds.
+
+Using unlocked funds is the default flow and does not require any setup. In this case, the funds are "locked" just-in-time (the JIT flow). The claim transactions on source chain(s) are processed first, then the fill transaction is executed on the target chain. The JIT flow is generally slower.
+
+For a better performance, you can use resource locked funds using the Fill-First flow instead. The user would first deposit (lock) the funds into The Compact contract. When executing an intent, the relayer would first handle the fill transaction on the destination chain, then use locked funds as a payment on the source chain(s). The Fill-First flow is significantly faster.
+
+Learn more about the JIT flow and Resource Locking in our [conceptual guide](../../home/concepts/rhinestone-intent-architecture#dual-mode-execution).
+
+## Using Resource Locks
+
+To use resource locking, you need to explicitly enable it.
+
+Once enabled, The Compact will be automatically topped up the first time the user does an intent. The first intent will use the JIT flow to sweep all supported tokens into The Compact. After that, all intents will come through the Fill-First flow (until the locked balance is depleted).
+
+<Note>We're working on adding support for resource locking to the SDK. Reach out to us if you would benefit from that.</Note>

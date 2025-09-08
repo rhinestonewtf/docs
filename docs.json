@@ -95,6 +95,7 @@
 							"sdk/chain-abstraction/single-chain-intent",
 							"sdk/chain-abstraction/create-intent",
 							"sdk/chain-abstraction/swaps",
+							"sdk/chain-abstraction/resource-locks",
 							"sdk/chain-abstraction/account-deployment",
 							"sdk/chain-abstraction/orchestrator-errors",
 							"sdk/use-cases/chain-abstraction/unified-balance",
