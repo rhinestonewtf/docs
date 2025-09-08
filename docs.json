@@ -86,7 +86,8 @@
 							"sdk/core/passkeys",
 							"sdk/core/ecdsa-signer",
 							"sdk/core/multisig",
-							"sdk/core/social-recovery"
+							"sdk/core/social-recovery",
+							"sdk/core/custom-modules"
 						]
 					},
 					{
