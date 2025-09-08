@@ -1,0 +1,88 @@
+---
+title: "Error Handling"
+---
+
+## SDK Errors
+
+Account errors:
+
+* `Eip7702AccountMustHaveEoaError`: when using EIP-7702, you need to provide an EOA account by passing `eoa` param.
+* `SigningNotSupportedForAccountError`: the account you provided does not support message signing.
+* `WalletClientNoConnectedAccountError`: the `WalletClient` instance you provided is missing a default account. Ensure the wallet is connected and the client has an account.
+* `Eip7702NotSupportedForAccountError`: this account type does not support EIP-7702. Try using a different account implementation or [submit](https://github.com/rhinestonewtf/sdk/issues) a feature request.
+* `AccountConfigurationNotSupportedError`: your account setup is not currently supported. Try using a different account configuration or [submit](https://github.com/rhinestonewtf/sdk/issues) a feature request.
+* `FactoryArgsNotAvailableError`: factory data is not available for this type of an account. Most likely an issue with the SDK itself. Please [submit](https://github.com/rhinestonewtf/sdk/issues) a bug report.
+* `SmartSessionsNotEnabledError`: smart session validator is not available. Most likely an issue with the SDK itself. Please [submit](https://github.com/rhinestonewtf/sdk/issues) a bug report.
+
+Execution errors:
+
+* `SourceChainsNotAvailableForUserOpFlowError`: when using a UserOp flow (e.g., for account recovery), you need to provide a source chain.
+* `UserOperationRequiredForSmartSessionsError`: when using smart sessions, you need to use the UserOp flow.
+* `SessionChainRequiredError`: when using smart sessions, each session needs to define a chain where it is activated.
+* `IntentFailedError`: the intent failed (reverted onchain). Common reason is a swap failed due to price action.
+* `SimulationNotSupportedForUserOpFlowError`: `simulateTransaction` can only simulate intents.
+* `OrderPathRequiredForIntentsError`: when sending an intent, you need to first get the path. When using `submitTransaction`, make sure to call `prepareTransaction` first.
+
+Orchestrator errors:
+
+* `InsufficientBalanceError`: the account doesn't have enough funds. See [Insufficient Balance](#insufficient-balance).
+* `UnsupportedChainIdError`: this chain is not supported. See [Unsupported chain id](#unsupported-chain-id).
+* `UnsupportedChainError`: the target or the source chain in not supported. See [Unsupported chain id](#unsupported-chain-id).
+* `UnsupportedTokenError`: the token you're requesting is not supported. Make sure you're only using supported tokens when setting `tokenRequests`. See [Unsupported token addresses](#unsupported-token-addresses).
+* `TokenNotSupportedError`: the token you're requesting is not supported. See [Unsupported token addresses](#unsupported-token-addresses).
+* `AuthenticationRequiredError`: make sure you're providing an API key when using mainnets by passing `rhinestoneApiKey` param. See [Authentication is required](#authentication-is-required).
+* `InvalidApiKeyError`: the API key you're using is expired or invalid. See [Invalid API key](#invalid-api-key).
+* `InvalidIntentSignatureError`: [Invalid bundle signature](#invalid-bundle-signature).
+* `OnlyOneTargetTokenAmountCanBeUnsetError`: when specifying `tokenRequests`, you need to provide the exact token amounts for all except one token.
+* `NoPathFoundError`: we couldn't find a path for the intent you've provided. Try using a different token requests on the target chain.
+* `IntentNotFoundError`: can't find the intent in the system. Please try again or use different input parameters.
+
+## Orchestrator Errors
+
+### `Insufficient Balance`
+
+In most cases, getting this error means the account balance is not enough to cover the tokens required on the target chain together with the gas costs.
+
+Sometimes, you have enough balance, but the cost to claim it is too high (e.g. on Ethereum Mainnet).
+
+You can also get the error if the contract is not deployed on any supported chain.
+
+Make sure your account is deployed and funded.
+
+Also make sure you have enough funds for your transaction, taking gas costs into account. You can use the [spendable amount utility](./unified-balance#max-spendable-amount) to get an estimate of how much you can spend.
+
+### `Unsupported chain id`
+
+This error could mean that your `targetChain` [is not supported](../../home/introduction/supported-chains).
+
+It could also mean that you're using testnet chains on a production environment, or mainnet chains on a dev environment.
+
+Make sure the chain you're using matches the environment.
+
+Also, make sure that the chain you're using is supported.
+
+### `Unsupported token addresses`
+
+Most likely you will encounter this when the token that you're requesting on the target chain doesn't exist or is not supported.
+
+Make sure the token that you request corresponds to the target execution chain.
+
+### `Authentication is required`
+
+Every request to the Orchestrator on mainnets requires an API key.
+
+Make sure you provide a key. [Reach out to us](https://t.me/konradkopp) if you need one.
+
+### `Invalid API key`
+
+The API key you've provided when making a request is not valid.
+
+Make sure you provide a development API key if you're working with testnets, and a production API key if you're working with mainnets. [Reach out to us](https://t.me/konradkopp) if you miss the proper key.
+
+### `Invalid bundle signature`
+
+The bundle signature doesn't match the account.
+
+Make sure the bundle hash you're signing is correct.
+
+Also, make sure the signer (or signers) of the hash is the owner of the account.
