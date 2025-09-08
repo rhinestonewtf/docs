@@ -12,7 +12,7 @@ Learn more about the JIT flow and Resource Locking in our [conceptual guide](../
 
 ## Using Resource Locks
 
-To use resource locking, you need to explicitly enable it.
+To use resource locking, you need to explicitly enable it as part of the intent.
 
 Once enabled, The Compact will be automatically topped up the first time the user does an intent. The first intent will use the JIT flow to sweep all supported tokens into The Compact. After that, all intents will come through the Fill-First flow (until the locked balance is depleted).
 
