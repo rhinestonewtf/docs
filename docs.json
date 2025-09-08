@@ -139,6 +139,7 @@
 					{
 						"group": "Customize",
 						"pages": [
+							"sdk/customize/bring-your-own-account",
 							{
 								"group": "Smart Account Providers",
 								"pages": [

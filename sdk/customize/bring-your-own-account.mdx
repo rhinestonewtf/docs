@@ -1,0 +1,92 @@
+---
+title: "Bring Your Own Account"
+description: Use Rhinestone with an existing account
+---
+
+By default, Rhinestone SDK deploys a new smart account. You can reuse smart accounts you've already created for your users (for example, using another SDK) by providing custom deployment data.
+
+<Note>This feature is **experimental**. Reach out to us if you have any issues or feature requests.</Note>
+
+## Account Creation
+
+When creating an account instance, you will need to provide the factory data you've used to deploy the account.
+
+### Init Data
+
+The factory data depends on the SDK you've used to create an account, as well as on the account configuration itself (account type and version, and installed modules).
+
+Reach out to us if you need help generating the init data for your account configuration.
+
+### Account Address
+
+You will also need to provide the address of the account you're using. The SDK uses this for cross-reference to make sure it understands your account configuration.
+
+### Intent Executor
+
+Unless you were using the V0 SDK before, the accounts you have won't have the Rhinestone intent executor installed.
+
+### Example
+
+To reuse an existing account, pass an `initData` when creating an account:
+
+```ts {10-15}
+const rhinestoneAccount = await createRhinestoneAccount({
+  account: {
+    type: 'kernel',
+  },
+  owners: {
+    type: 'ecdsa',
+    accounts: [accountA],
+    module: '0x2483DA3A338895199E5e538530213157e931Bf06',
+  },
+  initData: {
+    address: accountAddress,
+    factory,
+    factoryData,
+    intentExecutorInstalled: false,
+  },
+})
+```
+
+## Legacy Modules
+
+In most cases, an existing account would probably have the [legacy modules](../../home/resources/address-book#legacy) installed. In this case, you need to explicitly specify the module address when setting the `owners`.
+
+```ts {5-6}
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [accountA],
+    // Legacy ownable validator module
+    module: '0x2483DA3A338895199E5e538530213157e931Bf06',
+  },
+})
+```
+
+## Deployments
+
+On the chains where the account is not yet deployed, you will need to explicitly call the `deploy` function. This will use the provided init data and deploy the account to the same address.
+
+This is done once per chain, per account.
+
+This will be done using an ERC-4337 UserOp (unless you have the intent executor as part of the init data).
+
+To deploy an account:
+
+```ts
+await rhinestoneAccount.deploy(chain)
+```
+
+## Account Setup
+
+To be able to use an existing account with the SDK, you will need to set it up.
+
+This is done once per chain, per account.
+
+Specifically, this installs the intent executor and the necessary validators (if needed).
+
+This will be done using an ERC-4337 UserOp (unless you have the intent executor as part of the init data).
+
+```ts
+await rhinestoneAccount.setup(chain)
+```
