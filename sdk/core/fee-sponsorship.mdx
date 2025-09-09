@@ -1,19 +1,39 @@
 ---
-title: "Fee Sponsorship"
+title: "Gas & Fee Sponsorship"
 description: "Sponsor gas, bridging, and swap fees for your users"
 ---
+
+Rhinestone lets you cover the fees for your users with a single onchain deposit.
+
+You can deposit USDC on Base, and subsidise gas, bridge fees, and swap fees across all chains.
+
+## Fee Types
 
 You can sponsor user fees in three ways:
 
 1) Cover the transaction gas
 2) Cover the bridging fee
-3) Cover the swap fee (when using intent-based or injected swaps)
+3) Cover the swap fee (when using [swaps](../multi-chain-intents/))
 
 Sponsorship can be applied to all transactions or handled on a case-by-case basis.
 
 You can sponsor both cross-chain and same-chain transactions.
 
-<Note>You can test fee sponsorship on testnets with no additional setup. Reach out to us if you need to set this up in production.</Note>
+## How it Works
+
+When your users make transactions, you can select which (if any) fees you are willing to sponsor. Rather than charging the user these costs, the Orchestrator instead applies them against your sponsorship balance. You can sponsor up to their deposited amount, after which point, fees will be applied to your users' intents, ensuring continuity should you run out of funds.
+
+For any given intent, the orchestrator calculates 3 types of fees: swap, bridge, and gas. Swap fees are a fixed 50 basis point spread between the offer and ask tokens. Bridge fees are a fixed 3 basis points on the input token being bridged between chains. Gas fees are the sum of the estimated fill gas (including any deployment costs if the account is undeployed) and all claim transactions a relayer will need to execute to fulfill an intent. 
+
+When calculating the sponsored amount in USD, we take the cumulative fees — that would otherwise be applied to the user — and convert them to a USD value at the time of an intent.
+
+## Setup
+
+You can test fee sponsorship on testnets out of the box.
+
+[Reach out to us](http://t.me/kurt_larsen) if you need to set this up for production use. We will provide you with a wallet address to deposit to. Once you deposit, your sponsorship balance will automatically increase.
+
+Currently, we accept USDC deposits on Base. [Reach out to us](http://t.me/kurt_larsen) if you want to use fiat deposits.
 
 ## Usage
 
@@ -73,8 +93,3 @@ const transactionData = await rhinestoneAccount.prepareTransaction({
   sponsored: isSponsored([sourceChain], targetChain, calls),
 })
 ```
-
-
-## Sponsorship Types
-
-Currently, there is no way to enable sponsorship types granularly. Reach out to us if you would benefit from that.
