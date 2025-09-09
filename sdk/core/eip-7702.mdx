@@ -2,11 +2,46 @@
 title: "Upgrade an EOA (EIP-7702)"
 ---
 
+EIP-7702 lets you use smart account features with an EOA.
+
+It works by attaching the bytecode to an existing EOA and initializing the account with the selected configuration, virtually turning it into a smart account.
+
+See [our EIP-7702 guide](../../home/concepts/smart-eoas-eip-7702) to learn more.
+
+## Features
+
+Key advantages of EIP-7702 include:
+
+- **Portable accounts**: use existing accounts, redelegate if needed. No need to migrate users' assets.
+- **Cheap deployments**: deploying a smart EOA is cheap compared to an ERC-4337 account.
+- **Infrastructure agnostic**: can use intents, userops, or normal transactions.
+
+However, be aware of the following limitations:
+
+- **No key rotation**: there is no way to properly rotate account owners, as the EOA is always the root owner of the account. If the EOA is lost or compromised, the account is wrecked.
+- **No multisig**: the EOA acts as a root key that can override any other owner. A proper multi-signature account is not possible with EOAs.
+
+### When to use EIP-7702?
+
+EIP-7702 is great when you need to reuse an existing wallet instead of creating a new one. With a smart EOA, you don't need to migrate users' assets into another wallet, and the onchain history is preserved.
+
+EIP-7702 is a good option if you can choose which contract to delegate to for your users. For example, many embedded wallet providers let you choose a delegation target. If you are working on a wallet app, you have full control over what delegation contract to use.
+
+EIP-7702 is a good choice when you need to add account owner (e.g., passkeys) or enable session keys for an existing EOA.
+
+### External Wallet Restrictions
+
+Most external wallets like MetaMask and Coinbase do not allow delegating to an arbitrary contract address. Instead, they provide a default implementation for all their users.
+
+What this means for you is that you can't expect the external wallet user to delegate to your smart account (or to delegate at all). You should assume that each wallet provides its own delegation contract, and this is not something you can control.
+
+Consider using embedded wallets or creating a separate, standalone smart account for your users, with the owner being the external wallet.
+
+## Usage
+
 Rhinestone SDK supports smart EOAs (EIP-7702 accounts) out of the box.
 
 You can use any compatible account provider for batched transactions, gas sponsorship, custom validators, session keys, and chain abstraction.
-
-<Info>Using EIP-7702 features requires `viem@2.28.0` or higher.</Info>
 
 <Warning>Not all smart accounts are compatible with EIP-7702. We recommend starting with [Nexus](../customize/smart-account-providers/nexus).</Warning>
 
@@ -23,9 +58,9 @@ const rhinestoneAccount = await createRhinestoneAccount({
 })
 ```
 
-Before making your first transaction, you will need to sign the account initialization calldata and then the EIP-7702 authorization:
+Before making your first transaction, you will need to sign the account initialization calldata and then the EIP-7702 authorization.
 
-## Signing the account initialization data
+### Signing the account initialization data
 
 Before making a transaction preparation, you will need to sign the EIP-7702 data with the user's EOA. This signature is valid cross-chain, so you can cache it.
 
@@ -52,7 +87,7 @@ const transactionData = await rhinestoneAccount.prepareTransaction({
 })
 ```
 
-## Signing the authorization
+### Signing the authorization
 
 When sending the transaction, you will need to sign the EIP-7702 authorization:
 
