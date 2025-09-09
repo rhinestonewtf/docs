@@ -97,7 +97,7 @@
 							"sdk/chain-abstraction/create-intent",
 							"sdk/chain-abstraction/swaps",
 							"sdk/chain-abstraction/account-deployment",
-							"sdk/chain-abstraction/orchestrator-errors",
+							"sdk/chain-abstraction/error-handling",
 							"sdk/use-cases/chain-abstraction/unified-balance",
 							"sdk/use-cases/chain-abstraction/max-spendable-amount"
 						]
