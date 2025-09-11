@@ -25,7 +25,15 @@ The core components include:
 - **Resource Lock (optional)**: An onchain component that facilitates optimistic filling on the destination chain before the origin chain claims are processed, enabling faster intent execution.
 - **Intent Executor**: An onchain component that facilitates destination chain execution, hooks, and post-fill intent operations.
 
-[Graphic]
+<img
+  className="block dark:hidden"
+  src="/images/warp_architecture_light.png"
+/>
+
+<img
+  className="hidden dark:block"
+  src="/images/warp_architecture_dark.png"
+/>
 
 ### The Orchestrator
 
@@ -103,13 +111,19 @@ The Compact adds further security by scoping unlocks to specific arbiters and in
 
 ## Sequence Diagrams
 
-### Claim Sequence: Origin chain execution(s)
+### Claim Sequence: Origin chain execution(s)
 
-[insert image]
+<img
+  className="block dark:hidden"
+  src="/images/claim_sequence.png"
+/>
 
 ### Fill Sequence: Destination chain execution(s)
 
-[insert image]
+<img
+  className="block dark:hidden"
+  src="/images/fill_sequence.png"
+/>
 
 
 

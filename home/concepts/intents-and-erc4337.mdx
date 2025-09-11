@@ -26,13 +26,29 @@ The primary objective of this standard is to increase the ease of liquidity move
 
 ## ERC-4337 Userop Flow
 
-[Insert Sequence Diagram]
+<img
+  className="block dark:hidden"
+  src="/images/erc_4337_flow_light.png"
+/>
+
+<img
+  className="hidden dark:block"
+  src="/images/erc_4337_flow_dark.png"
+/>
 
 ## Rhinestone Intent Flow
 
 Rhinestone utilizes intents to relay smart account transactions. The relayer market acts as the bundler, and optionally also facilitates a paymaster role. The intent executor, an ERC-7579 module, initiates the intent signature validation and creates executions on the account. Unlike the ERC-4337 entrypoint, the intent executor does not have privileged execution rights on the account. Signature validation and execution are hard-coupled. 
 
-[Insert Sequence Diagram]
+<img
+  className="block dark:hidden"
+  src="/images/intent_flow_light.png"
+/>
+
+<img
+  className="hidden dark:block"
+  src="/images/intent_flow_dark.png"
+/>
 
 In the case of ERC-7579 smart accounts, the intent executor utilizes the ExecuteFromExecutor function. 
 
