@@ -11,11 +11,12 @@ In the context of Rhinestone Intents, resource locks are decoupled from the unde
 
 Specifically, account-native resource locks eliminate the need to wait for origin chain finality, allowing for optimistic execution of intents on the destination chain before processing claim requests on the origin chain against the user account. The fact that claim transactions are delayed also allows for batched claims and improved routing, leading to gas and price optimizations at scale.
 
-Speed: Near-Instant Execution
-Traditional cross-chain bridges require waiting for origin chain finality. Account-native resource locks eliminate this wait by providing onchain guarantees that a user cannot double-spend the same tokens once committed to an intent.
-
-Efficiency: Gas and Route Optimization
-Resource Locks enable transaction batching and optimal routing decisions that significantly reduce the total cost of crosschain operations for both users and applications.
+<Card title="Speed: Near-Instant Execution" icon="zap">
+  Traditional cross-chain bridges require waiting for origin chain finality. Account-native resource locks eliminate this wait by providing onchain guarantees that a user cannot double-spend the same tokens once committed to an intent.
+</Card>
+<Card title="Efficiency: Gas and Route Optimization" icon="gauge">
+  Resource Locks enable transaction batching and optimal routing decisions that significantly reduce the total cost of crosschain operations for both users and applications.
+</Card>
 
 ## Types of Resource Locks
 
@@ -28,6 +29,17 @@ There are two types of resource locks:
 Rhinestone utilizes onchain resource locks and collaborated with Uniswap on the development of The Compact, a novel resource locking method that looks to play a permit2-like role for crosschain intents. 
 
 ## Learn More about The Compact
-[Blog post]
-[The Compact GitHub]
-[Rhinestone Intents with Sequence Diagram for The Compact flow]
+
+<Columns cols={3}>
+  <Card title="Blog post" icon="file-text" href="https://www.rhinestone.dev/blog/omni-account-a-new-paradigm-for-cross-chain-interop-0b0c1978dfa1">
+    Read on our cross-chain system powered by The Compact
+  </Card>
+
+  <Card title="The Compact GitHub" icon="github" href="https://github.com/Uniswap/the-compact">
+    Dive into the open-source code.
+  </Card>
+
+  <Card title="Rhinestone Intents" icon="workflow" href="../introduction/rhinestone-intents">
+    Learn more about our architecture
+  </Card>
+</Columns>

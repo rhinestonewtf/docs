@@ -10,7 +10,15 @@ We provide a unified SDK and API for deploying, customising, and managing self-c
 
 The best teams build with Rhinestone:
 
-IMAGE: [Teams that build with us - Light / Dark]
+<img
+  className="block dark:hidden"
+  src="/images/teams_that_build_with_us_light.png"
+/>
+
+<img
+  className="hidden dark:block"
+  src="/images/teams_that_build_with_us_dark.png"
+/>
 
 ## Get Started
 
@@ -39,13 +47,13 @@ Start with our Quickstart guide and progress through the SDK to learn how to bui
 Intents power Rhinestone’s transaction infrastructure. Whether your users are transacting on a single chain or across multiple chains, you only need to integrate one API. Rhinestone's intent system aggregates settlement layers through a unified relayer market that manages token liquidity across all supported chains. This enables optimal routing for the best crosschain speeds at the lowest price. 
 
 <div className='grid grid-cols-1 md:grid-cols-3 gap-x-2'>
-  <Card title="Create First Intent" href="../../sdk/core/send-omnichain-transaction" img="../../images/cards/omnichain_transactions.png">
+  <Card title="Create First Transaction" href="../../sdk/smart-wallet/create-first-transaction" img="../../images/cards/omnichain_transactions.png">
   Embed crosschain intents into your application
   </Card>
-  <Card title="Swaps" href="../../sdk/chain-abstraction/omnichain-swaps" img="../../images/cards/omnichain_swaps.png">
+  <Card title="Swaps" href="../../sdk/intents/swaps" img="../../images/cards/omnichain_swaps.png">
   Perform instant crosschain swap intents
   </Card>
-  <Card title="API Reference" href="../../api-reference" img="../../images/cards/api_reference.png">
+  <Card title="API Reference" href="../../api-reference/user/get-user-portfolio" img="../../images/cards/api_reference.png">
   Endpoints, methods, parameters, and responses of the Rhinestone API
   </Card>
 </div>
@@ -55,13 +63,13 @@ Intents power Rhinestone’s transaction infrastructure. Whether your users are 
 Explore Rhinestone in depth and discover the components that power Rhinestone’s smart wallet and intent-based transaction infrastructure.
 
 <div className='grid grid-cols-1 md:grid-cols-3 gap-x-2'>
-  <Card title="Smart Accounts" href="../concepts/modular-smart-accounts" img="../../images/cards/modular_smart_accounts.png" >
+  <Card title="Smart Accounts" href="../concepts/smart-accounts" img="../../images/cards/modular_smart_accounts.png" >
   Understand Rhinestone's underlying account model
   </Card>
-  <Card title="Rhinestone Intents" href="../concepts/chain-abstraction" img="../../images/cards/chain_abstraction.png" >
+  <Card title="Rhinestone Intents" href="../introduction/rhinestone-intents" img="../../images/cards/chain_abstraction.png" >
   Deep dive into Rhinestone intents and how it works
   </Card>
-  <Card title="What are Intents?" href="../concepts/rhinestone-intent-architecture" img="../../images/cards/intents.png" >
+  <Card title="What are Intents?" href="../concepts/intents-and-erc4337" img="../../images/cards/intents.png" >
   Learn more about intents and how it compares to ERC-4337
   </Card>
 </div>
@@ -71,10 +79,10 @@ Explore Rhinestone in depth and discover the components that power Rhinestone’
 If you’re looking to customize a smart account beyond our core features, check out ModuleKit and our library of example smart account modules.
 
 <div className='grid grid-cols-1 md:grid-cols-3 gap-x-2'>
-  <Card title="ModuleKit" href="../../build-modules" img="../../images/cards/module_kit.png">
+  <Card title="ModuleKit" href="../../build-modules/overview" img="../../images/cards/module_kit.png">
   Build custom components to extend the feature set of your smart wallet
   </Card>
-  <Card title="Module Template" href="../../build-modules" img="../../images/cards/module_template.png">
+  <Card title="Module Template" href="../../build-modules/overview" img="../../images/cards/module_template.png">
   Use our templates to get started with building modules
   </Card>
 </div>
