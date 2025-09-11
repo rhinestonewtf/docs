@@ -35,16 +35,17 @@
 						"pages": [
 							"home/introduction/welcome-to-rhinestone",
 							"home/introduction/what-is-rhinestone",
-							"home/introduction/supported-chains",
-							"home/introduction/supported-smart-accounts"
+							"home/concepts/rhinestone-intent-architecture",
+							"home/introduction/supported-chains"
 						]
 					},
 					{
 						"group": "Concepts",
 						"pages": [
-							"home/concepts/modular-smart-accounts",
+							"home/concepts/intents-and-erc4337",
 							"home/concepts/chain-abstraction",
-							"home/concepts/rhinestone-intent-architecture",
+							"home/concepts/resource-locks",
+							"home/concepts/modular-smart-accounts",
 							"home/concepts/smart-sessions",
 							"home/concepts/smart-eoas-eip-7702"
 						]
@@ -96,10 +97,10 @@
 							"sdk/chain-abstraction/single-chain-intent",
 							"sdk/chain-abstraction/create-intent",
 							"sdk/chain-abstraction/swaps",
-							"sdk/chain-abstraction/account-deployment",
-							"sdk/chain-abstraction/error-handling",
 							"sdk/use-cases/chain-abstraction/unified-balance",
-							"sdk/use-cases/chain-abstraction/max-spendable-amount"
+							"sdk/use-cases/chain-abstraction/max-spendable-amount",
+							"sdk/chain-abstraction/account-deployment",
+							"sdk/chain-abstraction/error-handling"
 						]
 					},
 					{
@@ -132,8 +133,8 @@
 						"pages": [
 							"sdk/advanced/batch-transactions",
 							"sdk/advanced/message-signing",
-							"sdk/advanced/multi-factor-authentication",
-							"sdk/advanced/migration-guide"
+							"sdk/advanced/migration-guide",
+							"sdk/advanced/multi-factor-authentication"
 						]
 					},
 					"sdk/module-sdk",
