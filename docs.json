@@ -35,7 +35,7 @@
 						"pages": [
 							"home/introduction/welcome-to-rhinestone",
 							"home/introduction/what-is-rhinestone",
-							"home/concepts/rhinestone-intent-architecture",
+							"home/introduction/rhinestone-intents",
 							"home/introduction/supported-chains"
 						]
 					},
@@ -45,8 +45,8 @@
 							"home/concepts/intents-and-erc4337",
 							"home/concepts/chain-abstraction",
 							"home/concepts/resource-locks",
-							"home/concepts/modular-smart-accounts",
-							"home/concepts/smart-sessions",
+							"home/concepts/smart-accounts",
+							"home/concepts/session-keys",
 							"home/concepts/smart-eoas-eip-7702"
 						]
 					},
@@ -70,37 +70,37 @@
 					{
 						"group": "Smart Wallet",
 						"pages": [
-							"sdk/core/create-account",
-							"sdk/core/signers/external-wallet-signer",
+							"sdk/smart-wallet/create-account",
+							"sdk/smart-wallet/signers/external-wallet-signer",
 							{
 								"group": "Embedded Wallet Signer",
 								"pages": [
-									"sdk/core/signers/dynamic",
-									"sdk/core/signers/privy",
-									"sdk/core/signers/magic",
-									"sdk/core/signers/turnkey"
+									"sdk/smart-wallet/signers/dynamic",
+									"sdk/smart-wallet/signers/privy",
+									"sdk/smart-wallet/signers/magic",
+									"sdk/smart-wallet/signers/turnkey"
 								]
 							},
-							"sdk/core/eip-7702",
-							"sdk/core/create-first-transaction",
-							"sdk/core/fee-sponsorship",
-							"sdk/core/passkeys",
-							"sdk/core/ecdsa-signer",
-							"sdk/core/multisig",
-							"sdk/core/social-recovery",
-							"sdk/core/custom-modules"
+							"sdk/smart-wallet/eip-7702",
+							"sdk/smart-wallet/create-first-transaction",
+							"sdk/smart-wallet/gas-fee-sponsorship",
+							"sdk/smart-wallet/passkeys",
+							"sdk/smart-wallet/ecdsa-signer",
+							"sdk/smart-wallet/multisig",
+							"sdk/smart-wallet/social-recovery",
+							"sdk/smart-wallet/custom-modules"
 						]
 					},
 					{
-						"group": "Multi-Chain Intents",
+						"group": "Intents",
 						"pages": [
-							"sdk/chain-abstraction/single-chain-intent",
-							"sdk/chain-abstraction/create-intent",
-							"sdk/chain-abstraction/swaps",
-							"sdk/use-cases/chain-abstraction/unified-balance",
-							"sdk/use-cases/chain-abstraction/max-spendable-amount",
-							"sdk/chain-abstraction/account-deployment",
-							"sdk/chain-abstraction/error-handling"
+							"sdk/intents/single-chain-intent",
+							"sdk/intents/multi-chain-intent",
+							"sdk/intents/swaps",
+							"sdk/intents/unified-balance",
+							"sdk/intents/max-spendable-amount",
+							"sdk/intents/account-deployment",
+							"sdk/intents/error-handling"
 						]
 					},
 					{
