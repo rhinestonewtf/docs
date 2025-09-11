@@ -50,14 +50,14 @@ Rhinestone utilizes intents to relay smart account transactions. The relayer mar
   src="/images/intent_flow_dark.png"
 />
 
-In the case of ERC-7579 smart accounts, the intent executor utilizes the ExecuteFromExecutor function. 
+In the case of ERC-7579 smart accounts, the intent executor utilizes [the executeFromExecutor function](https://eips.ethereum.org/EIPS/eip-7579#execution-behavior). 
 
 _Note: Intents and ERC-4337 userops are not mutually exclusive. A smart account can operate with ERC-4337 userops for certain flows and ERC-7683 intents for others._
 
 ## Gas Sponsorship with Rhinestone
 
 Developers can sponsor gas, bridge, and swap fees with Rhinestone’s intent system. Sponsorship comes out of the box for free given that all that is required is that the relayer claims the gas and fee amount from an arbitrary contract, instead of the user's smart account.
-To get started with fee sponsorship, check out the fee sponsorship guide.
+To get started with fee sponsorship, check out the [fee sponsorship guide](../../sdk/smart-wallet/gas-fee-sponsorship).
 
 ## ERC-4337 Feature Comparison
 
@@ -76,6 +76,6 @@ The major benefit of ERC-4337 is the push toward open mempools that are censorsh
 
 The state of intent-based transaction systems today is similar. Intents are created and propagated to a provider. If this provider is down, the intent will not be processed. This presents a similar censorship concern to private ERC-4337 mempools. As ERC-7683 is adopted, switching providers will become simpler. Importantly, Rhinestone’s system does not restrict the use of ERC-4337, and is interoperable with all ERC-4337 providers and the open mempool. 
 
-The Orchestrator (further detailed here) is trustless from the end user’s perspective. It can only interact with the Smart Account via the onchain execution paths set out by the Intent Router and Intent Executor. As such, the Orchestrator inherits the trust assumptions of the underlying settlement layer. The Orchestrator poses no liveness or censorship risk to users. An onchain escape hatch can be activated through an onchain call without a dependency on Rhinestone.
+The Orchestrator (further detailed [here](../introduction/rhinestone-intents#the-orchestrator)) is trustless from the end user’s perspective. It can only interact with the Smart Account via the onchain execution paths set out by the Intent Router and Intent Executor. As such, the Orchestrator inherits the trust assumptions of the underlying settlement layer. The Orchestrator poses no liveness or censorship risk to users. An onchain escape hatch can be activated through an onchain call without a dependency on Rhinestone.
 
 Finally, Rhinestone intents have legible signing via EIP-712 signature envelopes (further details here). Most ERC-4337 providers today do not support clear signing, as it was the default in the ERC-4337 infrastructure before Entrypoint v0.8.

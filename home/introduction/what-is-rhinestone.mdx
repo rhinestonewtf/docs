@@ -19,7 +19,7 @@ Rhinestone combines smart wallet infrastructure with an intent-based transaction
 />
 
 Rhinestone offers three core services: 
-- Modular **Smart Account** toolkit, compatible with all major key management solutions
+- Modular **Smart Account** toolkit, compatible with all major [key management solutions](../../sdk/smart-wallet/signers/dynamic)
 - An **Intent Engine** for single- and multi-chain transaction and swap routing
 - A **Relayer Market** that aggregates solver liquidity for intent execution
 
@@ -31,7 +31,7 @@ Rhinestone develops the onchain infrastructure for smart wallets, including the 
 - **Session keys** for transaction automation
 - **Multi-sig** for high value accounts
 - **Social login** (through an embedded wallet integration)
-- **Recovery** for a heightened recurity
+- **Recovery** for a heightened security
 
 Use these onchain components via the Rhinestone SDK to deploy, configure, and manage smart accounts for your users.
 
@@ -47,13 +47,13 @@ Key Features:
 - **Atomic and deterministic**: Unlike bridges, Rhinestone intents are atomic and have a known output token with zero slippage (deterministic).
 - **Human-readable signatures**: An EIP-712 signature envelope guarantees a legible payload to be signed by the user, no matter the complexity of the intent.
 
-More on [Rhinestone Intents].
+More on [Rhinestone Intents](./rhinestone-intents).
 
 ## Relayer Market
 
 We aggregate settlement layers (such as Across, Relay, and Eco) through a unified intent layer. This allows application developers to integrate smart wallet features and aggregate multiple settlement layers out of the box with one unified SDK and API.
 
-More on the [Relayer Market].
+More on the [Relayer Market](./rhinestone-intents#relayer-market).
 
 ## Rhinestone is Composable
 
@@ -65,4 +65,12 @@ Rhinestone’s modular tech stack allows us to meet clients where they are:
 
 ## Next Steps
 
-[Cards for next steps]
+<Columns cols={2}>
+  <Card title="Quickstart" icon="circle-chevron-right" href="../../sdk/quickstart">
+    Get started with the SDK
+  </Card>
+
+  <Card title="Rhinestone Intents" icon="workflow" href="./rhinestone-intents">
+    Learn more about our modular intent engine.
+  </Card>
+</Columns>
