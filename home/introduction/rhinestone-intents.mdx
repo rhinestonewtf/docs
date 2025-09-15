@@ -25,7 +25,15 @@ The core components include:
 - **Resource Lock (optional)**: An onchain component that facilitates optimistic filling on the destination chain before the origin chain claims are processed, enabling faster intent execution.
 - **Intent Executor**: An onchain component that facilitates destination chain execution, hooks, and post-fill intent operations.
 
-[Graphic]
+<img
+  className="block dark:hidden"
+  src="/images/warp_architecture_light.png"
+/>
+
+<img
+  className="hidden dark:block"
+  src="/images/warp_architecture_dark.png"
+/>
 
 ### The Orchestrator
 
@@ -52,7 +60,7 @@ Adapters plugged into the Router handle the specific execution semantics require
 
 The Compact is an ownerless ERC-6909 contract that facilitates escrow-based resource locks and intent resolution (settlement) between committed counterparties. Users deposit funds into The Compact and create credible commitments by signing specifying actions that any third party can execute in exchange for locked resources. These actions can be performed asynchronously, and the third party can claim the user's funds once the user’s specified conditions are met.
 
-For more on The Compact, read our dedicated blog or inspect the open source code. 
+For more on The Compact, [read our dedicated blog](https://www.rhinestone.dev/blog/omni-account-a-new-paradigm-for-cross-chain-interop-0b0c1978dfa1) or [inspect the open source code](https://github.com/Uniswap/the-compact). 
 
 #### Dual-Mode Execution
 
@@ -103,13 +111,19 @@ The Compact adds further security by scoping unlocks to specific arbiters and in
 
 ## Sequence Diagrams
 
-### Claim Sequence: Origin chain execution(s)
+### Claim Sequence: Origin chain execution(s)
 
-[insert image]
+<img
+  className="block dark:hidden"
+  src="/images/claim_sequence.png"
+/>
 
 ### Fill Sequence: Destination chain execution(s)
 
-[insert image]
+<img
+  className="block dark:hidden"
+  src="/images/fill_sequence.png"
+/>
 
 
 
