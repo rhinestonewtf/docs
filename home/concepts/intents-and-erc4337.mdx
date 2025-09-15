@@ -1,0 +1,81 @@
+---
+title: "Intents and ERC-4337"
+mode: "wide"
+description: "A comparison between ERC-7683 intents and ERC-4337 userops to better understand Rhinestone's transaction infrastructure"
+---
+
+## What are intents?
+
+Ethereum has two types of accounts — externally owned accounts (EOAs) and smart (contract) accounts. **EOAs are “active”** in that they can initiate transactions and pay gas for execution. **Smart accounts are “passive”** — they are triggered by an EOA, which pays the gas for execution. However, the upside of contract accounts is that they are programmable and can execute arbitrary logic stored in the code of the smart account.
+
+All smart accounts require an EOA to relay transactions on behalf of the user. ERC-4337 provides a standard framework for relaying smart account transactions by introducing pseudo transactions, known as userops, which are handled by bundlers (the relayer entity) and posted onchain to the entrypoint contract. The entrypoint contract orchestrates the validation and execution of useops via the smart account, with an optional flow for a paymaster to customize how gas is handled in the userop.
+
+**Intents are equivalent to userops, but can be used for both relaying same-chain transactions and crosschain transactions. The latter is not possible with ERC-4337 alone.**
+
+## Intents vs ERC-4337
+
+Intent execution shares similarities with ERC-4337. The intent is relayed by a relayer (often referred to as a “solver”). The relayer fronts the gas tokens and puts the transaction onchain. Effectively taking on the same role as a bundler and paymaster in ERC-4337. The smart account validates and executes the transaction.
+
+A large differentiator between ERC-4337 and intents is that relaying is performed by a sophisticated marketplace of solvers, rather than a single bundler/paymaster provider. These solvers store and manage token inventory across chains, aggregate DEXs, and other sources of private liquidity to optimize the route and price of a given intent. This is the secret sauce of intents over ERC-4337, enabling a much more robust feature set, especially in light of Ethereum’s horizontal scaling strategy.  
+
+## Introducing ERC-7683
+
+ERC-7683 creates a common language for intents by defining a generic order struct and a standard settlement contract interface. This enables a consistent approach to intent order management, both for same-chain and crosschain orders. 
+
+The primary objective of this standard is to increase the ease of liquidity movement between intent systems and maintain an active and healthy network of relayers that can listen to and fill across many platforms. By standardizing the interfaces of intent systems and the order data structures, intent systems can interoperate, share liquidity, and sustain a more competitive intent market. 
+
+## ERC-4337 Userop Flow
+
+<img
+  className="block dark:hidden"
+  src="/images/erc_4337_flow_light.png"
+/>
+
+<img
+  className="hidden dark:block"
+  src="/images/erc_4337_flow_dark.png"
+/>
+
+## Rhinestone Intent Flow
+
+Rhinestone utilizes intents to relay smart account transactions. The relayer market acts as the bundler, and optionally also facilitates a paymaster role. The intent executor, an ERC-7579 module, initiates the intent signature validation and creates executions on the account. Unlike the ERC-4337 entrypoint, the intent executor does not have privileged execution rights on the account. Signature validation and execution are hard-coupled. 
+
+<img
+  className="block dark:hidden"
+  src="/images/intent_flow_light.png"
+/>
+
+<img
+  className="hidden dark:block"
+  src="/images/intent_flow_dark.png"
+/>
+
+In the case of ERC-7579 smart accounts, the intent executor utilizes [the executeFromExecutor function](https://eips.ethereum.org/EIPS/eip-7579#execution-behavior). 
+
+_Note: Intents and ERC-4337 userops are not mutually exclusive. A smart account can operate with ERC-4337 userops for certain flows and ERC-7683 intents for others._
+
+## Gas Sponsorship with Rhinestone
+
+Developers can sponsor gas, bridge, and swap fees with Rhinestone’s intent system. Sponsorship comes out of the box for free given that all that is required is that the relayer claims the gas and fee amount from an arbitrary contract, instead of the user's smart account.
+To get started with fee sponsorship, check out the [fee sponsorship guide](../../sdk/smart-wallet/gas-fee-sponsorship).
+
+## ERC-4337 Feature Comparison
+
+| Feature | Description | ERC-4337 (userops) | ERC-7863 (Intents) |
+| :--- | :--- | :--- | :--- |
+| **Gas sponsorship** | The user can pay for gas in any token. An application, or any third party, can sponsor gas for the user. | Yes | Yes |
+| **Fee sponsorship** | An application, or any third party, can sponsor bridge and/or swap fees for the user. | No | Yes |
+| **Counterfactual addresses** | Ability to create a counterfactual address to ensure deployment is only required if the user transacts. | Yes | Yes |
+| **Built-in swaps (Solver-based Swaps)** | Able to provide an output token that is different from the input token supplied by the user. | No | Yes |
+| **Built-in bridges** | Able to initiate crosschain transactions and take repayment from the user on another chain. | No | Yes |
+| **EOA support** | Able to orchestrate complex crosschain routing for EOAs | No | Yes |
+
+## Trust Assumptions within Intent-Based Systems
+
+The major benefit of ERC-4337 is the push toward open mempools that are censorship-resistant. However, the vast majority of ERC-4337 userops are directly sent to and executed by a single provider. 
+
+The state of intent-based transaction systems today is similar. Intents are created and propagated to a provider. If this provider is down, the intent will not be processed. This presents a similar censorship concern to private ERC-4337 mempools. As ERC-7683 is adopted, switching providers will become simpler. Importantly, Rhinestone’s system does not restrict the use of ERC-4337, and is interoperable with all ERC-4337 providers and the open mempool. 
+
+The Orchestrator (further detailed [here](../introduction/rhinestone-intents#the-orchestrator)) is trustless from the end user’s perspective. It can only interact with the Smart Account via the onchain execution paths set out by the Intent Router and Intent Executor. As such, the Orchestrator inherits the trust assumptions of the underlying settlement layer. The Orchestrator poses no liveness or censorship risk to users. An onchain escape hatch can be activated through an onchain call without a dependency on Rhinestone.
+
+Finally, Rhinestone intents have legible signing via EIP-712 signature envelopes (further details here). Most ERC-4337 providers today do not support clear signing, as it was the default in the ERC-4337 infrastructure before Entrypoint v0.8.

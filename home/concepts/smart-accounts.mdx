@@ -1,0 +1,60 @@
+---
+title: "Smart Accounts"
+mode: "wide"
+sidebarTitle: "Smart Accounts"
+description: "Read about account abstraction and smart accounts"
+---
+
+A smart account is a smart contract that stores assets for the user and contains the logic for authenticating user signatures and executing transactions. A modular smart account allows signature authentication and transaction execution to be customizable via modules.
+
+## Modules
+
+Modules are self-contained smart contracts that extend a smart account’s feature set. This allows developers to access the programmable signature validation and transaction execution of smart accounts by building a custom module or reusing existing modules. This is a powerful shift in wallet development as it transforms the underlying account contract into an open platform.
+
+There are four types of modules:
+- **Validators**: Modifies how transactions are authenticated or what can be authorized against an account. The passkeys module is an example.
+- **Executors**: Enables executions on an account with custom logic. For example, this can unlock portfolio management products like a take-profit or stop-loss feature on a DeFi platform.
+- **Hooks**: Augment a smart account’s execution flow by hooking in pre- or post-execution and enforcing conditions or any custom logic. A simple example is a spending limit.
+- **Fallbacks**: Extends the account logic to add further functionality. For example, this can allow an account to be compatible with new module types in the future.
+
+<img
+  className="block dark:hidden"
+  src="/images/modular_accounts_light.png"
+/>
+
+<img
+  className="hidden dark:block"
+  src="/images/modular_accounts_dark.png"
+/>
+
+[Core Modules Repository](https://github.com/rhinestonewtf/core-modules)
+
+<Info>
+  Note: Only a subset of the Core Modules have been integrated into the latest version of the SDK. For access to all modules, check out the [ModuleSDK](https://github.com/rhinestonewtf/module-sdk) or get in touch to request a feature update to the latest SDK.
+</Info>
+
+Smart accounts must always be configured with a signer (which is a validator module). The entity that controls the signer is the entity that owns the account. Typical methods for signing include:
+- Passkeys
+- Embedded wallets, such as key management providers like Dynamic, Turnkey, or Privy
+- External wallets, such as MetaMask or Rabby
+
+## Resources
+
+<Columns cols={2}>
+  <Card title="ERC-7579 Spec: A Minimal Standard for Modular Smart Account" icon="book-text" href="https://eips.ethereum.org/EIPS/eip-7579">
+    A proposed standard for modular smart accounts that looks to establish common module types and module interfaces, ensuring smart account module interoperability without reducing experimentation at the account level.
+  </Card>
+
+  <Card title="Open Zeppelin ERC-7579 Resource" icon="file-text" href="https://docs.openzeppelin.com/community-contracts/0.0.1/account-modules">
+    A guide that shows how to build modular accounts with ERC-7579. Detailing the four module types (validators, executors, fallbacks & hooks), social recovery with customizable guardians, and time-delayed execution to enhance security. 
+  </Card>
+
+  <Card title="ERC-7579 Resources" icon="library-big" href="https://erc7579.com">
+    An open source website with tools, documentation, and example code to further explore the ERC-7579 smart account ecosystem.
+  </Card>
+
+  <Card title="Modular Smart Account Blog Posts" icon="library-big" href="https://www.rhinestone.dev/blog?category=Engineering">
+    Rhinestone research articles covering topics related to modular smart accounts.
+  </Card>
+</Columns>
+

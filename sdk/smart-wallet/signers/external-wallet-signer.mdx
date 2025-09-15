@@ -1,0 +1,181 @@
+---
+title: "External Wallet Signer"
+description: "Integrate external wallets (MetaMask, Coinbase, etc.) with Rhinestone smart accounts."
+---
+
+## Overview
+
+External wallets like MetaMask, Coinbase Wallet, and WalletConnect-compatible wallets can be easily integrated with Rhinestone smart accounts. This approach is perfect for dApps that want to support users who already have established wallets.
+
+## Prerequisites
+
+- React application setup  
+- External wallet installed (MetaMask, Coinbase Wallet, etc.)
+- Basic familiarity with wallet connections
+
+## Installation
+
+Install the required dependencies:
+
+```bash
+# Core dependencies
+npm install @rhinestone/sdk viem
+
+# For AppKit (recommended for WalletConnect)
+npm install @reown/appkit @reown/appkit-adapter-wagmi wagmi
+```
+
+## Using AppKit (WalletConnect)
+
+The easiest way to integrate multiple wallets including WalletConnect. AppKit provides a beautiful, pre-built UI:
+
+```bash
+npm install @reown/appkit @reown/appkit-adapter-wagmi wagmi viem
+```
+
+```tsx
+import { createAppKit } from '@reown/appkit'
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
+import { mainnet, arbitrum, base } from '@reown/appkit/networks'
+import { createRhinestoneAccount, walletClientToAccount } from '@rhinestone/sdk'
+import { useAccount, useWalletClient } from 'wagmi'
+
+// 1. Get projectId from https://dashboard.reown.com
+const projectId = 'your-project-id'
+
+// 2. Set up the Wagmi adapter
+const wagmiAdapter = new WagmiAdapter({
+  networks: [mainnet, arbitrum, base],
+  projectId,
+})
+
+// 3. Configure the modal
+createAppKit({
+  adapters: [wagmiAdapter],
+  networks: [mainnet, arbitrum, base],
+  projectId,
+  metadata: {
+    name: 'Your dApp',
+    description: 'Your dApp description',
+    url: 'https://yourdapp.com',
+    icons: ['https://yourdapp.com/icon.png']
+  }
+})
+
+// 4. Use in your React component
+export function WalletConnector() {
+  const { isConnected } = useAccount()
+  const { data: walletClient } = useWalletClient()
+  const [rhinestoneAccount, setRhinestoneAccount] = useState(null)
+
+  useEffect(() => {
+    async function setupAccount() {
+      if (!isConnected || !walletClient) return
+
+      // wrap the wagmi client for the sdk
+      const wrappedWalletClient = walletClientToAccount(walletClient)
+
+      // Use the connected wallet client
+      const account = await createRhinestoneAccount({
+        owners: {
+          type: "ecdsa",
+          accounts: [wrappedWalletClient],
+        },
+        rhinestoneApiKey: process.env.RHINESTONE_API_KEY,
+      });
+
+      setRhinestoneAccount(account)
+    }
+
+    setupAccount()
+  }, [isConnected, walletClient])
+
+  return (
+    <div>
+      <w3m-button />
+      {rhinestoneAccount && (
+        <p>Smart Account: {rhinestoneAccount.getAddress()}</p>
+      )}
+    </div>
+  )
+}
+```
+
+### Cross-Chain Transaction Example
+
+```tsx
+async function sendCrossChainTransaction(rhinestoneAccount) {
+  const transaction = await rhinestoneAccount.sendTransaction({
+    sourceChains: [arbitrumSepolia],
+    targetChain: baseSepolia,
+    calls: [
+      {
+        to: "USDC",
+        data: encodeFunctionData({
+          abi: erc20Abi,
+          functionName: "transfer",
+          args: ["0xrecipient", parseUnits("10", 6)],
+        }),
+      },
+    ],
+    tokenRequests: [
+      {
+        address: "USDC",
+        amount: parseUnits("10", 6),
+      },
+    ],
+  })
+  
+  console.log('Transaction submitted:', transaction.id)
+}
+```
+
+### Wallet Detection
+
+```tsx
+export function getAvailableWallets() {
+  const wallets = []
+  
+  if (window.ethereum?.isMetaMask) wallets.push('metamask')
+  if (window.ethereum?.isCoinbaseWallet) wallets.push('coinbase')
+  if (window.ethereum?.isRabby) wallets.push('rabby')
+  
+  return wallets
+}
+
+// Usage
+const availableWallets = getAvailableWallets()
+if (availableWallets.length === 0) {
+  console.log('No compatible wallets detected')
+} else {
+  console.log('Available wallets:', availableWallets)
+}
+```
+
+### Good Practice: Graceful Degradation
+
+Always check for wallet availability when using server-side rendering:
+
+```tsx
+if (typeof window === 'undefined' || !window.ethereum) {
+  // Show wallet installation prompt
+  return <WalletInstallPrompt />
+}
+```
+
+## Complete Example
+
+Try the full integration in our example repository. We have lots of examples, can checkout the appkit example:
+
+```bash
+git clone https://github.com/rhinestonewtf/e2e-examples.git
+cd e2e-examples/reown
+npm install && npm run dev
+```
+
+## Next Steps
+
+- **See it in action**: [External Wallet + Rhinestone Example](https://github.com/rhinestonewtf/e2e-examples/tree/main/reown)
+- **Reown + Wagmi connectors**: Learn about [wagmi connectors](https://docs.reown.com/appkit/next/core/installation)
+- **Session keys**: Set up [session keys](../../smart-sessions/overview) for automated operations
+- **Cross-chain transactions**: Explore [chain abstraction](../create-first-transaction) for complex multi-chain operations

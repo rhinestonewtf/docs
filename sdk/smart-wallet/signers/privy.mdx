@@ -1,0 +1,225 @@
+---
+title: "Privy"
+description: "Integrate Privy signers with Rhinestone smart accounts."
+---
+
+## Overview
+
+Privy provides simple, secure wallet infrastructure that enables seamless user authentication and wallet management. This guide shows you how to integrate Privy signers with Rhinestone smart accounts to create a smooth, cross-chain wallet experience.
+
+**How it works:** Privy handles user authentication and wallet creation, then provides a wagmi-compatible client that we wrap with Rhinestone's smart account functionality. You get the best of both worlds - Privy's seamless onboarding and Rhinestone's cross-chain capabilities.
+
+## Prerequisites
+
+- A Privy account and application
+- Privy App ID
+- React application setup
+
+## Installation
+
+Install the required dependencies:
+
+```bash
+npm install @privy-io/react-auth @privy-io/wagmi-connector @rhinestone/sdk viem wagmi
+```
+
+## Setup Privy Provider
+
+First, set up the Privy provider in your React application:
+
+```tsx
+import { PrivyProvider } from '@privy-io/react-auth'
+import { WagmiConfig } from 'wagmi'
+import { mainnet, polygon, arbitrum, base } from 'viem/chains'
+
+const supportedChains = [mainnet, polygon, arbitrum, base]
+
+function App() {
+  return (
+    <PrivyProvider
+      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}
+      config={{
+        loginMethods: ['email', 'wallet', 'google', 'twitter'],
+        appearance: {
+          theme: 'light',
+          accentColor: '#676FFF',
+        },
+        embeddedWallets: {
+          createOnLogin: 'users-without-wallets',
+          noPromptOnSignature: false,
+        },
+        defaultChain: base,
+        supportedChains,
+      }}
+    >
+      <WagmiConfig config={wagmiConfig}>
+        {/* Your app components */}
+      </WagmiConfig>
+    </PrivyProvider>
+  )
+}
+```
+
+## Create a Privy Integration Hook
+
+Create a custom hook that integrates Privy authentication with Rhinestone accounts. This hook demonstrates the key pattern: **use wagmi to get the wallet client from Privy, then pass it to Rhinestone as a signer**.
+
+<Note>The `useWalletClient()` hook from wagmi automatically connects to Privy's embedded wallets and external wallet connections.</Note>
+
+```tsx
+import { usePrivy, useWallets } from "@privy-io/react-auth"
+import { useWalletClient, useAccount } from "wagmi"
+import { createRhinestoneAccount, walletClientToAccount } from "@rhinestone/sdk"
+
+export function usePrivyWallet() {
+  const { ready, authenticated, login, logout } = usePrivy()
+  const { wallets } = useWallets()
+  const { address } = useAccount()
+  const { data: walletClient } = useWalletClient()
+  const [rhinestoneAccount, setRhinestoneAccount] = useState(null)
+
+  useEffect(() => {
+    async function initializeAccount() {
+      if (!ready || !authenticated || !address || !walletClient) return
+
+      // wrap the wagmi client for the sdk
+      const wrappedWalletClient = walletClientToAccount(walletClient)
+
+      // create the rhinestone account
+      const account = await createRhinestoneAccount({
+        owners: {
+          type: "ecdsa",
+          accounts: [wrappedWalletClient],
+        },
+        rhinestoneApiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
+      })
+
+      setRhinestoneAccount(account)
+    }
+
+    initializeAccount()
+  }, [ready, authenticated, address, walletClient])
+
+  return {
+    rhinestoneAccount,
+    authenticated,
+    login,
+    logout,
+  }
+}
+```
+
+## Usage
+
+### Basic Authentication Flow
+
+Use the hook to handle Privy authentication and smart account creation:
+
+```tsx {4-6}
+import { usePrivyWallet } from './hooks/usePrivyWallet'
+
+function PrivyWalletDashboard() {
+  const { authenticated, login, logout, rhinestoneAccount } = usePrivyWallet()
+
+  if (!authenticated) {
+    return (
+      <div>
+        <h2>Welcome to Rhinestone</h2>
+        <button onClick={login}>Sign in with Privy</button>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <h2>Connected!</h2>
+      <p>Smart Account: {rhinestoneAccount?.getAddress()}</p>
+      <button onClick={logout}>Logout</button>
+    </div>
+  )
+}
+```
+
+### Cross-Chain Transactions
+
+Send transactions using the Privy-connected wallet:
+
+```tsx {2-14}
+async function handleCrossChainTransfer() {
+  const transaction = await rhinestoneAccount.sendTransaction({
+    sourceChains: [baseSepolia],
+    targetChain: arbitrumSepolia,
+    calls: [
+      {
+        to: "USDC",
+        data: encodeFunctionData({
+          abi: erc20Abi,
+          functionName: "transfer",
+          args: ["0xrecipient", parseUnits("10", 6)],
+        }),
+      },
+    ],
+    tokenRequests: [
+      {
+        address: "USDC",
+        amount: parseUnits("10", 6),
+      },
+    ],
+  })
+}
+```
+
+## The Integration Pattern
+
+All embedded signer integrations follow the same pattern:
+
+1. **Provider Setup**: Configure the embedded wallet provider (Privy, Dynamic, Turnkey)
+2. **Get Wallet Client**: Use wagmi hooks (or viem accounts for Turnkey) to access the authenticated wallet
+3. **Pass to Rhinestone**: Create a Rhinestone account using the wallet client as a signer
+4. **Use Cross-Chain Features**: The resulting account has all of Rhinestone's capabilities
+
+This pattern means you can easily switch between providers or support multiple providers in the same app.
+
+## Authentication Methods
+
+Privy supports multiple authentication methods out of the box:
+
+- **Email**: Users can sign in with their email address
+- **Social**: Google, Twitter, Discord, and other OAuth providers  
+- **Wallet**: Connect external wallets like MetaMask
+- **SMS**: Phone number verification
+
+The `login()` function will show Privy's authentication modal with all configured methods.
+
+## Environment Variables
+
+Make sure to set the following environment variables:
+
+```bash
+NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
+NEXT_PUBLIC_RHINESTONE_API_KEY=your_rhinestone_api_key
+```
+
+## Complete Example
+
+Try the full integration in our example repository:
+
+```bash
+git clone https://github.com/rhinestonewtf/e2e-examples.git
+cd e2e-examples/privy
+npm install && npm run dev
+```
+
+The example demonstrates:
+- Privy authentication flows (email, social, wallet)
+- Embedded wallet creation and management
+- Rhinestone smart account integration
+- Cross-chain transaction execution
+
+## Next Steps
+
+- **See it in action**: [Privy + Rhinestone Example](https://github.com/rhinestonewtf/e2e-examples/tree/main/privy)
+- Learn more about [Privy's authentication flows](https://docs.privy.io/) 
+- Explore [embedded wallet features](https://docs.privy.io/guide/frontend/embedded/overview)
+- Explore [chain abstraction](../../intents/unified-balance) capabilities  
+- Check out [creating an account](../create-account) for more details

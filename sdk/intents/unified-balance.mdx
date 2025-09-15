@@ -1,0 +1,44 @@
+---
+title: "Unified Balance"
+---
+
+With Rhinestone, users' aggregated balances across all chains are always available to sponsor any intent.
+
+Rhinestone uses the aggregated balance of the user's funds across all supported chains. When calculating the user's portfolio, Rhinestone takes any outstanding intents (where funds have been allocated to a relayer as repayment but not yet processed) into account to prevent double-spending.
+
+When making a multi-chain intent, the Orchestrator finds the most optimal source of funds, taking the gas and bridging costs into account. It prioritizes same-chain and equivalent (e.g., ETH/WETH, USDC/USDT) assets, but can use other assets when needed.
+
+## How it Works
+
+When choosing which asset to use, the Orchestrator uses the following priority system:
+
+- Destination token on the destination chain
+- Same token on another chain
+- Equivalent token on another chain
+- Different token on the destination chain
+- Token with the highest balance
+
+Sometimes, a single token is not enough to cover the transaction costs. In that case, the Orchestrator can use multiple source assets, sometimes on multiple source chains.
+
+The system splits tokens/chains in these cases:
+1. Insufficient single token: when one token cannot cover the full payment
+2. Multi-token requests: when multiple tokens are required for the transaction
+3. Cost optimization: when using multiple smaller amounts is cheaper than bridging large amounts
+
+## Get Portfolio
+
+To get the aggregated portfolio of tokens:
+
+```ts
+const portfolio = await rhinestoneAccount.getPortfolio()
+```
+
+To get the aggregated portfolio of testnet tokens:
+
+```ts
+const onTestnets = true
+const portfolio = await rhinestoneAccount.getPortfolio(onTestnets)
+```
+
+This will return the list of *spendable* tokens (i.e., not part of any pending transaction).
+

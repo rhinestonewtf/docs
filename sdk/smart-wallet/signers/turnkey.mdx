@@ -1,0 +1,155 @@
+---
+title: "Turnkey"
+description: "Integrate Turnkey signers with Rhinestone smart accounts."
+---
+
+## Overview
+
+Turnkey provides secure key management infrastructure that enables you to create and manage signing keys for your users. This guide shows you how to integrate Turnkey signers with Rhinestone smart accounts for secure, non-custodial wallet experiences.
+
+**How it works:** Unlike Privy and Dynamic, Turnkey operates at a lower level. You create a viem-compatible account that uses Turnkey's signing infrastructure, then pass that account to Rhinestone. Turnkey handles the secure key management while Rhinestone adds cross-chain capabilities.
+
+## Prerequisites
+
+- A Turnkey account and organization
+- Turnkey API credentials (API public/private key pair)
+- Your organization ID from Turnkey
+
+## Installation
+
+Install the required dependencies:
+
+```bash
+npm install @turnkey/http @turnkey/api-key-stamper @turnkey/viem @rhinestone/sdk viem
+```
+
+## Create a Signer Wallet
+
+Using the Turnkey dashboard or API, create a new Ethereum (EVM) wallet. This wallet will be the owner of the Rhinestone smart account.
+
+1. Log into your Turnkey dashboard
+2. Navigate to the Wallets section
+3. Create a new Ethereum wallet
+4. Note the wallet address for the next step
+
+## Create a Turnkey Signer
+
+Create a viem Account instance that integrates with Turnkey for signing. This creates a viem-compatible signer that Rhinestone can use, similar to how wagmi provides wallet clients in the other examples.
+
+<Note>Turnkey provides `@turnkey/viem` which creates viem-compatible accounts that work seamlessly with Rhinestone.</Note>
+
+```tsx
+import { toAccount } from "viem";
+import { TurnkeyClient } from "@turnkey/http";
+import { ApiKeyStamper } from "@turnkey/api-key-stamper";
+import { createAccount } from "@turnkey/viem";
+
+function createTurnkeySigner(walletAddress: Address) {
+  return toAccount({
+    address: walletAddress,
+    async signMessage({ message }) {
+      const turnkeyClient = new TurnkeyClient(
+        { baseUrl: "https://api.turnkey.com" },
+        new ApiKeyStamper({
+          apiPublicKey: process.env.API_PUBLIC_KEY,
+          apiPrivateKey: process.env.API_PRIVATE_KEY,
+        })
+      );
+      
+      const turnkeyAccount = await createAccount({
+        client: turnkeyClient,
+        organizationId: process.env.ORGANIZATION_ID,
+        signWith: walletAddress,
+      });
+      
+      // Use Turnkey to sign the message
+      return turnkeyAccount.signMessage({ message });
+    },
+    // Other methods omitted for brevity
+  });
+}
+```
+
+## Initialize Rhinestone Account
+
+Create a new Rhinestone account using the Turnkey signer. This is the same pattern as with other providers - pass the signer to Rhinestone, and it wraps it with cross-chain functionality:
+
+```tsx {4-6}
+import { createRhinestoneAccount } from "@rhinestone/sdk";
+
+const turnkeySigner = createTurnkeySigner("0x..."); // Your Turnkey wallet address
+
+// Pass the Turnkey signer to Rhinestone just like wagmi clients
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: "ecdsa",
+    accounts: [turnkeySigner], // viem-compatible Turnkey signer
+  },
+  rhinestoneApiKey,
+});
+```
+
+## Usage
+
+### Send a Cross-chain Transaction
+
+The Rhinestone account will automatically use the Turnkey signer for all transactions:
+
+```tsx {7-11}
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChains: [baseSepolia],
+  targetChain: arbitrumSepolia,
+  calls: [
+    {
+      to: "USDC",
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: "transfer",
+        args: ["0xrecipient", parseUnits("10", 6)],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: "USDC",
+      amount: parseUnits("10", 6),
+    },
+  ],
+});
+```
+
+<Note>Don't forget to fund the account before making any transactions.</Note>
+
+## Environment Variables
+
+Make sure to set the following environment variables:
+
+```bash
+API_PRIVATE_KEY=your_turnkey_api_private_key
+API_PUBLIC_KEY=your_turnkey_api_public_key
+ORGANIZATION_ID=your_turnkey_organization_id
+RHINESTONE_API_KEY=your_rhinestone_api_key
+```
+
+## Complete Example
+
+Try the full integration in our example repository:
+
+```bash
+git clone https://github.com/rhinestonewtf/e2e-examples.git
+cd e2e-examples/turnkey
+npm install && npm run dev
+```
+
+The example demonstrates:
+- Turnkey API key configuration
+- Secure wallet creation and management
+- Rhinestone smart account integration
+- Enterprise-grade key management practices
+
+## Next Steps
+
+- **See it in action**: [Turnkey + Rhinestone Example](https://github.com/rhinestonewtf/e2e-examples/tree/main/turnkey)
+- Learn about [sending cross-chain transactions](../create-first-transaction) for more transaction details
+- Explore [chain abstraction](../../intents/unified-balance) capabilities  
+- Check out [creating an account](../create-account) for more details
