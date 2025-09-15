@@ -28,3 +28,54 @@ const singleChainTx = await rhinestoneAccount.sendTransaction({
   ],
 })
 ```
+
+## Gas Limit
+
+You can override the default gas limit for the target chain execution with `gasLimit`. Doing this will make the intent better priced, because we can more accurately calculate the fee that a solver needs to be reimbursed with for paying the gas. If this is not provided, we calculate using a gas limit of `1_000_000`.
+
+```ts {9}
+const transaction = await rhinestoneAccount.sendTransaction({
+  chain: base,
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+  gasLimit: 200_000n,
+})
+```
+
+## Source Assets
+
+You can specify what token (or tokens) to use as an input asset:
+
+```ts {9}
+const transaction = await rhinestoneAccount.sendTransaction({
+  chain: base,
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+  sourceAssets: ['USDC', 'ETH']
+})
+```
+
+## Fee Asset
+
+You can choose what asset to use as a fee token (i.e., to cover gas and bridging fees):
+
+```ts {9}
+const transaction = await rhinestoneAccount.sendTransaction({
+  chain: base,
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+  feeAsset: 'USDC',
+})
+```
