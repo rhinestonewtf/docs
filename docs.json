@@ -107,6 +107,7 @@
 							"sdk/intents/single-chain-intent",
 							"sdk/intents/multi-chain-intent",
 							"sdk/intents/swaps",
+              "sdk/intents/resource-locks",
 							"sdk/intents/unified-balance",
 							"sdk/intents/max-spendable-amount",
 							"sdk/intents/account-deployment",
