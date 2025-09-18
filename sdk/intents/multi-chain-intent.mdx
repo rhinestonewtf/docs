@@ -19,8 +19,8 @@ We will make a cross-chain token transfer using multi-chain intents.
 const amount = parseUnits('100', 6) // 100 USDC
 
 const transferIntent = await rhinestoneAccount.sendTransaction({
-  sourceChains: [arbitrum],
-  targetChain: base,
+  sourceChains: [base],
+  targetChain: arbitrum,
   calls: [
     {
       to: 'USDC',
@@ -63,14 +63,26 @@ console.log('Status:', result.status)
 
 <Note>Solvers will supply all assets specified in the `tokenRequests`. If the user already has the required assets, don't add them into `tokenRequests`.</Note>
 
+## Source Chain
+
+Providing the source chain deploys the account on that chain, as well as uses the funds on that chain to fulfill the intent.
+
+If you already have an account deployed on one or more source chains, you can omit the `sourceChain`. In that case, the orchestrator will use the best chain(s) to source funds.
+
+## Token Requests
+
+`tokenRequests` is a list of token assets and their amounts that are required on the target chain to make the transaction. It tells the solvers to ensure those assets are present before executing the transaction `calls`. If you don't need any assets on the target chain, you can omit this.
+
+<Note>Solvers will supply all assets specified in the `tokenRequests`. If the user already has the required assets, don't add them into `tokenRequests`.</Note>
+
 ## Gas Limit
 
-You can override the default gas limit for the target chain execution with `gasLimit`. Doing this will make the intent better priced, because we can more accurately calculate the fee that a solver needs to be reimbursed with for paying the gas. If this is not provided, we calculate using a gas limit of 1_000_000.
+You can override the default gas limit for the target chain execution with `gasLimit`. Doing this will make the intent better priced, because we can more accurately calculate the fee that a solver needs to be reimbursed with for paying the gas. If this is not provided, we calculate using a gas limit of `1_000_000`.
 
 ```ts {10}
 const transaction = await rhinestoneAccount.sendTransaction({
-  sourceChains: [baseSepolia],
-  targetChain: arbitrumSepolia,
+  sourceChains: [base],
+  targetChain: arbitrum,
   calls: [
     // …
   ],
@@ -81,8 +93,59 @@ const transaction = await rhinestoneAccount.sendTransaction({
 })
 ```
 
-## Source Chain
+## Source Assets
 
-Providing the source chain deploys the account on that chain, as well as uses the funds on that chain to fulfill the intent.
+You can specify what token (or tokens) to use as an input asset:
 
-If you already have an account deployed on one or more source chains, you can omit the `sourceChain`. In that case, the orchestrator will use the best chain(s) to source funds.
+```ts {10}
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChains: [base],
+  targetChain: arbitrum,
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+  sourceAssets: ['USDC', 'ETH']
+})
+```
+
+You can also specify source assets on a per-chain basis:
+
+```ts {9-12}
+const transaction = await rhinestoneAccount.sendTransaction({
+  targetChain: arbitrum,
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+  sourceAssets: {
+    [base.id]: ['USDC'],
+    [optimism.id]: ['0x4200000000000000000000000000000000000006'], // WETH
+  },
+})
+```
+
+<Note>Chain-specific `sourceAssets` take precendence over `sourceChain` parameter.</Note>
+
+## Fee Asset
+
+You can choose what asset to use as a fee token (i.e., to cover gas and bridging fees):
+
+```ts {10}
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChains: [base],
+  targetChain: arbitrum,
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+  feeAsset: 'USDC',
+})
+```
+
