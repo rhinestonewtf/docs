@@ -1,33 +1,39 @@
 ---
-title: "Rhinestone Intents (aka _Warp_)"
+title: "Rhinestone Intents"
 mode: "wide"
-sidebarTitle: "Rhinestone Intents (Warp)"
-description: "Overview of Warp, a modular intent engine"
+sidebarTitle: "Rhinestone Intents"
+description: "Overview of Rhinestone Intents"
 ---
-
-IMAGE: [Warp Architecture - Light / Dark]
 
 ## What are Intents?
 Intents are expressions of desired outcomes that sophisticated third-party actors fulfill. These third-party actors are often referred to as solvers or relayers. Intents are chain- and VM-agnostic. With the right settlement infrastructure and relayer marketplace, intents enable fast, cheap, and generalized executions to happen on any chain.
 
 A helpful metaphor is that an intent is to purchase a good on Amazon with next-day delivery, in contrast to a transaction, which provides a detailed description of the SKU, warehouse, and delivery routes.
 
-## Warp: A Modular Intent Engine
+## Omni Account: A Modular Intent Engine
 
 ### Introduction
 
-Warp is a modular intent system that aggregates settlement layers through one unified relayer market. It utilizes resource locks for asynchronous execution and blazing-fast speed. And it’s built for smart accounts, enabling complex multi-input chain and/or token intents to be executed with a single signature.
+Rhinestone provides a modular intent system that aggregates settlement layers through one unified relayer market. It utilizes resource locks for asynchronous execution and blazing-fast speed. And it’s built for smart accounts, enabling complex multi-input chain and/or token intents to be executed with a single signature.
 
 ### Components
 
-The core components of Warp include:
+The core components include:
 - **Orchestrator**: An offchain service that performs intent routing, transaction encoding, enforces resource locks (if enabled), and propagates intent operations to the Relayer Market for execution.
 - **Relayer Market**: A collection of relayers who listen to intents broadcast by the Orchestrator and then compete for the right to execute.
 - **Intent Router**: An onchain component that receives and dispatches intent operations to the relevant smart account and settlement layer(s).
 - **Resource Lock (optional)**: An onchain component that facilitates optimistic filling on the destination chain before the origin chain claims are processed, enabling faster intent execution.
 - **Intent Executor**: An onchain component that facilitates destination chain execution, hooks, and post-fill intent operations.
 
-[Graphic]
+<img
+  className="block dark:hidden"
+  src="/images/warp_architecture_light.png"
+/>
+
+<img
+  className="hidden dark:block"
+  src="/images/warp_architecture_dark.png"
+/>
 
 ### The Orchestrator
 
@@ -35,9 +41,9 @@ An offchain entity that performs the crucial role of transforming intents into a
 
 ### Relayer Market
 
-Warp aggregates settlement layers through a unified Relayer Market. Relayers are crosschain solvers that store token inventory, such as USDC and ETH, on supported chains. These relayers listen to a websocket that broadcasts intent operations to be executed. 
+Rhinestone aggregates settlement layers through a unified Relayer Market. Relayers are crosschain solvers that store token inventory, such as USDC and ETH, on supported chains. These relayers listen to a websocket that broadcasts intent operations to be executed. 
 
-This method of aggregation is significantly different from typical bridge and DEX aggregators. Typically, aggregators accept orders, ping a bunch of aggregated APIs, and then return quotes to submit the order through a single provider. Instead, Warp receives requests and broadcasts the signed intent to sophisticated relayers who can interact with any number of underlying settlement layers and DeFi protocols to complete the intent on behalf of the user. 
+This method of aggregation is significantly different from typical bridge and DEX aggregators. Typically, aggregators accept orders, ping a bunch of aggregated APIs, and then return quotes to submit the order through a single provider. Instead, Rhinestone receives requests and broadcasts the signed intent to sophisticated relayers who can interact with any number of underlying settlement layers and DeFi protocols to complete the intent on behalf of the user. 
 
 This provides a few advantages:
 - Intents with multiple input chains and tokens can include multiple settlement layers, without breaking intent atomicity.
@@ -54,13 +60,13 @@ Adapters plugged into the Router handle the specific execution semantics require
 
 The Compact is an ownerless ERC-6909 contract that facilitates escrow-based resource locks and intent resolution (settlement) between committed counterparties. Users deposit funds into The Compact and create credible commitments by signing specifying actions that any third party can execute in exchange for locked resources. These actions can be performed asynchronously, and the third party can claim the user's funds once the user’s specified conditions are met.
 
-For more on The Compact, read our dedicated blog or inspect the open source code. 
+For more on The Compact, [read our dedicated blog](https://www.rhinestone.dev/blog/omni-account-a-new-paradigm-for-cross-chain-interop-0b0c1978dfa1) or [inspect the open source code](https://github.com/Uniswap/the-compact). 
 
 #### Dual-Mode Execution
 
-Warp supports two distinct execution flows, each optimized for different use cases, chain conditions, and UX expectations. The fill-first flow, which utilizes the resource lock, and the just-in-time (JIT) flow, which always processes claim transactions on the origin chain(s) first.
+Rhinestone's intent system supports two distinct execution flows, each optimized for different use cases, chain conditions, and UX expectations. The fill-first flow, which utilizes the resource lock, and the just-in-time (JIT) flow, which always processes claim transactions on the origin chain(s) first.
 
-**JIT Flow: Warp-Speed**
+**JIT Flow (without resource locks)**
 
 In the JIT flow, the system begins by processing claims across all relevant origin chains. These claims are submitted by relayers and executed using standard proof mechanisms provided by the selected settlement layer.
 
@@ -68,7 +74,7 @@ Only once all origin claims have been successfully processed is the fill perform
 
 This model is useful for intents involving origin chain logic or session-key executions. This makes JIT flow ideal for complex DeFi interactions that span multiple chains, or intents that require dynamic conditions to be validated before execution.
 
-**Fill First Flow**
+**Fill First Flow (with resource locks**
 
 The Fill-First flow inverts the process for one core goal: warp-speed UX.
 
@@ -78,7 +84,7 @@ After the fill has completed, relayers then return to the origin chains to claim
 
 ### Origin Chain and Destination Chain Executions
 
-Warp supports both origin chain and destination chain executions as part of a single intent. 
+Rhinestone supports both origin chain and destination chain executions as part of a single intent. 
 
 Origin executions are user-authorised operations that run before funds are deposited into the settlement layer. For example, if a user wishes to fund their intent using a token that is not supported by the settlement layer and relayer market, pre-claim logic could include a swap into the correct token type. 
 
@@ -95,8 +101,6 @@ This enables:
 - Per-chain validation using only the relevant component of the EIP-712 envelope, plus cross-referenced hashes.
 - Full legibility and structured representation of every execution, without blob encoding or opaque calldata.
 
-More on Warp’s custom signature envelope can be found in the GitHub readme.
-
 ### Security and Replay Protection
 
 All user actions are wrapped in EIP-712 digests, making them easily auditable, legible, gas-efficient to verify, and resistant to tampering. Nonce-based replay protection exists at multiple levels, including the Intent Executor and The Compact, ensuring that no onchain operation can be completed without user authorisation or repeated without explicit reauthorization.
@@ -107,17 +111,19 @@ The Compact adds further security by scoping unlocks to specific arbiters and in
 
 ## Sequence Diagrams
 
-### Claim Sequence: Origin chain execution(s)
+### Claim Sequence: Origin chain execution(s)
 
-[insert image]
+<img
+  className="block dark:hidden"
+  src="/images/claim_sequence.png"
+/>
 
 ### Fill Sequence: Destination chain execution(s)
 
-[insert image]
-
-For a more detailed overview, visit the Warp Readme.
-
-[GitHub button or Warp contracts]
+<img
+  className="block dark:hidden"
+  src="/images/fill_sequence.png"
+/>
 
 
 

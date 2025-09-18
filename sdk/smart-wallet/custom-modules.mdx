@@ -1,0 +1,56 @@
+---
+title: "Custom Modules"
+description: "Extend account's capabilities with bespoke modules"
+---
+
+Custom modules enable you to tailor the functionality of your smart wallet.
+
+With custom *Validators*, you can introduce novel ways to authorize user transactions. Custom *Executors* enable automated transaction flows against the user account. And with custom hooks, you can add custom logic that runs before or after any transaction executed on the account.
+
+To create a custom module, use the [ModuleKit](../../build-modules/overview).
+
+## Installing a Module
+
+With Rhinestone SDK, you can install and use custom validators, executors, and hooks.
+
+```ts
+const transactionData = await rhinestoneAccount.sendTransaction({
+  targetChain: base,
+  calls: [
+    ...installModule({
+      rhinestoneAccount,
+      module: {
+        address: MODULE_ADDRESS,
+        type: 'executor',
+        initData: MODULE_DATA,
+        deInitData: '0x',
+        additionalContext: '0x',
+      },
+    }),
+  ],
+})
+```
+
+## Uninstalling a Module
+
+You can also remove any module from the account:
+
+```ts
+const result2 = await rhinestoneAccount.sendTransaction({
+  targetChain: base,
+  calls: [
+    ...uninstallModule({
+      rhinestoneAccount,
+      module: {
+        address: '0x000000000043ff16d5776c7F0f65Ec485C17Ca04',
+        type: 'executor',
+        initData: '0x',
+        deInitData: '0x',
+        additionalContext: '0x',
+      },
+    }),
+  ],
+})
+```
+
+<Warning>Be careful when uninstalling validator modules, as you can lock the account forever.</Warning>

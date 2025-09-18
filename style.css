@@ -25,3 +25,29 @@ table tr:last-child td {
 table th {
   background-color: #f9fafb;
 }
+
+@media (prefers-color-scheme: dark) {
+  table {
+    border-color: #374151;
+  }
+  table th,
+  table td {
+    border-right-color: #374151;
+    border-bottom-color: #374151;
+  }
+  table th {
+    background-color: #0d182f;
+  }
+}
+
+.dark table {
+  border-color: #374151;
+}
+.dark table th,
+.dark table td {
+  border-right-color: #374151;
+  border-bottom-color: #374151;
+}
+.dark table th {
+  background-color: #0d182f;
+}
