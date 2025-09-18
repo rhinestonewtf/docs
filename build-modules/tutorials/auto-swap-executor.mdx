@@ -15,10 +15,10 @@ pragma solidity ^0.8.23;
 
 import { ERC7579ExecutorBase } from "modulekit/Modules.sol";
 import { IERC7579Account, Execution } from "modulekit/Accounts.sol";
-import { ModeLib } from "erc7579/lib/ModeLib.sol";
+import {ModeLib} from "modulekit/accounts/common/lib/ModeLib.sol";
 
 import { IERC20 } from "forge-std/interfaces/IERC20.sol";
-import { ExecutionLib } from "erc7579/lib/ExecutionLib.sol";
+import {ExecutionLib} from "modulekit/accounts/erc7579/lib/ExecutionLib.sol";
 import { UniswapV3Integration } from "modulekit/Integrations.sol";
 
 contract AutoSwapExecutor is ERC7579ExecutorBase {}
@@ -141,10 +141,10 @@ contract AutoSwapExecutor is ERC7579ExecutorBase {
 
     /*
      * Remove an order from the executor
-     * @param orderId The order ID to remove
+     * @param jobId The job ID to remove
      */
-    function removeOrder(uint256 orderId) external {
-        delete _executionLog[msg.sender][orderId];
+    function removeOrder(uint256 jobId) external {
+        delete _executionLog[msg.sender][jobId];
     }
 }
 ```
@@ -206,7 +206,7 @@ In the `executeOrder` function, we execute a given order. We decode the executio
 
 Next, we add some internal functions that have already been used above:
 
-````solidity
+```solidity
 ...
 
 contract AutoSwapExecutor is ERC7579ExecutorBase {
@@ -316,7 +316,7 @@ contract AutoSwapExecutor is ERC7579ExecutorBase {
         return typeID == TYPE_EXECUTOR;
     }
 }
-````
+```
 
 This is pretty standard. We define the name and version of the module and check if the module is of a certain type.
 
@@ -334,11 +334,10 @@ import { Test } from "forge-std/Test.sol";
 import {
     RhinestoneModuleKit,
     ModuleKitHelpers,
-    ModuleKitUserOp,
     AccountInstance,
     UserOpData
 } from "modulekit/ModuleKit.sol";
-import { MODULE_TYPE_EXECUTOR } from "modulekit/external/ERC7579.sol";
+import {MODULE_TYPE_EXECUTOR} from "modulekit/accounts/common/interfaces/IERC7579Module.sol";
 import { AutoSwapExecutor } from "src/AutoSwapExecutor.sol";
 import { IERC20 } from "forge-std/interfaces/IERC20.sol";
 
@@ -357,7 +356,6 @@ Next, we will set up the test:
 
 contract AutoSwapExecutorTest is RhinestoneModuleKit, Test {
     using ModuleKitHelpers for *;
-    using ModuleKitUserOp for *;
 
     // Account and modules
     AccountInstance internal instance;
