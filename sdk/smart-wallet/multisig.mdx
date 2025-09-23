@@ -27,25 +27,23 @@ Both our [ECDSA signer](./ecdsa-signer) (Ownable Validator) and [passkeys signer
 To create a multisig account:
 
 ```ts {4}
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
     accounts: [accountA, accountB, accountC],
   },
-  rhinestoneApiKey,
 })
 ```
 
 You can also specify the signature threshold (i.e., how many signatures are required to authorize the transaction):
 
 ```ts {5}
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
     accounts: [accountA, accountB, accountC],
     threshold: 2,
   },
-  rhinestoneApiKey,
 })
 ```
 
@@ -56,25 +54,23 @@ By default, the `threshold` is 1 (any multisig owner can sign any transaction).
 To create a multisig account:
 
 ```ts {4}
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'passkey',
     accounts: [passkeyAccountA, passkeyAccountB],
   },
-  rhinestoneApiKey,
 })
 ```
 
 You can also specify the signature threshold (i.e., how many signatures are required to authorize the transaction):
 
 ```ts {5}
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'passkey',
     accounts: [passkeyAccountA, passkeyAccountB],
     threshold: 2,
   },
-  rhinestoneApiKey,
 })
 ```
 
@@ -86,8 +82,8 @@ By default, the `threshold` is 1 (any multisig owner can sign any transaction).
 
 For 1-of-n and m-of-n multisigs, you usually want to sign the transaction with a subset of owners instead of using all of them. You can choose which signers to use with `signers`:
 
-```ts {7-11}
-const installPasskeyTransaction = await rhinestoneAccount.sendTransaction({
+```ts {6-10}
+const transaction = await rhinestoneAccount.sendTransaction({
   chain,
   calls: [
     // …
@@ -109,6 +105,8 @@ const installPasskeyTransaction = await rhinestoneAccount.sendTransaction({
 To add a new signer to your multisig:
 
 ```ts
+import { addOwner } from '@rhinestone/sdk/actions/ecdsa'
+
 // Add a new owner
 const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
   chain,
@@ -119,6 +117,8 @@ const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
 For passkeys:
 
 ```ts
+import { addOwner } from '@rhinestone/sdk/actions/passkeys'
+
 const pubKeyX = BigInt(slice(passkeyAccountC.publicKey, 0, 32))
 const pubKeyY = BigInt(slice(passkeyAccountC.publicKey, 32))
 const requiresUV = false;
@@ -126,7 +126,7 @@ const requiresUV = false;
 // Add a new owner
 const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
   chain,
-  calls: [addPasskeyOwner(pubKeyX, pubKeyY, requiresUV)],
+  calls: [addOwner(pubKeyX, pubKeyY, requiresUV)],
 })
 ```
 
@@ -135,6 +135,8 @@ const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
 To remove an existing signer from your multisig:
 
 ```ts
+import { removeOwner } from '@rhinestone/sdk/actions/ecdsa'
+
 // Remove an owner
 const removeOwnerTransaction = await rhinestoneAccount.sendTransaction({
   chain,
@@ -145,10 +147,12 @@ const removeOwnerTransaction = await rhinestoneAccount.sendTransaction({
 For passkeys:
 
 ```ts
+import { removeOwner } from '@rhinestone/sdk/actions/passkeys'
+
 // Add a new owner
 const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
   chain,
-  calls: [removePasskeyOwner(pubKeyX, pubKeyY)],
+  calls: [removeOwner(pubKeyX, pubKeyY)],
 })
 ```
 
@@ -157,6 +161,8 @@ const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
 To update the signature threshold for your multisig:
 
 ```ts
+import { changeThreshold } from '@rhinestone/sdk/actions/ecdsa'
+
 // Change threshold to 2-of-N
 const changeThresholdTransaction = await rhinestoneAccount.sendTransaction({
   chain,
@@ -167,10 +173,12 @@ const changeThresholdTransaction = await rhinestoneAccount.sendTransaction({
 For passkeys:
 
 ```ts
+import { changeThreshold } from '@rhinestone/sdk/actions/passkeys'
+
 // Change threshold to 2-of-N
 const changeThresholdTransaction = await rhinestoneAccount.sendTransaction({
   chain,
-  calls: [changePasskeyThreshold(2)],
+  calls: [changeThreshold(2)],
 })
 ```
 

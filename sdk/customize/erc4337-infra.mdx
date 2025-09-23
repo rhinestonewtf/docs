@@ -12,16 +12,18 @@ Supplying the API key is optional and only recommended when using the ERC-4337 f
 
 To use the [Pimlico](https://www.pimlico.io/) bundler, provide an API key during account initialization:
 
-```ts {7-10}
-const rhinestoneAccount = await createRhinestoneAccount({
-  owners: {
-    type: 'ecdsa',
-    accounts: [account],
-  },
-  rhinestoneApiKey,
+```ts {2-6}
+const rhinestone = new RhinestoneSDK({
+  apiKey: rhinestoneApiKey,
   bundler: {
     type: 'pimlico',
     apiKey: pimlicoApiKey,
+  },
+})
+const rhinestoneAccount = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
   },
 })
 ```
@@ -30,16 +32,18 @@ const rhinestoneAccount = await createRhinestoneAccount({
 
 To use the [Biconomy](https://www.biconomy.io) bundler, provide an API key during account initialization:
 
-```ts {7-10}
-const rhinestoneAccount = await createRhinestoneAccount({
-  owners: {
-    type: 'ecdsa',
-    accounts: [account],
-  },
-  rhinestoneApiKey,
+```ts {2-6}
+const rhinestone = new RhinestoneSDK({
+  apiKey: rhinestoneApiKey,
   bundler: {
     type: 'biconomy',
     apiKey: biconomyApiKey,
+  },
+})
+const rhinestoneAccount = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
   },
 })
 ```
@@ -51,16 +55,18 @@ const rhinestoneAccount = await createRhinestoneAccount({
 
 To use the [Pimlico](https://www.pimlico.io/) paymaster, provide an API key during account initialization:
 
-```ts {7-10}
-const rhinestoneAccount = await createRhinestoneAccount({
-  owners: {
-    type: 'ecdsa',
-    accounts: [account],
-  },
-  rhinestoneApiKey,
+```ts {2-6}
+const rhinestone = new RhinestoneSDK({
+  apiKey: rhinestoneApiKey,
   paymaster: {
     type: 'pimlico',
     apiKey: pimlicoApiKey,
+  },
+})
+const rhinestoneAccount = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
   },
 })
 ```
@@ -69,16 +75,18 @@ const rhinestoneAccount = await createRhinestoneAccount({
 
 To use the [Biconomy](https://www.biconomy.io) paymaster, provide an API key during account initialization:
 
-```ts {7-10}
-const rhinestoneAccount = await createRhinestoneAccount({
+```ts {2-6}
+const rhinestone = new RhinestoneSDK({
+  apiKey: rhinestoneApiKey,
+  paymaster: {
+    type: 'biconomy',
+    apiKey: biconomyApiKey,
+  },
+})
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
     accounts: [account],
-  },
-  rhinestoneApiKey,
-  bundler: {
-    type: 'biconomy',
-    apiKey: biconomyApiKey,
   },
 })
 ```

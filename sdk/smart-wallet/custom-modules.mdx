@@ -14,18 +14,16 @@ To create a custom module, use the [ModuleKit](../../build-modules/overview).
 With Rhinestone SDK, you can install and use custom validators, executors, and hooks.
 
 ```ts
+import { installModule, uninstallModule } from '@rhinestone/sdk/actions'
+
 const transactionData = await rhinestoneAccount.sendTransaction({
   targetChain: base,
   calls: [
-    ...installModule({
-      rhinestoneAccount,
-      module: {
-        address: MODULE_ADDRESS,
-        type: 'executor',
-        initData: MODULE_DATA,
-        deInitData: '0x',
-        additionalContext: '0x',
-      },
+    installModule({
+      address: MODULE_ADDRESS,
+      type: 'executor',
+      // Optional
+      initData: MODULE_DATA,
     }),
   ],
 })
@@ -39,15 +37,9 @@ You can also remove any module from the account:
 const result2 = await rhinestoneAccount.sendTransaction({
   targetChain: base,
   calls: [
-    ...uninstallModule({
-      rhinestoneAccount,
-      module: {
-        address: '0x000000000043ff16d5776c7F0f65Ec485C17Ca04',
-        type: 'executor',
-        initData: '0x',
-        deInitData: '0x',
-        additionalContext: '0x',
-      },
+    uninstallModule({
+      address: MODULE_ADDRESS,
+      type: 'executor',
     }),
   ],
 })

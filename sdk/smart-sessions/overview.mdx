@@ -66,7 +66,7 @@ When defining multiple policies within a session or an action, a transaction tha
 
 To create an account with a session key:
 
-```ts {1-6,13}
+```ts {1-6,16}
 const session: Session = {
   owners: {
     type: 'ecdsa',
@@ -74,13 +74,15 @@ const session: Session = {
   },
 }
 
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestone = new RhinestoneSDK({
+  apiKey: rhinestoneApiKey,
+})
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
     accounts: [ownerAccount],
   },
   sessions: [session],
-  rhinestoneApiKey,
 })
 ```
 
@@ -150,7 +152,7 @@ const session: Session = {
 To authorize a transaction with a session key you've defined before:
 
 ```ts {13-16}
-const transactionResult = await rhinestoneAccount.sendTransaction({
+const transactionResult = await rhinestoneAccount.sendUserOperation({
   chain,
   calls: [
     {

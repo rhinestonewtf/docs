@@ -28,7 +28,7 @@ In other words, the guardian (or guardians) is allowed to make any transaction t
 To install a social recovery module during account deployment:
 
 ```ts {6-8}
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
     accounts: [oldAccount],
@@ -41,18 +41,14 @@ const rhinestoneAccount = await createRhinestoneAccount({
 
 To install the module separately (i.e., when the account is already deployed):
 
-```ts {5-8}
-import { setUpRecovery } from '@rhinestone/sdk'
+```ts {3-6}
+import { enable as enableRecovery } from '@rhinestone/sdk/actions/recovery'
 
-const setUpTransaction = await rhinestoneAccount.sendTransaction({
+const setUpTransaction = await rhinestoneAccount.sendUserOperation({
   chain,
-  calls: setUpRecovery({
-    rhinestoneAccount,
-    guardians: [guardianAccount],
-  }),
-  tokenRequests: [],
+  calls: enableRecovery([guardianAccount]),
 })
-await rhinestoneAccount.waitForExecution(setUpTransaction, true)
+await rhinestoneAccount.waitForExecution(setUpTransaction)
 ```
 
 ### Multiple Guardians
@@ -60,7 +56,7 @@ await rhinestoneAccount.waitForExecution(setUpTransaction, true)
 You can also set multiple guardians for a single account, and use a custom signature threshold:
 
 ```ts
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
     accounts: [oldAccount],
@@ -80,7 +76,7 @@ const rhinestoneAccount = await createRhinestoneAccount({
 To recover access to the account:
 
 ```ts {7,16-19}
-import { recoverEcdsaOwnership } from '@rhinestone/sdk'
+import { recoverEcdsaOwnership } from '@rhinestone/sdk/actions/recovery'
 
 const recoveryCalls = await recoverEcdsaOwnership(
   address,
@@ -91,7 +87,7 @@ const recoveryCalls = await recoverEcdsaOwnership(
   chain,
 )
 for (const call of recoveryCalls) {
-  const transaction = await rhinestoneAccount.sendTransaction({
+  const transaction = await rhinestoneAccount.sendUserOperation({
     chain,
     calls: [call],
     tokenRequests: [],
@@ -100,7 +96,7 @@ for (const call of recoveryCalls) {
       guardians: [guardianAccountA],
     },
   })
-  await rhinestoneAccount.waitForExecution(transaction, true)
+  await rhinestoneAccount.waitForExecution(transaction)
 }
 ```
 
@@ -111,7 +107,7 @@ This will prompt a signature from the guardian account, and submit a transaction
 To recover access to the account:
 
 ```ts {7-10,15,24-27}
-import { recoverPasskeyOwnership } from '@rhinestone/sdk'
+import { recoverPasskeyOwnership } from '@rhinestone/sdk/actions/recovery'
 
 const recoveryCalls = await recoverPasskeyOwnership(
   address,
@@ -130,7 +126,7 @@ const recoveryCalls = await recoverPasskeyOwnership(
   chain
 );
 for (const call of recoveryCalls) {
-  const transaction = await account.sendTransaction({
+  const transaction = await account.sendUserOperation({
     chain,
     calls: [call],
     tokenRequests: [],
@@ -139,7 +135,7 @@ for (const call of recoveryCalls) {
       guardians: [guardianAccountA],
     },
   });
-  await account.waitForExecution(transaction, true);
+  await account.waitForExecution(transaction);
 }
 ```
 

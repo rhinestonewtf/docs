@@ -30,34 +30,31 @@ Passkeys are powered by Rhinestone’s WebAuthn Validator module. This module en
 
 To create a passkey-owned account:
 
-```ts {3-5,9-12}
+```ts {3-5,8-11}
 import { toWebAuthnAccount } from 'viem/account-abstraction'
 
 const passkeyAccount = toWebAuthnAccount({
   credential,
 })
 
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'passkey',
     account: passkeyAccount,
   },
-  rhinestoneApiKey,
 })
 ```
 
 You can also enable the passkey module in a separate transaction:
 
 ```ts
-import { enablePasskeys } from '@rhinestone/sdk'
+import { enable as enablePasskeys } from '@rhinestone/sdk/actions/passkeys'
 
 const enablePasskeysTransaction = await rhinestoneAccount.sendTransaction({
   chain,
-  calls: enablePasskeys({
-    rhinestoneAccount,
-    pubKey: passkeyAccount.publicKey,
-    authenticatorId: passkeyAccount.id,
-  }),
+  calls: [
+    enablePasskeys(passkeyAccount.publicKey, passkeyAccount.id),
+  ],
   tokenRequests: [],
 })
 ```

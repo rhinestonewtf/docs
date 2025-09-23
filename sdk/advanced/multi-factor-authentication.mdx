@@ -20,7 +20,8 @@ Subvalidator ID is the index of the validator in the validator list. For example
 To create an account with MFA:
 
 ```ts
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestone = new RhinestoneSDK()
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'multi-factor',
     // List of subvalidators to use
@@ -44,26 +45,24 @@ const rhinestoneAccount = await createRhinestoneAccount({
 You can also install the MFA module on an existing account:
 
 ```ts
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestone = new RhinestoneSDK()
+const rhinestoneAccount = await rhinestone.createAccount({
   // …
 });
 
 const enableMfaTx = await rhinestoneAccount.sendTransaction({
   chain: sourceChain,
   calls: [
-    ...enableMultiFactor({
-      rhinestoneAccount,
-      validators: [
-        {
-          type: 'ecdsa',
-          accounts: [accountA, accountB],
-        },
-        {
-          type: 'passkey',
-          accounts: [passkeyAccount],
-        },
-      ],
-    }),
+    enableMultiFactor([
+      {
+        type: 'ecdsa',
+        accounts: [accountA, accountB],
+      },
+      {
+        type: 'passkey',
+        accounts: [passkeyAccount],
+      },
+    ]),
   ],
 })
 await rhinestoneAccount.waitForExecution(enableMfaTx)

@@ -84,7 +84,8 @@ await rhinestoneAccount.sendTransaction({
 // After
 await rhinestoneAccount.sendTransaction({
   calls: [
-    ...installModule({ module })
+    // Note that you don't need to spread the actions anymore
+    installModule(module)
   ],
   // …
 })

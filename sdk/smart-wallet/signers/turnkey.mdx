@@ -75,17 +75,19 @@ function createTurnkeySigner(walletAddress: Address) {
 Create a new Rhinestone account using the Turnkey signer. This is the same pattern as with other providers - pass the signer to Rhinestone, and it wraps it with cross-chain functionality:
 
 ```tsx {4-6}
-import { createRhinestoneAccount } from "@rhinestone/sdk";
+import { RhinestoneSDK } from "@rhinestone/sdk";
 
 const turnkeySigner = createTurnkeySigner("0x..."); // Your Turnkey wallet address
 
 // Pass the Turnkey signer to Rhinestone just like wagmi clients
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestone = RhinestoneSDK({
+  apiKey: process.env.RHINESTONE_API_KEY,
+})
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: "ecdsa",
     accounts: [turnkeySigner], // viem-compatible Turnkey signer
   },
-  rhinestoneApiKey,
 });
 ```
 
