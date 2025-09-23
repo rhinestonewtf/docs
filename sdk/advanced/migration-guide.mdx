@@ -12,7 +12,7 @@ npm i @rhinestone/sdk@beta
 
 ### New entry point
 
-`RhinestoneSDK` is now the main entry point to the SDK funcitonality.
+`RhinestoneSDK` is now the main entry point to the SDK functionality.
 
 To migrate, change the account creation code:
 
@@ -95,12 +95,12 @@ await rhinestoneAccount.sendTransaction({
     * `installModule` to install a module
     * `uninstallModule` to uninstall a module
   * `/actions/compact` (resource locking with TheCompact):
-    * `depositEther` to deposit ETH into The Compact
+    * `depositEther` to deposit ETH into TheCompact
     * `enableEtherWithdrawal` to enable permissionless ETH withdrawal (starts reset period)
     * `disableEtherWithdrawal` to cancel permissionless ETH withdrawal
     * `withdrawEther` to withdraw ETH after the reset period
     * `approveErc20` to approve an ERC-20 token for deposit
-    * `depositErc20` to deposit ERC-20 into The Compact
+    * `depositErc20` to deposit ERC-20 into TheCompact
     * `enableErc20Withdrawal` to enable permissionless ERC-20 withdrawal (starts reset period)
     * `disableErc20Withdrawal` to cancel permissionless ERC-20 withdrawal
     * `withdrawErc20` to withdraw ERC-20 after the reset period
@@ -119,8 +119,8 @@ await rhinestoneAccount.sendTransaction({
   * `/actions/passkeys` (passkey validator):
     * `enable` to enable the validator
     * `disable` to disable the validator
-    * `addOwner` to add a owner
-    * `removeOwner` to remove a owner
+    * `addOwner` to add an owner
+    * `removeOwner` to remove an owner
     * `changeThreshold` to change the signature threshold
   * `/actions/recovery` (social recovery):
     * `enable` to enable the validator
@@ -229,7 +229,7 @@ const sourceSafeAccount = await toSafeSmartAccount({
     version: "0.7",
   },
   // …
-};);
+});
  
 const smartAccountClient = createSmartAccountClient({
   account: sourceSafeAccount,
@@ -292,12 +292,12 @@ const sourceSmartAccountClient = createSmartAccountClient({
 Now, you can use `owners` when creating the account:
 
 ```ts
-const account = privateKeyToAccount(generatePrivateKey());
+const owner = privateKeyToAccount(generatePrivateKey());
 
 const account = await createRhinestoneAccount({
   owners: {
     type: 'ecdsa',
-    accounts: [account],
+    accounts: [owner],
   },
 })
 ```
@@ -364,7 +364,7 @@ Now, that is handled automatically for you.
 
 <Info>Under the hood, the SDK installs a single executor module that handles chain abstraction operations.</Info>
 
-### Initializing the Orchestator Client
+### Initializing the Orchestrator Client
 
 Before, you'd initialize an Orchestrator API client:
 
@@ -499,7 +499,7 @@ const signedOrderBundle: SignedMultiChainCompact = {
 Now, you can use the `signTransaction` method:
 
 ```ts
-const signedTansactionData =
+const signedTransactionData =
   await rhinestoneAccount.signTransaction(transactionData)
 ```
 
@@ -518,7 +518,7 @@ const bundleResults: PostOrderBundleResult = await orchestrator.postSignedOrderB
 Now, you can use the `submitTransaction` method:
 
 ```ts
-const result = await rhinestoneAccount.submitTransaction(signedTansactionData)
+const result = await rhinestoneAccount.submitTransaction(signedTransactionData)
 ```
 
 ### Getting the Intent Status
