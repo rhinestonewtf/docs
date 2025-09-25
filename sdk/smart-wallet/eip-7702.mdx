@@ -48,13 +48,12 @@ You can use any compatible account provider for batched transactions, gas sponso
 To turn an EOA into a smart account:
 
 ```ts {6}
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
     accounts: [eoaAccount],
   },
   eoa: eoaAccount,
-  rhinestoneApiKey,
 })
 ```
 

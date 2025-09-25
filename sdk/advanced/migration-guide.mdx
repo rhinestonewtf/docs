@@ -2,6 +2,188 @@
 title: "Migration Guide"
 ---
 
+## Migrating from 1.x Alpha SDK
+
+To use the latest version of the SDK, install it with the `alpha` tag:
+
+```bash
+npm i @rhinestone/sdk@alpha
+```
+
+### New entry point
+
+`RhinestoneSDK` is now the main entry point to the SDK functionality.
+
+To migrate, change the account creation code:
+
+```ts
+const rhinestoneAccount = await createRhinestoneAccount({
+  // Optional
+  account: {
+    'type': 'nexus'
+  },
+  owners: {
+    type: "ecdsa" as const,
+    accounts: [owner],
+  },
+  // …
+  // Optional
+  rhinestoneApiKey,
+  // Optional
+  orchestratorUrl,
+});
+```
+
+to this:
+
+```ts
+const rhinestone = new RhinestoneSDK({
+  // Optional
+  apiKey: rhinestoneApiKey,
+  // Optional
+  endpointUrl: orchestratorUrl,
+})
+const rhinestoneAccount = await rhinestone.createAccount({
+  // Optional
+  account: {
+    'type': 'nexus'
+  },
+  owners: {
+    type: "ecdsa" as const,
+    accounts: [owner],
+  },
+  // …
+});
+```
+
+### Transaction utilities (actions)
+
+Action utilities related to using modules and resource locking (e.g., `installModule`, `addOwner`, `recoverEcdsaOwnership`) were moved to separate subpackages:
+
+```ts
+// Before
+import { addPasskeyOwner } from '@rhinestone/sdk'
+// After
+import { addOwner as addPasskeyOwner } from '@rhinestone/sdk/actions/passkeys'
+```
+
+Additionally, you don't need to pass `rhinestoneAccount`, `address`, `chain`, and `provider` params anymore when using actions:
+
+```ts
+// Before
+await rhinestoneAccount.sendTransaction({
+  calls: [
+    ...installModule({
+      rhinestoneAccount,
+      module,
+    })
+  ],
+  // …
+})
+
+// After
+await rhinestoneAccount.sendTransaction({
+  calls: [
+    // Note that you don't need to spread the actions anymore
+    installModule(module)
+  ],
+  // …
+})
+```
+
+<Accordion title="All actions">
+  * `/actions`: 
+    * `installModule` to install a module
+    * `uninstallModule` to uninstall a module
+  * `/actions/compact` (resource locking with TheCompact):
+    * `depositEther` to deposit ETH into TheCompact
+    * `enableEtherWithdrawal` to enable permissionless ETH withdrawal (starts reset period)
+    * `disableEtherWithdrawal` to cancel permissionless ETH withdrawal
+    * `withdrawEther` to withdraw ETH after the reset period
+    * `approveErc20` to approve an ERC-20 token for deposit
+    * `depositErc20` to deposit ERC-20 into TheCompact
+    * `enableErc20Withdrawal` to enable permissionless ERC-20 withdrawal (starts reset period)
+    * `disableErc20Withdrawal` to cancel permissionless ERC-20 withdrawal
+    * `withdrawErc20` to withdraw ERC-20 after the reset period
+  * `/actions/ecdsa` (ECDSA validator):
+    * `enable` to enable the validator
+    * `disable` to disable the validator
+    * `addOwner` to add an owner
+    * `removeOwner` to remove an owner
+    * `changeThreshold` to change the signature threshold
+  * `/actions/mfa` (multi-factor authorization):
+    * `enable` to enable the validator
+    * `disable` to disable the validator
+    * `setSubValidator` to add a sub-validator to the MFA set
+    * `removeSubValidator` to remove a sub-validator from the MFA set
+    * `changeThreshold` to change the MFA signature threshold
+  * `/actions/passkeys` (passkey validator):
+    * `enable` to enable the validator
+    * `disable` to disable the validator
+    * `addOwner` to add an owner
+    * `removeOwner` to remove an owner
+    * `changeThreshold` to change the signature threshold
+  * `/actions/recovery` (social recovery):
+    * `enable` to enable the validator
+    * `recoverEcdsaOwnership` to recover ownership to a new ECDSA owner
+    * `recoverPasskeyOwnership` to recover ownership to a new passkey owner
+</Accordion>
+
+### Errors
+
+Error classes were moved to a separate subpackage:
+
+```ts
+// Before
+import { isAccountError, AccountError, SigningNotSupportedForAccountError } from '@rhinestone/sdk'
+// After
+import { isAccountError, AccountError, SigningNotSupportedForAccountError } from '@rhinestone/sdk/errors'
+```
+
+### Using ERC-4337 flow
+
+All transactions executed with `sendTransaction` and `prepareTransaction` now use Rhinestone intents.
+
+Using the ERC-4337 user operations (for example, when using a social recovery) now requires a separate flow.
+
+This change lets us improve type-safety and DX around using intents.
+
+To keep using user operations for specific flows, change your code from:
+
+```ts
+const result = await rhinestoneAccount.sendTransaction(
+  // …
+)
+```
+
+and
+
+```ts
+const data = await rhinestoneAccount.prepareTransaction({
+  // …
+})
+const signedData = await rhinestoneAccount.signTransaction(data)
+const result = await rhinestoneAccount.submitTransaction(signedData)
+```
+
+to:
+
+```ts
+const result = await rhinestoneAccount.sendUserOperation(
+  // …
+)
+```
+
+and:
+
+```ts
+const data = await rhinestoneAccount.prepareUserOperation({
+  // …
+})
+const signedData = await rhinestoneAccount.signUserOperation(data)
+const result = await rhinestoneAccount.submitUserOperation(signedData)
+```
+
 ## Migrating from 0.x SDK
 
 To use the latest version of the SDK, install it with the `alpha` tag:
@@ -48,7 +230,7 @@ const sourceSafeAccount = await toSafeSmartAccount({
     version: "0.7",
   },
   // …
-};);
+});
  
 const smartAccountClient = createSmartAccountClient({
   account: sourceSafeAccount,
@@ -111,12 +293,12 @@ const sourceSmartAccountClient = createSmartAccountClient({
 Now, you can use `owners` when creating the account:
 
 ```ts
-const account = privateKeyToAccount(generatePrivateKey());
+const owner = privateKeyToAccount(generatePrivateKey());
 
 const account = await createRhinestoneAccount({
   owners: {
     type: 'ecdsa',
-    accounts: [account],
+    accounts: [owner],
   },
 })
 ```
@@ -183,7 +365,7 @@ Now, that is handled automatically for you.
 
 <Info>Under the hood, the SDK installs a single executor module that handles chain abstraction operations.</Info>
 
-### Initializing the Orchestator Client
+### Initializing the Orchestrator Client
 
 Before, you'd initialize an Orchestrator API client:
 
@@ -318,7 +500,7 @@ const signedOrderBundle: SignedMultiChainCompact = {
 Now, you can use the `signTransaction` method:
 
 ```ts
-const signedTansactionData =
+const signedTransactionData =
   await rhinestoneAccount.signTransaction(transactionData)
 ```
 
@@ -337,7 +519,7 @@ const bundleResults: PostOrderBundleResult = await orchestrator.postSignedOrderB
 Now, you can use the `submitTransaction` method:
 
 ```ts
-const result = await rhinestoneAccount.submitTransaction(signedTansactionData)
+const result = await rhinestoneAccount.submitTransaction(signedTransactionData)
 ```
 
 ### Getting the Intent Status

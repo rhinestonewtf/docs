@@ -57,7 +57,7 @@ Create a custom hook that integrates Magic authentication with Rhinestone accoun
 ```tsx
 import { useState, useEffect, useCallback } from "react"
 import { useMagic } from "./MagicProvider"
-import { createRhinestoneAccount, walletClientToAccount } from "@rhinestone/sdk"
+import { RhinestoneSDK, walletClientToAccount } from "@rhinestone/sdk"
 import { createWalletClient, custom } from "viem"
 
 export function useMagicWallet() {
@@ -100,12 +100,14 @@ export function useMagicWallet() {
 
       // Pass the Magic wallet client to Rhinestone
       // Rhinestone wraps it with cross-chain transaction capabilities
-      const account = await createRhinestoneAccount({
+      const rhinestone = new RhinestoneSDK({
+        apiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
+      })
+      const account = await rhinestone.createAccount({
         owners: {
           type: "ecdsa",
           accounts: [wrappedWalletClient],
         },
-        rhinestoneApiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
       })
 
       setRhinestoneAccount(account)
@@ -235,7 +237,7 @@ Here's a minimal working example that demonstrates the integration:
 ```tsx
 import { useState, useEffect } from 'react'
 import { Magic } from 'magic-sdk'
-import { createRhinestoneAccount, walletClientToAccount } from '@rhinestone/sdk'
+import { RhinestoneSDK, walletClientToAccount } from '@rhinestone/sdk'
 import { createWalletClient, custom } from 'viem'
 
 const magic = new Magic(process.env.NEXT_PUBLIC_MAGIC_API_KEY)
@@ -261,12 +263,14 @@ export function MagicDemo() {
       const wrappedWalletClient = walletClientToAccount(walletClient)
 
       // 4. Create Rhinestone account
-      const rhinestoneAccount = await createRhinestoneAccount({
+      const rhinestone = new RhinestoneSDK({
+        apiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
+      })
+      const rhinestoneAccount = await rhinestone.createAccount({
         owners: {
           type: "ecdsa",
           accounts: [wrappedWalletClient],
         },
-        rhinestoneApiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
       })
 
       setAccount(rhinestoneAccount)

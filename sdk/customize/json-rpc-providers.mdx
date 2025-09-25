@@ -12,17 +12,21 @@ For production use, we recommend setting up a custom JSON-RPC provider with your
 
 To use the [Alchemy](https://www.alchemy.com) bundler, provide an API key during account initialization:
 
-```ts {7-10}
-const rhinestoneAccount = await createRhinestoneAccount({
+```ts {2-6}
+const rhinestone = new RhinestoneSDK({
+  apiKey: rhinestoneApiKey,
+  provider: {
+    type: 'alchemy',
+    apiKey: alchemyApiKey,
+  }
+})
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
     accounts: [accountA, accountB, accountC],
     threshold: 2,
   },
-  provider: {
-    type: 'alchemy',
-    apiKey: alchemyApiKey,
-  }
+  
 })
 ```
 

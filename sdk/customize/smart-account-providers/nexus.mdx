@@ -5,7 +5,7 @@ title: "Nexus"
 To create a [Biconomy Nexus](https://github.com/bcnmy/nexus) smart account:
 
 ```ts {2-4}
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestoneAccount = await rhinestone.createAccount({
   account: {
     type: 'nexus',
   },
@@ -13,6 +13,5 @@ const rhinestoneAccount = await createRhinestoneAccount({
     type: 'ecdsa',
     accounts: [account],
   },
-  rhinestoneApiKey,
 })
 ```

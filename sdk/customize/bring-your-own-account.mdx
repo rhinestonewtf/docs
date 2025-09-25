@@ -30,7 +30,7 @@ Unless you were using the Rhinestone SDK V0 before, the accounts you have won't 
 To reuse an existing account, pass an `initData` when creating an account:
 
 ```ts {10-15}
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestoneAccount = await rhinestone.createAccount({
   account: {
     type: 'kernel',
   },
@@ -53,7 +53,7 @@ const rhinestoneAccount = await createRhinestoneAccount({
 In most cases, an existing account would probably have the [legacy modules](../../home/resources/address-book#legacy) installed. In this case, you need to explicitly specify the module address when setting the `owners`.
 
 ```ts {5-6}
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
     accounts: [accountA],

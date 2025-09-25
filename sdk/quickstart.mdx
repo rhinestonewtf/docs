@@ -33,7 +33,7 @@ bun install viem @rhinestone/sdk@alpha
 Let's create a smart account with a single owner:
 
 ```ts
-import { createRhinestoneAccount } from '@rhinestone/sdk'
+import { RhinestoneSDK } from '@rhinestone/sdk'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { baseSepolia, arbitrumSepolia } from 'viem/chains'
 import {
@@ -59,7 +59,8 @@ const privateKey = generatePrivateKey()
 console.log(`Owner private key: ${privateKey}`)
 const account = privateKeyToAccount(privateKey)
 
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestone = new RhinestoneSDK()
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
     accounts: [account],

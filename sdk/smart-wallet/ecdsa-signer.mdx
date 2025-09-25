@@ -16,26 +16,24 @@ The Ownable Validator stores a list of owners for a smart account using a mappin
 To create an account owned by a single EOA:
 
 ```ts
-const rhinestoneAccount = await createRhinestoneAccount({
+const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
     accounts: [account],
   },
-  rhinestoneApiKey,
 })
 ```
 
 You can also enable the ECDSA module in a separate transaction:
 
 ```ts
-import { enableEcdsa } from '@rhinestone/sdk'
+import { enable as enableEcdsa } from '@rhinestone/sdk/actions/ecdsa'
 
 const enableEcdsaTransaction = await rhinestoneAccount.sendTransaction({
   chain,
-  calls: enableEcdsa({
-    rhinestoneAccount,
-    owners: [account.address],
-  }),
+  calls: [
+    enableEcdsa([account.address]),
+  ],
   tokenRequests: [],
 })
 ```

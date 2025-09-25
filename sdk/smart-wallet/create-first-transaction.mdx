@@ -50,7 +50,7 @@ You can also use lower-level APIs to get more control over the transaction flow.
 
 This approach is useful when you need to:
 - Separate data fetching from signing (e.g., fetch intent data on your backend API, then sign on a mobile frontend)
-- Present transaction details to users before they sign
+- Present transaction details to the user before they sign
 - Manually control account deployment across chains
 
 Here's the same transaction as above made with the granular API methods:
@@ -62,7 +62,7 @@ const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 // Manually trigger the account deployment
 await rhinestoneAccount.deploy(sourceChain)
 // Prepare the transaction by fetching the intent data
-const bundleData = await rhinestoneAccount.prepareTransaction({
+const transactionData = await rhinestoneAccount.prepareTransaction({
   chain: baseSepolia,
   calls: [
     {
@@ -77,9 +77,9 @@ const bundleData = await rhinestoneAccount.prepareTransaction({
   ],
 })
 // Sign the transaction — this prompts the account owners to sign
-const signedBundleData = await rhinestoneAccount.signTransaction(bundleData)
+const signedData = await rhinestoneAccount.signTransaction(transactionData)
 // Submit the transaction to the blockchain
-const transaction = await rhinestoneAccount.submitTransaction(signedBundleData)
+const transaction = await rhinestoneAccount.submitTransaction(signedData)
 ```
 
 ## Going Cross-Chain

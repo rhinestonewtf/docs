@@ -53,7 +53,7 @@ Create a production-ready hook that integrates Dynamic wallets with Rhinestone a
 ```tsx
 import { useState, useEffect } from 'react'
 import { useAccount, useWalletClient } from "wagmi"
-import { createRhinestoneAccount, walletClientToAccount } from "@rhinestone/sdk"
+import { RhinestoneSDK, walletClientToAccount } from "@rhinestone/sdk"
 
 interface GlobalWalletState {
   rhinestoneAccount: any | null
@@ -100,12 +100,14 @@ export function useGlobalWallet(): GlobalWalletState & {
       }
 
       // Create Rhinestone account using Dynamic's wallet client
-      const account = await createRhinestoneAccount({
+      const rhinestone = new RhinestoneSDK({
+        apiKey,
+      })
+      const account = await rhinestone.createAccount({
         owners: {
           type: "ecdsa",
           accounts: [wrappedWalletClient],
         },
-        rhinestoneApiKey: apiKey,
       })
 
       setState(prev => ({
