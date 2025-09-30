@@ -3,11 +3,13 @@ title: "Resource Locks"
 description: "How resource locks enable near instant cross-chain intents" 
 ---
 
-In traditional software, resource locks are used as a synchronization mechanism to prevent multiple threads or processes from accessing and modifying a shared resource at the same time. This enforces mutual exclusion, preventing data corruption and ensuring the integrity of shared resources in a multi-threaded environment.
+In traditional software, resource locks are used as a synchronization mechanism to prevent multiple processes from simultaneously accessing and modifying a shared resource. This enforces mutual exclusion, preventing data corruption and ensuring the integrity of shared resources in a multi-threaded environment.
 
-Resource locks are not new in the context of blockchain interoperability. In traditional bridging, the first action is to deposit tokens into a contract on the origin chain, where they are either wrapped or burned. This then emits a signal to either unwrap or mint tokens on the destination chain.
+Resource locks are also not new in the context of blockchain interoperability. In traditional bridging, the first action is to deposit tokens into a contract on the origin chain, where they are either wrapped or burned. This then emits a signal to either unwrap or mint tokens on the destination chain.
 
-In the context of Rhinestone Intents, resource locks are decoupled from the underlying bridge and moved closer to the user account – account-native resource locks. This innovation delivers two core improvements to crosschain transactions: speed and cost efficiency.
+Resource Locking and Intents
+
+In the context of Rhinestone Intents, resource locks are decoupled from the underlying bridge and moved closer to the user account – account-native resource locks. This innovation delivers two core improvements to crosschain transactions: **speed and cost efficiency**.
 
 Specifically, account-native resource locks eliminate the need to wait for origin chain finality, allowing for optimistic execution of intents on the destination chain before processing claim requests on the origin chain against the user account. The fact that claim transactions are delayed also allows for batched claims and improved routing, leading to gas and price optimizations at scale.
 
@@ -26,20 +28,20 @@ There are two types of resource locks:
 
 - **Onchain resource locks**: Locks are implemented onchain through a contract that stores resource locked funds and coordinates intent resolution between committed parties. 
 
-Rhinestone utilizes onchain resource locks and collaborated with Uniswap on the development of The Compact, a novel resource locking method that looks to play a permit2-like role for crosschain intents. 
+Rhinestone utilizes onchain resource locks and collaborated with Uniswap on the development of The Compact.
 
 ## Learn More about The Compact
 
 <Columns cols={3}>
-  <Card title="Blog post" icon="file-text" href="https://www.rhinestone.dev/blog/omni-account-a-new-paradigm-for-cross-chain-interop-0b0c1978dfa1">
-    Read on our cross-chain system powered by The Compact
+  <Card title="Blog post" icon="file-text" href="https://www.rhinestone.dev/blog/rhinestone-collaborates-with-uniswap">
+    Read our deep dive into how The Compact works
   </Card>
 
   <Card title="The Compact GitHub" icon="github" href="https://github.com/Uniswap/the-compact">
-    Dive into the open-source code.
+    Dive into the open-source code
   </Card>
 
   <Card title="Rhinestone Intents" icon="workflow" href="../introduction/rhinestone-intents">
-    Learn more about our architecture
+    Learn more about our intent architecture
   </Card>
 </Columns>
