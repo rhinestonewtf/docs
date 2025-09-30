@@ -53,7 +53,6 @@
 						"group": "Concepts",
 						"pages": [
 							"home/concepts/intents-and-erc4337",
-							"home/concepts/chain-abstraction",
 							"home/concepts/resource-locks",
 							"home/concepts/smart-accounts",
 							"home/concepts/session-keys",
@@ -75,7 +74,6 @@
 			{
 				"tab": "SDK",
 				"pages": [
-					"sdk/overview",
 					"sdk/quickstart",
 					{
 						"group": "Smart Wallet",
