@@ -45,8 +45,7 @@
 						"pages": [
 							"home/introduction/welcome-to-rhinestone",
 							"home/introduction/what-is-rhinestone",
-							"home/introduction/rhinestone-intents",
-							"home/introduction/supported-chains"
+							"home/introduction/rhinestone-intents"
 						]
 					},
 					{
@@ -63,6 +62,7 @@
 						"group": "Resources",
 						"pages": [
 							"home/resources/address-book",
+							"home/introduction/supported-chains",
 							"home/resources/audit-reports",
 							"home/resources/fees",
 							"home/resources/erc-7579",
