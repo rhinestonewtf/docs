@@ -107,7 +107,7 @@
 							"sdk/intents/single-chain-intent",
 							"sdk/intents/multi-chain-intent",
 							"sdk/intents/swaps",
-              "sdk/intents/resource-locks",
+							"sdk/intents/resource-locks",
 							"sdk/intents/unified-balance",
 							"sdk/intents/max-spendable-amount",
 							"sdk/intents/account-deployment",
@@ -142,6 +142,7 @@
 					{
 						"group": "Advanced",
 						"pages": [
+							"sdk/advanced/use-erc-4337",
 							"sdk/advanced/batch-transactions",
 							"sdk/advanced/message-signing",
 							"sdk/advanced/migration-guide",
@@ -547,10 +548,8 @@
 		]
 	},
 	"contextual": {
-        "options": [
-            "copy"
-        ]
-    },
+		"options": ["copy"]
+	},
 	"logo": {
 		"light": "/logo/light.svg",
 		"dark": "/logo/dark.svg"

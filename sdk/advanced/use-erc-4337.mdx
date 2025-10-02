@@ -1,0 +1,69 @@
+---
+title: "Use ERC-4337"
+---
+
+Rhinestone is compatible with ERC-4337. Some smart account modules, such as [Social Recovery](../smart-wallet/social-recovery) and legacy [Smart Sessions](../smart-sessions/overview), will require useroperations. This guide provides a quick overview of how to use ERC-4337 with the Rhinestone SDK.
+
+## Setup
+
+You'll first need to provide a `bundler` configuration:
+
+```ts
+const rhinestone = new RhinestoneSDK({
+  apiKey: rhinestoneApiKey,
+  bundler: {
+    type: 'pimlico',
+    apiKey: pimlicoApiKey,
+  },
+})
+```
+
+You can also provide a `paymaster` configuration to sponsor the gas:
+
+```ts
+const rhinestone = new RhinestoneSDK({
+  apiKey: rhinestoneApiKey,
+  paymaster: {
+    type: 'pimlico',
+    apiKey: pimlicoApiKey,
+  },
+})
+```
+
+See more on configuring the ERC-4337 infra in [our guide](../customize/erc4337-infra).
+
+## Usage
+
+To send a user operation:
+
+```ts
+const transactionResult = await rhinestoneAccount.sendTransaction({
+  chain: base,
+  calls: [
+    {
+      to: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+      value: 0n,
+      data: '0xdeadbeef',
+    },
+  ],
+})
+const status = await rhinestoneAccount.waitForExecution(transactionResult)
+```
+
+You can also use the granular APIs to have more control over the flow:
+
+```ts
+const transactionData = await rhinestoneAccount.prepareUserOperation({
+  chain: base,
+  calls: [
+    {
+      to: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+      value: 0n,
+      data: '0xdeadbeef',
+    },
+  ],
+})
+const signedData = await rhinestoneAccount.signUserOperation(transactionData)
+const result = await rhinestoneAccount.submitUserOperation(signedData)
+const status = await rhinestoneAccount.waitForExecution(result)
+```
