@@ -36,6 +36,10 @@ Orchestrator errors:
 * `OnlyOneTargetTokenAmountCanBeUnsetError`: when specifying `tokenRequests`, you need to provide the exact token amounts for all except one token.
 * `NoPathFoundError`: we couldn't find a path for the intent you've provided. Try using a different set of token requests on the target chain.
 * `IntentNotFoundError`: can't find the intent in the system. Please try again or use different input parameters.
+* `RateLimitedError`: you're being rate-limited. Refer to the `retry-after` header and retry later.
+* `ServiceUnavailableError`: temporary service outage. Safe to retry later.
+* `SchemaValidationError`: request failed schema validation (400/422). Fix payload and retry.
+* `BodyParserError`: request body could not be parsed (encoding/size). Fix body and retry.
 
 ## Orchestrator Errors
 
