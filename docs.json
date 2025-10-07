@@ -62,7 +62,7 @@
 						"group": "Resources",
 						"pages": [
 							"home/resources/address-book",
-							"home/introduction/supported-chains",
+							"home/resources/supported-chains",
 							"home/resources/audit-reports",
 							"home/resources/fees",
 							"home/resources/erc-7579",
