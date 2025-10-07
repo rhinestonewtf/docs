@@ -531,6 +531,10 @@
 	"navbar": {
 		"links": [
 			{
+				"label": "Dashboard",
+				"href": "https://dashboard.rhinestone.dev"
+			},
+			{
 				"label": "GitHub",
 				"href": "https://github.com/rhinestonewtf"
 			},
