@@ -1,0 +1,161 @@
+---
+title: "Security"
+description: "Protect your API key and safely sponsor transactions via a backend proxy"
+---
+
+## Overview
+
+When you obtain an API key from the Rhinestone dashboard and fund sponsorship there, any client that embeds this key directly can be abused: an attacker could exfiltrate the key and use the Orchestrator to sponsor their own transactions.
+
+To prevent this, never expose your Rhinestone API key in the browser. Instead, proxy Orchestrator requests through a trusted server. The simplest option in a Next.js app is to use a Next Route Handler that forwards requests to the Orchestrator while enforcing your own allow/deny logic.
+
+<Warning>Do not store `RHINESTONE_API_KEY` in public client-side variables like `NEXT_PUBLIC_*`. Keep it server-only and validate/whitelist what gets proxied.</Warning>
+
+## Approach
+
+- Use a server-side proxy that adds the `x-api-key` header.
+- Bypass the default SDK endpoint with your proxy URL.
+- Enforce contract and method-level allowlists as appropriate.
+- For this example, we whitelist ERC-20 transfer contracts on Base.
+
+## Next.js Route Handler (Proxy)
+
+Create a dynamic API route at `app/api/orchestrator/[...path]/route.ts`:
+
+```ts
+import { NextRequest, NextResponse } from "next/server";
+
+const ORCHESTRATOR_URL = "https://v1.orchestrator.rhinestone.dev";
+
+// If you don't need validation, set this to true
+const ALLOW_ALL_CONTRACTS = false;
+
+// Whitelisted contracts when allow all is disabled
+const WHITELISTED_CONTRACTS = new Set([
+  "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", // Base USDC
+  "0x4200000000000000000000000000000000000006", // Base WETH
+]);
+
+const getApiKey = () => {
+  const apiKey = process.env.RHINESTONE_API_KEY;
+  if (!apiKey) throw new Error("RHINESTONE_API_KEY is not configured");
+  return apiKey;
+};
+
+// Validate contract addresses in destinationExecutions
+const validateDestinationOps = (body: any): boolean => {
+  if (ALLOW_ALL_CONTRACTS) return true;
+
+  const destinationOps =
+    body?.signedIntentOp?.signedMetadata?.account?.accountContext?.destinationExecutions;
+
+  if (!destinationOps) return true; // nothing to validate
+
+  for (const op of destinationOps) {
+    const address = op?.to?.toLowerCase();
+    if (!address || !WHITELISTED_CONTRACTS.has(address)) {
+      console.log(`Blocked non-whitelisted contract: ${address}`);
+      return false;
+    }
+  }
+  return true;
+};
+
+async function handleRequest(request: NextRequest, params: { path: string[] }) {
+  try {
+    const apiKey = getApiKey();
+    const path = params.path.join("/");
+    const url = new URL(request.url);
+    const targetUrl = new URL(`${ORCHESTRATOR_URL}/${path}`);
+    targetUrl.search = url.search;
+
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+    };
+
+    const fetchOptions: RequestInit = {
+      method: request.method,
+      headers,
+    };
+
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      const body = await request.text();
+      if (body) {
+        // Validate intent operations
+        if (path.includes("intent-operations")) {
+          const parsedBody = JSON.parse(body);
+          if (!validateDestinationOps(parsedBody)) {
+            return NextResponse.json(
+              { error: "Contract not whitelisted" },
+              { status: 403 }
+            );
+          }
+        }
+        fetchOptions.body = body;
+      }
+    }
+
+    const response = await fetch(targetUrl.toString(), fetchOptions);
+    const responseBody = await response.text();
+
+    return new NextResponse(responseBody, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: {
+        "Content-Type": response.headers.get("Content-Type") || "application/json",
+      },
+    });
+  } catch (error) {
+    console.error("Proxy error:", error);
+    return NextResponse.json(
+      {
+        error: "Internal proxy error",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  return handleRequest(request, await params);
+}
+export async function POST(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  return handleRequest(request, await params);
+}
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  return handleRequest(request, await params);
+}
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  return handleRequest(request, await params);
+}
+```
+
+Set `RHINESTONE_API_KEY` only on the server (e.g., in `.env` without `NEXT_PUBLIC_`).
+
+## Client Usage
+
+Point the SDK to your proxy URL so user traffic never touches the Orchestrator directly:
+
+```ts
+import { RhinestoneSDK, walletClientToAccount } from "@rhinestone/sdk";
+
+const baseUrl = typeof window !== "undefined" ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+const rhinestone = new RhinestoneSDK({
+  apiKey: "proxy", // placeholder; the server adds the real key
+  endpointUrl: `${baseUrl}/api/orchestrator`,
+});
+```
+
+You can then create an account and perform transactions as usual. For sponsored flows, set `sponsored: true` when sending a transaction.
+
+## Additional Hardening
+
+- Validate function selectors, token addresses, and chain IDs.
+- Add rate limiting and bot protection on the proxy route.
+
+## Example Code
+
+- **See it in action**: [External Wallet + Rhinestone Example](https://github.com/rhinestonewtf/e2e-examples/tree/main/reown)
