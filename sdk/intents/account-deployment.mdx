@@ -23,3 +23,14 @@ You can manually trigger an account deployment on any chain:
 ```ts
 await rhinestoneAccount.deploy(chain)
 ```
+
+You can also sponsor the gas:
+
+```ts
+await rhinestoneAccount.deploy(
+  chain,
+  {
+    sponsored: true
+  }
+)
+```
