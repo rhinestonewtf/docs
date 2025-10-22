@@ -5,7 +5,7 @@ description: "Protect your API key and safely sponsor transactions via a backend
 
 ## Overview
 
-When you obtain an API key from the Rhinestone dashboard and fund sponsorship there, any client that embeds this key directly can be abused: an attacker could exfiltrate the key and use the Orchestrator to sponsor their own transactions.
+When you obtain an API key from the Rhinestone dashboard and fund sponsorship there, any SDK client that embeds this key directly will leak this secret to the end user's client (browser/wallet): an attacker could exfiltrate the key and use the Orchestrator to sponsor their own transactions.
 
 To prevent this, never expose your Rhinestone API key in the browser. Instead, proxy Orchestrator requests through a trusted server. The simplest option in a Next.js app is to use a Next Route Handler that forwards requests to the Orchestrator while enforcing your own allow/deny logic.
 
