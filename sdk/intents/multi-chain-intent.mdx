@@ -166,3 +166,14 @@ By default, intents are pre-confirmed by a relayer to be executed before they ac
 const acceptPreconfirmations = false;
 const transactionResult = await rhinestoneAccount.waitForExecution(transaction, acceptPreconfirmations)
 ```
+
+## Get Intent Status
+
+You can also fetch the intent status directly to implement a custom polling logic:
+
+```ts
+const transaction = await rhinestoneAccount.sendTransaction({
+  // …
+})
+const transactionResult = await rhinestone.getIntentStatus(transaction.id)
+```
