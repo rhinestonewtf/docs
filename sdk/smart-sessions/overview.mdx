@@ -149,9 +149,20 @@ const session: Session = {
 }
 ```
 
+### Installing sessions
+
+To enable a session:
+
+```ts
+const transactionResult = await rhinestoneAccount.sendUserOperation({
+  chain,
+  calls: [enableSession(session)],
+})
+```
+
 ### Using sessions
 
-To authorize a transaction with a session key you've defined before:
+To authorize a transaction with a session key you've enabled before:
 
 ```ts {13-16}
 const transactionResult = await rhinestoneAccount.sendUserOperation({
@@ -175,7 +186,7 @@ const transactionResult = await rhinestoneAccount.sendUserOperation({
 
 This will prompt the signature request from the session owner(s) and submit the transaction on their behalf.
 
-<Note>You don't have to create a separate transaction to enable the session; this is handled automatically for you. When making your first transaction with the session, the account owner will be prompted to enable it with a signature.</Note>
+<Note>You can also enable and use the smart session in one transaction using the ["enable mode"](./multi-session-signature).</Note>
 
 ## Security
 
