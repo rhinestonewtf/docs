@@ -79,3 +79,21 @@ const transaction = await rhinestoneAccount.sendTransaction({
   feeAsset: 'USDC',
 })
 ```
+
+## Wait for Execution
+
+`sendTransaction` returns a pending intent. To wait until it gets executed, use `waitForExecution`:
+
+```ts
+const transaction = await rhinestoneAccount.sendTransaction({
+  // …
+})
+const transactionResult = await rhinestoneAccount.waitForExecution(transaction)
+```
+
+By default, intents are pre-confirmed by a relayer to be executed before they actually land onchain. You can opt out of this by waiting for onchain execution:
+
+```ts
+const acceptPreconfirmations = false;
+const transactionResult = await rhinestoneAccount.waitForExecution(transaction, acceptPreconfirmations)
+```
