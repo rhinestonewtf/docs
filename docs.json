@@ -111,7 +111,7 @@
 						"group": "Smart Sessions",
 						"pages": [
 							"sdk/smart-sessions/overview",
-							"sdk/smart-sessions/multi-chain",
+							"sdk/smart-sessions/multi-session-signature",
 							{
 								"group": "Signature Validators",
 								"pages": [
