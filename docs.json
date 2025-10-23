@@ -525,7 +525,7 @@
 			},
 			{
 				"tab": "API Reference",
-				"openapi": "/openapi.json"
+				"openapi": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/openapi.json"
 			}
 		]
 	},
