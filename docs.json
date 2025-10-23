@@ -80,6 +80,7 @@
 								"pages": [
 									"sdk/smart-wallet/signers/dynamic",
 									"sdk/smart-wallet/signers/privy",
+									"sdk/smart-wallet/signers/para",
 									"sdk/smart-wallet/signers/magic",
 									"sdk/smart-wallet/signers/turnkey"
 								]
