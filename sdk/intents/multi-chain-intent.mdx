@@ -18,7 +18,7 @@ We will make a cross-chain token transfer using multi-chain intents.
 ```tsx
 const amount = parseUnits('100', 6) // 100 USDC
 
-const transferIntent = await rhinestoneAccount.sendTransaction({
+const transferTransaction = await rhinestoneAccount.sendTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
   calls: [
@@ -47,15 +47,6 @@ Under the hood, this will:
 3) Submit the intent
 4) Execute the _claim_ transaction on Arbitrum
 5) Execute the _fill_ transaction on Base
-
-## Monitor Execution
-
-You can wait until the target chain transaction is submitted to the blockchain:
-
-```tsx
-const result = await rhinestoneAccount.waitForExecution(transferIntent)
-console.log('Status:', result.status)
-```
 
 ## Token Requests
 
@@ -149,3 +140,31 @@ const transaction = await rhinestoneAccount.sendTransaction({
 })
 ```
 
+## Wait for Execution
+
+`sendTransaction` returns a pending intent. To wait until it gets executed, use `waitForExecution`:
+
+```ts
+const transaction = await rhinestoneAccount.sendTransaction({
+  // …
+})
+const transactionResult = await rhinestoneAccount.waitForExecution(transaction)
+```
+
+By default, intents are pre-confirmed by a relayer to be executed before they actually land onchain. You can opt out of this by waiting for onchain execution:
+
+```ts
+const acceptPreconfirmations = false;
+const transactionResult = await rhinestoneAccount.waitForExecution(transaction, acceptPreconfirmations)
+```
+
+## Get Intent Status
+
+You can also fetch the intent status directly to implement a custom polling logic:
+
+```ts
+const transaction = await rhinestoneAccount.sendTransaction({
+  // …
+})
+const transactionResult = await rhinestone.getIntentStatus(transaction.id)
+```
