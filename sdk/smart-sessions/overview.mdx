@@ -60,6 +60,77 @@ Supported policies include:
 
 When defining multiple policies within a session or an action, a transaction that passes **every** specified policy is considered valid. If no policies are specified, **any** transaction will pass (i.e., the sudo policy is applied).
 
+### Signing policies
+
+You can also set up the [ERC-7739](https://eips.ethereum.org/EIPS/eip-7739) policies for clear signing with sessions.
+
+Here's an example of allowing the session to sign the `TransferWithAuthorization` requests for USDC:
+
+```ts {18-27}
+import {domainSeparator} from 'viem'
+
+const usdcDomain = {
+  name: 'USDC',
+  version: '2',
+  chainId: chain.id,
+  verifyingContract: usdcAddress,
+} as const
+const usdcDomainSeparator = domainSeparator({
+  domain: usdcDomain,
+})
+const session: Session = {
+  owners: {
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
+  },
+  chain,
+  signing: {
+    allowedContent: [
+      {
+        domainSeparator: usdcDomainSeparator,
+        contentName: [
+          'TransferWithAuthorization(address from,address to,uint256 value,uint256 validAfter,uint256 validBefore,bytes32 nonce)',
+        ],
+      },
+    ],
+  },
+}
+```
+
+You can then use the [signing utilties](../advanced/message-signing#typed-data-eip-712) to sign the transfer authorization on behalf of the account:
+
+```ts
+const authorizationSignature = await rhinestoneAccount.signTypedData(
+  {
+    domain: usdcDomain,
+    types: {
+      TransferWithAuthorization: [
+        { name: 'from', type: 'address' },
+        { name: 'to', type: 'address' },
+        { name: 'value', type: 'uint256' },
+        { name: 'validAfter', type: 'uint256' },
+        { name: 'validBefore', type: 'uint256' },
+        { name: 'nonce', type: 'bytes32' },
+      ],
+    },
+    primaryType: 'TransferWithAuthorization',
+    message: {
+      from: address,
+      to: receiver,
+      value: 42,
+      validAfter: 0,
+      validBefore: validBefore,
+      nonce,
+    },
+  },
+  chain,
+  {
+    type: 'session',
+    session,
+  },
+)
+```
+
 ## Usage
 
 <Note>At the moment, using smart sessions requires setting up [the ERC-4337 infrastructure](../advanced/use-erc-4337).</Note>
