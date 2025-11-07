@@ -94,7 +94,11 @@
 					},
 					{
 						"group": "Gas Sponsorship",
-						"pages": ["smart-wallet/gas-sponsorship/overview"]
+						"pages": [
+							"smart-wallet/gas-sponsorship/overview",
+							"smart-wallet/gas-sponsorship/set-up-sponsorship",
+							"smart-wallet/gas-sponsorship/pay-gas-with-erc20"
+						]
 					},
 					{
 						"group": "Chain Abstraction",
