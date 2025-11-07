@@ -175,14 +175,22 @@
 			{
 				"tab": "Intents API",
 				"pages": [
+					"intents/overview",
 					{
-						"group": "Using API",
+						"group": "Use Cases",
 						"pages": [
-							"intents/api/overview",
-							"intents/api/getting-a-quote",
-							"intents/api/token-requirements",
-							"intents/api/signing",
-							"intents/api/submitting-the-intent"
+							"intents/use-cases/one-click-deposit",
+							"intents/use-cases/chain-abstracted-swaps",
+							"intents/use-cases/multi-input-bridge"
+						]
+					},
+					{
+						"group": "Guides",
+						"pages": [
+							"intents/guides/getting-a-quote",
+							"intents/guides/token-requirements",
+							"intents/guides/signing",
+							"intents/guides/submitting-the-intent"
 						]
 					}
 				]
