@@ -1,0 +1,200 @@
+---
+title: "Signing the Intent"
+description: "Sign the intent payload"
+---
+
+<Info>
+Before signing, it's recommended to get another [quote](./getting-a-quote) to avoid stale pricing.
+</Info>
+
+Warp is using legible signing with [EIP-712](https://eips.ethereum.org/EIPS/eip-712).
+
+## Preparing the payload
+
+First, let's convert the intent operation received from the API into a typed message to sign.
+
+```ts
+interface TokenPermissions {
+  token: Address;
+  amount: bigint;
+}
+
+interface Execution {
+  to: Address;
+  value: string;
+  data: Hex;
+}
+
+interface IntentOpElementMandate {
+  recipient: Address;
+  tokenOut: [[string, string]];
+  destinationChainId: string;
+  fillDeadline: string;
+  destinationOps: Execution[];
+  preClaimOps: Execution[];
+  qualifier: {
+    settlementContext: {
+      settlementLayer: string;
+      usingJIT: boolean;
+      using7579: boolean;
+    };
+    encodedVal: string;
+  };
+  v: number;
+  minGas: string;
+}
+
+export interface IntentOpElement {
+  arbiter: Address;
+  chainId: string;
+  idsAndAmounts: [[string, string]];
+  spendTokens: [[string, string]];
+  beforeFill: boolean;
+  smartAccountStatus: {
+    accountType: string;
+    isDeployed: boolean;
+    isERC7579: boolean;
+    erc7579AccountType: string;
+    erc7579AccountVersion: string;
+  };
+  mandate: IntentOpElementMandate;
+}
+
+function getTypedData(
+  element: IntentOpElement,
+  nonce: bigint,
+  expires: bigint,
+) {
+  const PERMIT2_ADDRESS = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
+
+  const tokens = element.idsAndAmounts.map(
+    ([id, amount]) => [BigInt(id), BigInt(amount)] as const,
+  );
+  const tokenPermissions = tokens.reduce<TokenPermissions[]>(
+    (permissions, [id, amountIn]) => {
+      const token = toToken(id);
+      const amount = amountIn;
+      const permission: TokenPermissions = { token, amount };
+      permissions.push(permission);
+      return permissions;
+    },
+    [],
+  );
+  const spender = element.arbiter;
+  const mandate = element.mandate;
+
+  // Pre-process ops to ensure proper typing
+  const originOps = mandate.preClaimOps.map((op) => ({
+    to: op.to as Address,
+    value: BigInt(op.value),
+    data: op.data as Hex,
+  }));
+  const destOps = mandate.destinationOps.map((op) => ({
+    to: op.to as Address,
+    value: BigInt(op.value),
+    data: op.data as Hex,
+  }));
+
+  const typedData = {
+    domain: {
+      name: "Permit2",
+      chainId: Number(element.chainId),
+      verifyingContract: PERMIT2_ADDRESS as Hex,
+    },
+    types: {
+      TokenPermissions: [
+        { name: "token", type: "address" },
+        { name: "amount", type: "uint256" },
+      ],
+      Token: [
+        { name: "token", type: "address" },
+        { name: "amount", type: "uint256" },
+      ],
+      Target: [
+        { name: "recipient", type: "address" },
+        { name: "tokenOut", type: "Token[]" },
+        { name: "targetChain", type: "uint256" },
+        { name: "fillExpiry", type: "uint256" },
+      ],
+      Op: [
+        { name: "to", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "data", type: "bytes" },
+      ],
+      Mandate: [
+        { name: "target", type: "Target" },
+        { name: "v", type: "uint8" },
+        { name: "minGas", type: "uint128" },
+        { name: "originOps", type: "Op[]" },
+        { name: "destOps", type: "Op[]" },
+        { name: "q", type: "bytes32" },
+      ],
+      PermitBatchWitnessTransferFrom: [
+        { name: "permitted", type: "TokenPermissions[]" },
+        { name: "spender", type: "address" },
+        { name: "nonce", type: "uint256" },
+        { name: "deadline", type: "uint256" },
+        { name: "mandate", type: "Mandate" },
+      ],
+    },
+    primaryType: "PermitBatchWitnessTransferFrom" as const,
+    message: {
+      permitted: tokenPermissions,
+      spender: spender,
+      nonce: nonce,
+      deadline: expires,
+      mandate: {
+        target: {
+          recipient: mandate.recipient,
+          tokenOut: mandate.tokenOut.map((token) => ({
+            token: toToken(BigInt(token[0])),
+            amount: BigInt(token[1]),
+          })),
+          targetChain: BigInt(mandate.destinationChainId),
+          fillExpiry: BigInt(mandate.fillDeadline),
+        },
+        v: mandate.v || 0,
+        minGas: BigInt(mandate.minGas || "0"),
+        originOps,
+        destOps,
+        q: keccak256(mandate.qualifier.encodedVal as Hex),
+      },
+    },
+  };
+
+  return typedData;
+}
+```
+
+## Signing the message
+
+Once you have the typed data, you can request the user to sign it with their wallet.
+
+Note that you'll need to sign every element of the intent (1 signature per input chain).
+
+```ts
+const signatures: Hex[] = [];
+for (const element of intentOp.elements) {
+  const typedData = getTypedData(
+    element,
+    BigInt(intentOp.nonce),
+    BigInt(intentOp.expires)
+  );
+  const signature = await signTypedData(wagmiConfig, {
+    ...typedData,
+  });
+  signatures.push(signature)
+}
+// The destination (output) signature is the last input signature
+const destinationSignature: Hex = signature.at(-1)
+```
+
+## Next Steps
+
+<Card
+  title="Submission"
+  icon="send"
+  href="./submitting-the-intent"
+>
+  Learn how to submit and track the signed intent
+</Card>

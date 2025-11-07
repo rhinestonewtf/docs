@@ -1,0 +1,157 @@
+---
+title: "Getting a Quote"
+description: "Request a Quote for an Intent"
+---
+
+To get started with Warp, let's get a quote for a cross-chain intent.
+
+We can do that by using the `/intents/route` endpoint.
+
+To get a quote, you'll need the **destination chain**, the **token** and its **amount** on the destination chain, and the **account address**:
+
+<CodeGroup dropdown>
+
+```ts Get Quote
+const baseUrl = "https://v1.orchestrator.rhinestone.dev";
+const endpoint = `${baseUrl}/intents/route`;
+const apiKey = "YOUR_RHINESTONE_API_KEY";
+
+const payload = {
+  destinationChainId: 8453,
+  tokenTransfers: [
+    {
+      tokenAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      amount: "5000000",
+    },
+  ],
+  account: {
+    address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+    accountType: "EOA",
+  },
+};
+
+const res = await fetch(endpoint, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    Accept: "application/json",
+  },
+  body: JSON.stringify(payload),
+});
+
+if (!res.ok) {
+  const errorBody = await res.text().catch(() => "");
+  throw new Error(
+    `Request failed: ${res.status} ${res.statusText}${errorBody ? ` - ${errorBody}` : ""}`
+  );
+}
+
+const data = await res.json();
+console.log("Quote:", data);
+```
+</CodeGroup>
+
+The API response will contain the following:
+* `intentOp`: the list of intent elements to sign by the user, along with the intent metadata like token prices
+* `intentCost`: the cost of the intent, in the input tokens
+* `tokenRequirements`: the list of [token requirements](./token-requirements) to fulfill
+
+## Sponsorship
+
+You can mark the intent as sponsored (covering the gas and bridging costs for the user) by setting the `sponsorSettings`:
+
+<CodeGroup dropdown>
+```ts {13-19} Sponsor the Intent
+const payload = {
+  destinationChainId: 8453,
+  tokenTransfers: [
+    {
+      tokenAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      amount: "5000000",
+    },
+  ],
+  account: {
+    address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+    accountType: "EOA",
+  },
+  options: {
+    sponsorSettings: {
+      gasSponsored: true,
+      bridgeFeesSponsored: true,
+      swapFeesSponsored: false
+    }
+  }
+};
+```
+</CodeGroup>
+
+## Source Chain / Token
+
+You can select what tokens and/or chains to use as a source of funds.
+
+To limit the source of funds to specific chains:
+
+<CodeGroup dropdown>
+```ts Select Input Chains
+const payload = {
+  // …
+  accountAccessList: {
+    chainIds: [10, 8453]
+  }
+};
+```
+</CodeGroup>
+
+To limit the source of funds to specific tokens:
+
+<CodeGroup dropdown>
+```ts Select Input Tokens
+const payload = {
+  // …
+  accountAccessList: {
+    tokens: ["USDC", "0x4200000000000000000000000000000000000006"]
+  }
+};
+```
+</CodeGroup>
+
+To limit the source of funds to specific tokens *and* chains:
+
+<CodeGroup dropdown>
+```ts Select Input Chains and Tokens
+const payload = {
+  // …
+  accountAccessList: {
+    chainIds: [10, 8453],
+    tokens: ["USDC"]
+  }
+};
+```
+</CodeGroup>
+
+or:
+
+<CodeGroup dropdown>
+```ts Select Input Chains and Tokens
+const payload = {
+  // …
+  accountAccessList: {
+    chainTokens: {
+      "10": ["USDC"],
+      "8453": ["WETH"]
+    }
+  }
+};
+```
+</CodeGroup>
+
+## Next Steps
+
+<Card
+  title="Token Requirements"
+  icon="list-checks"
+  href="./token-requirements"
+>
+  What are the intent requirements and how to fulfill them
+</Card>
