@@ -5,9 +5,9 @@ description: "Request a Quote for an Intent"
 
 To get started with Warp, let's get a quote for a cross-chain intent.
 
-We can do that by using the `/intents/route` endpoint.
+You can do that using the `/intents/route` endpoint.
 
-To get a quote, you'll need the **destination chain**, the **token** and its **amount** on the destination chain, and the **account address**:
+To get a quote, you'll need the **destination chain**, the **token** and **amount** on that chain, and the **account address**:
 
 <CodeGroup dropdown>
 
@@ -52,14 +52,14 @@ console.log("Quote:", data);
 ```
 </CodeGroup>
 
-The API response will contain the following:
-* `intentOp`: the list of intent elements to sign by the user, along with the intent metadata like token prices
-* `intentCost`: the cost of the intent, in the input tokens
+The API response includes:
+* `intentOp`: the list of intent elements for the user to sign, along with intent metadata such as token prices
+* `intentCost`: the cost of the intent in input tokens
 * `tokenRequirements`: the list of [token requirements](./token-requirements) to fulfill
 
 ## Sponsorship
 
-You can mark the intent as sponsored (covering the gas and bridging costs for the user) by setting the `sponsorSettings`:
+You can mark the intent as sponsored (covering the gas and bridging costs for the user) by setting the `sponsorSettings` field:
 
 <CodeGroup dropdown>
 ```ts {13-19} Sponsor the Intent
@@ -88,7 +88,7 @@ const payload = {
 
 ## Source Chain / Token
 
-You can select what tokens and/or chains to use as a source of funds.
+You can select which tokens and/or chains to use as the source of funds.
 
 To limit the source of funds to specific chains:
 
@@ -116,7 +116,7 @@ const payload = {
 ```
 </CodeGroup>
 
-To limit the source of funds to specific tokens *and* chains:
+To limit the source of funds to specific chains *and* tokens:
 
 <CodeGroup dropdown>
 ```ts Select Input Chains and Tokens
@@ -153,5 +153,5 @@ const payload = {
   icon="list-checks"
   href="./token-requirements"
 >
-  What are the intent requirements and how to fulfill them
+  What the intent requirements are and how to fulfill them
 </Card>

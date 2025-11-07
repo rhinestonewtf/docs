@@ -3,9 +3,9 @@ title: "Submitting the Intent"
 description: "Submit the signed operations to the Orchestrator"
 ---
 
-Once you've [signed](./signing) the intent operations, you can submit it to the Orchestrator to execute it.
+Once you've [signed](./signing) the intent operations, you can submit them to the Orchestrator for execution.
 
-We will use the `/intent-operations` endpoint:
+Use the `/intent-operations` endpoint:
 
 ```ts Submit Intent
 const baseUrl = "https://v1.orchestrator.rhinestone.dev";
@@ -43,7 +43,7 @@ console.log("Result:", data);
 
 ### Polling for Status
 
-When submitting an intent operation, you get the operation id back.
+When you submit an intent operation, you receive the operation ID.
 
 You can use this ID to track the status of the intent execution.
 
@@ -74,12 +74,12 @@ const data = await res.json();
 console.log("Status:", data);
 ```
 
-The intent operations can have the following status:
+Intent operations can have the following statuses:
 
 * `PENDING` — in progress
-* `CLAIMED` — the source funds were claimed by the solver, but the intent is not yet executed on the destination chain
+* `CLAIMED` — the source funds have been claimed by the solver, but the intent has not yet been executed on the destination chain
 * `COMPLETED` — fully completed and executed onchain
-* `PRECONFIRMED` — confirmed by solver, but not yet executed onchain
-* `FILLED` — executed on the destination chain, but the funds are not yet claimed on the source chain(s)
+* `PRECONFIRMED` — confirmed by the solver, but not yet executed onchain
+* `FILLED` — executed on the destination chain, but the funds have not yet been claimed on the source chain(s)
 * `EXPIRED` — missed the execution deadline
 * `FAILED` — failed to execute

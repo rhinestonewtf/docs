@@ -7,11 +7,11 @@ description: "Sign the intent payload"
 Before signing, it's recommended to get another [quote](./getting-a-quote) to avoid stale pricing.
 </Info>
 
-Warp is using legible signing with [EIP-712](https://eips.ethereum.org/EIPS/eip-712).
+Warp uses [EIP-712](https://eips.ethereum.org/EIPS/eip-712) for human-readable signing.
 
 ## Preparing the payload
 
-First, let's convert the intent operation received from the API into a typed message to sign.
+First, convert the intent operation you received from the API into a typed message to sign.
 
 ```ts
 interface TokenPermissions {
@@ -168,9 +168,9 @@ function getTypedData(
 
 ## Signing the message
 
-Once you have the typed data, you can request the user to sign it with their wallet.
+Once you have the typed data, ask the user to sign it with their wallet.
 
-Note that you'll need to sign every element of the intent (1 signature per input chain).
+Note that you'll need to sign every element of the intent (one signature per input chain).
 
 ```ts
 const signatures: Hex[] = [];
