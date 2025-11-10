@@ -18,7 +18,7 @@ const apiKey = "YOUR_RHINESTONE_API_KEY";
 
 const payload = {
   destinationChainId: 8453,
-  tokenTransfers: [
+  tokenRequests: [
     {
       tokenAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
       amount: "5000000",
@@ -65,7 +65,7 @@ You can mark the intent as sponsored (covering the gas and bridging costs for th
 ```ts {13-19} Sponsor the Intent
 const payload = {
   destinationChainId: 8453,
-  tokenTransfers: [
+  tokenRequests: [
     {
       tokenAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
       amount: "5000000",
