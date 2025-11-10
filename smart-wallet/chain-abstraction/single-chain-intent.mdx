@@ -63,23 +63,6 @@ const transaction = await rhinestoneAccount.sendTransaction({
 })
 ```
 
-## Fee Asset
-
-You can choose what asset to use as a fee token (i.e., to cover gas and bridging fees):
-
-```ts {9}
-const transaction = await rhinestoneAccount.sendTransaction({
-  chain: base,
-  calls: [
-    // …
-  ],
-  tokenRequests: [
-    // …
-  ],
-  feeAsset: 'USDC',
-})
-```
-
 ## Wait for Execution
 
 `sendTransaction` returns a pending intent. To wait until it gets executed, use `waitForExecution`:

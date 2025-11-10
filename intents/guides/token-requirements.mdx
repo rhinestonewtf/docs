@@ -1,0 +1,113 @@
+---
+title: "Fulfilling the Requirements"
+description: "Unlocking the tokens required to pay for the intent"
+---
+
+As part of the [quote](./getting-a-quote), you usually receive a list of token requirements. These requirements can span across multiple chains and tokens.
+
+There are two types of requirements:
+* ERC-20 token approvals: used to pre-approve the tokens to the Permit2 contract
+* ETH wrapping: used to wrap the ether into WETH, to be compatible with the Permit2 contract
+
+Here's an example of token requirements:
+
+```json
+{
+  "8453": {
+    "0x4200000000000000000000000000000000000006": {
+      "type": "approval",
+      "amount": "102656447694688542",
+      "spender": "0x000000000022d473030f116ddee9f6b43ac78ba3"
+    },
+    "0x0000000000000000000000000000000000000000": {
+      "type": "wrap",
+      "amount": "102656447694688542"
+    }
+  }
+}
+```
+
+In this example:
+1. ETH must be wrapped on Base.
+2. WETH (from the first step) must be approved for the [Permit2](https://github.com/Uniswap/permit2) contract on Base.
+
+## ERC-20 Approvals
+
+<CodeGroup dropdown>
+```ts Approve a token
+import {
+  switchChain,
+  writeContract,
+} from "@wagmi/core";
+import {
+  maxUint256,
+} from "viem";
+
+await switchChain(wagmiConfig, { chainId: chain.id });
+
+const hash = await writeContract(wagmiConfig, {
+  address,
+  abi: [
+    {
+      name: "approve",
+      type: "function",
+      stateMutability: "nonpayable",
+      inputs: [
+        { name: "spender", type: "address" },
+        { name: "amount", type: "uint256" },
+      ],
+      outputs: [{ name: "", type: "bool" }],
+    },
+  ],
+  functionName: "approve",
+  args: [requirement.spender, maxUint256],
+});
+```
+</CodeGroup>
+
+<Info>
+While it's possible to approve the exact amount, we suggest using infinite approvals to the Permit2 contract to streamline future UX.
+</Info>
+
+## ETH Wrapping
+
+<CodeGroup dropdown>
+```ts Wrap ETH
+import {
+  switchChain,
+  writeContract,
+} from "@wagmi/core";
+import {
+  maxUint256,
+} from "viem";
+
+await switchChain(wagmiConfig, { chainId: chain.id });
+
+const hash = await writeContract(wagmiConfig, {
+  address,
+  abi: [
+    {
+      name: "deposit",
+      type: "function",
+      stateMutability: "payable",
+      inputs: [],
+      outputs: [],
+    },
+  ],
+  functionName: "deposit",
+  value: requirement.amount,
+});
+```
+</CodeGroup>
+
+Once you've fulfilled all the necessary requirements, you can move on to signing the intent.
+
+## Next Steps
+
+<Card
+  title="Signing"
+  icon="signature"
+  href="./signing"
+>
+  Learn how to sign an intent
+</Card>

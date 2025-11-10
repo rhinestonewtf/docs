@@ -1,0 +1,68 @@
+---
+title: "Multi-input Bridge"
+description: ""
+---
+
+With Rhinestone, you can bridge from multiple chains and/or multiple tokens.
+
+The API will automatically find the most optimal path, whether it's a single- or multi-input intent.
+
+## Request
+
+You can also influence the routing by specifying input tokens and chains via `accountAccessList`:
+
+```json
+{
+  "accountAccessList": {
+    "chainIds": [10, 8453],
+    "tokens": ["USDC"]
+  }
+}
+```
+
+Learn more about choosing the inputs in the ["Getting a Quote" guide](../guides/getting-a-quote#source-chain-%2F-token).
+
+## Response
+
+In the case of multi-input bridging, you will get a route with multiple elements (one for each input chain) and/or multiple spent tokens.
+
+```json Multi-Input Intent
+{
+  "intentOp": {
+    // …
+    "elements": [
+      {
+        "chainId": "8453",
+        // …
+      },
+      {
+        "chainId": "10",
+        // …
+      }
+    ],
+  },
+  "intentCost": {
+    // …
+    "tokensSpent": {
+      "8453": {
+        "0x4200000000000000000000000000000000000006": {
+          "locked": "0",
+          "unlocked": "22291303013436002",
+          "version": 0
+        }
+      },
+      "10": {
+        "0x0b2c639c533813f4aa9d7837caf62653d097ff85": {
+          "locked": "0",
+          "unlocked": "8370380",
+          "version": 0
+        }
+      }
+    }
+  }
+}
+```
+
+If the user doesn't have outstanding Permit2 approvals, they will need to approve multiple input tokens.
+
+The user will also need to sign each element separately, i.e., one signature per input chain.
