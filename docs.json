@@ -105,7 +105,8 @@
 							"sdk/intents/unified-balance",
 							"sdk/intents/max-spendable-amount",
 							"sdk/intents/account-deployment",
-							"sdk/intents/error-handling"
+							"sdk/intents/error-handling",
+							"sdk/intents/local-orchestrator-docker"
 						]
 					},
 					{
