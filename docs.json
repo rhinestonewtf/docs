@@ -67,69 +67,74 @@
 				]
 			},
 			{
-				"tab": "SDK",
+				"tab": "Smart Wallet SDK",
 				"pages": [
-					"sdk/quickstart",
+					"smart-wallet/quickstart",
 					{
-						"group": "Smart Wallet",
+						"group": "Core",
 						"pages": [
-							"sdk/smart-wallet/create-account",
-							"sdk/smart-wallet/signers/external-wallet-signer",
+							"smart-wallet/core/create-account",
+							"smart-wallet/core/signers/external-wallet-signer",
 							{
 								"group": "Embedded Wallet Signer",
 								"pages": [
-									"sdk/smart-wallet/signers/dynamic",
-									"sdk/smart-wallet/signers/privy",
-									"sdk/smart-wallet/signers/para",
-									"sdk/smart-wallet/signers/magic",
-									"sdk/smart-wallet/signers/turnkey"
+									"smart-wallet/core/signers/dynamic",
+									"smart-wallet/core/signers/privy",
+									"smart-wallet/core/signers/para",
+									"smart-wallet/core/signers/magic",
+									"smart-wallet/core/signers/turnkey"
 								]
 							},
-							"sdk/smart-wallet/eip-7702",
-							"sdk/smart-wallet/create-first-transaction",
-							"sdk/smart-wallet/gas-fee-sponsorship",
-							"sdk/smart-wallet/passkeys",
-							"sdk/smart-wallet/ecdsa-signer",
-							"sdk/smart-wallet/multisig",
-							"sdk/smart-wallet/social-recovery",
-							"sdk/smart-wallet/custom-modules"
+							"smart-wallet/core/eip-7702",
+							"smart-wallet/core/create-first-transaction",
+							"smart-wallet/core/passkeys",
+							"smart-wallet/core/ecdsa-signer",
+							"smart-wallet/core/multisig"
 						]
 					},
 					{
-						"group": "Intents",
+						"group": "Gas Sponsorship",
 						"pages": [
-							"sdk/intents/single-chain-intent",
-							"sdk/intents/multi-chain-intent",
-							"sdk/intents/swaps",
-							"sdk/intents/resource-locks",
-							"sdk/intents/unified-balance",
-							"sdk/intents/max-spendable-amount",
-							"sdk/intents/account-deployment",
-							"sdk/intents/error-handling",
-							"sdk/intents/local-orchestrator-docker"
+							"smart-wallet/gas-sponsorship/overview",
+							"smart-wallet/gas-sponsorship/set-up-sponsorship",
+							"smart-wallet/gas-sponsorship/pay-gas-with-erc20"
+						]
+					},
+					{
+						"group": "Chain Abstraction",
+						"pages": [
+							"smart-wallet/chain-abstraction/single-chain-intent",
+							"smart-wallet/chain-abstraction/multi-chain-intent",
+							"smart-wallet/chain-abstraction/swaps",
+							"smart-wallet/chain-abstraction/resource-locks",
+							"smart-wallet/chain-abstraction/unified-balance",
+							"smart-wallet/chain-abstraction/max-spendable-amount",
+							"smart-wallet/chain-abstraction/account-deployment",
+							"smart-wallet/chain-abstraction/error-handling",
+              "smart-wallet/chain-abstraction/local-orchestrator-docker"
 						]
 					},
 					{
 						"group": "Smart Sessions",
 						"pages": [
-							"sdk/smart-sessions/overview",
-							"sdk/smart-sessions/multi-session-signature",
+							"smart-wallet/smart-sessions/overview",
+							"smart-wallet/smart-sessions/multi-session-signature",
 							{
 								"group": "Signature Validators",
 								"pages": [
-									"sdk/smart-sessions/signature-validators/ecdsa",
-									"sdk/smart-sessions/signature-validators/multisig",
-									"sdk/smart-sessions/signature-validators/passkey"
+									"smart-wallet/smart-sessions/signature-validators/ecdsa",
+									"smart-wallet/smart-sessions/signature-validators/multisig",
+									"smart-wallet/smart-sessions/signature-validators/passkey"
 								]
 							},
 							{
 								"group": "Policies",
 								"pages": [
-									"sdk/smart-sessions/policies/sudo",
-									"sdk/smart-sessions/policies/call",
-									"sdk/smart-sessions/policies/spending-limit",
-									"sdk/smart-sessions/policies/timeframe",
-									"sdk/smart-sessions/policies/usage-limit"
+									"smart-wallet/smart-sessions/policies/sudo",
+									"smart-wallet/smart-sessions/policies/call",
+									"smart-wallet/smart-sessions/policies/spending-limit",
+									"smart-wallet/smart-sessions/policies/timeframe",
+									"smart-wallet/smart-sessions/policies/usage-limit"
 								]
 							}
 						]
@@ -137,31 +142,56 @@
 					{
 						"group": "Advanced",
 						"pages": [
-							"sdk/advanced/use-erc-4337",
-							"sdk/advanced/batch-transactions",
-							"sdk/advanced/message-signing",
-							"sdk/advanced/migration-guide",
-							"sdk/advanced/multi-factor-authentication",
-							"sdk/security"
+							"smart-wallet/advanced/batch-transactions",
+							"smart-wallet/advanced/multi-factor-authentication",
+							"smart-wallet/advanced/recovery",
+							"smart-wallet/advanced/custom-modules",
+							"smart-wallet/advanced/message-signing",
+							"smart-wallet/advanced/use-erc-4337",
+							"smart-wallet/advanced/migration-guide",
+							"smart-wallet/advanced/security"
 						]
 					},
-					"sdk/module-sdk",
+					"smart-wallet/module-sdk",
 					{
 						"group": "Customize",
 						"pages": [
-							"sdk/customize/bring-your-own-account",
+							"smart-wallet/customize/bring-your-own-account",
 							{
 								"group": "Smart Account Providers",
 								"pages": [
-									"sdk/customize/smart-account-providers/nexus",
-									"sdk/customize/smart-account-providers/safe",
-									"sdk/customize/smart-account-providers/kernel",
-									"sdk/customize/smart-account-providers/startale",
-									"sdk/customize/smart-account-providers/prime"
+									"smart-wallet/customize/smart-account-providers/nexus",
+									"smart-wallet/customize/smart-account-providers/safe",
+									"smart-wallet/customize/smart-account-providers/kernel",
+									"smart-wallet/customize/smart-account-providers/startale",
+									"smart-wallet/customize/smart-account-providers/prime"
 								]
 							},
-							"sdk/customize/json-rpc-providers",
-							"sdk/customize/erc4337-infra"
+							"smart-wallet/customize/json-rpc-providers",
+							"smart-wallet/customize/erc4337-infra"
+						]
+					}
+				]
+			},
+			{
+				"tab": "Intents API",
+				"pages": [
+					"intents/overview",
+					{
+						"group": "Use Cases",
+						"pages": [
+							"intents/use-cases/one-click-deposit",
+							"intents/use-cases/chain-abstracted-swaps",
+							"intents/use-cases/multi-input-bridge"
+						]
+					},
+					{
+						"group": "Guides",
+						"pages": [
+							"intents/guides/getting-a-quote",
+							"intents/guides/token-requirements",
+							"intents/guides/signing",
+							"intents/guides/submitting-the-intent"
 						]
 					}
 				]
@@ -527,7 +557,7 @@
 			},
 			{
 				"tab": "API Reference",
-				"openapi": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/openapi.json"
+				"openapi": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/orchestrator.json"
 			}
 		]
 	},

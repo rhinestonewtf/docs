@@ -1,0 +1,41 @@
+---
+title: "Chain Abstracted Swaps"
+description: ""
+---
+
+Rhinestone automatically handles the cross-chain token swaps for you.
+
+The routing will find the best path from the user's existing balance to the requested token balance on the destination chain, whether by bridging, swapping, or both.
+
+## Response
+
+In the case of a swap, you will get a quote where the source (spent) token is different from the target (requested) token:
+
+```json
+{
+  // …
+  "intentCost": {
+    // …
+    "tokensReceived": [
+      {
+        // Receiving USDC on Optimism
+        "tokenAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+        "hasFulfilled": true,
+        "amountSpent": "81032981",
+        "destinationAmount": "81029468",
+        "fee": "3513"
+      }
+    ],
+    "tokensSpent": {
+      "8453": {
+        // Using WETH on Base
+        "0x4200000000000000000000000000000000000006": {
+          "locked": "0",
+          "unlocked": "22291303013436002",
+          "version": 0
+        }
+      },
+    }
+  }
+}
+```

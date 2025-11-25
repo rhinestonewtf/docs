@@ -251,7 +251,7 @@ const account = await createRhinestoneAccount({
 
 <Info>The `account` object is multi-chain; you don't need to create separate instances for each chain.</Info>
 
-See [Smart Account Providers](./customize/smart-account-providers/nexus) for details on choosing the account implementation.
+See [Smart Account Providers](../customize/smart-account-providers/nexus) for details on choosing the account implementation.
 
 #### Choosing a validator
 
@@ -303,9 +303,9 @@ const account = await createRhinestoneAccount({
 })
 ```
 
-Learn more about using the [ECDSA](./core/ecdsa-signer) and [passkey](./core/passkeys) validators as the account owner.
+Learn more about using the [ECDSA](../core/ecdsa-signer) and [passkey](../core/passkeys) validators as the account owner.
 
-If you are using Smart Sessions, see the relevant [guide](./smart-sessions/overview).
+If you are using Smart Sessions, see the relevant [guide](../smart-sessions/overview).
 
 #### Setting up Omni Account modules
 
@@ -420,7 +420,7 @@ const recipient = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
 
 const metaIntent: MetaIntent = {
   targetChainId: targetChain.id,
-  tokenTransfers: [
+  tokenRequests: [
     {
       tokenAddress: usdcAddress,
       amount: usdcAmount,
