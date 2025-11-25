@@ -1,0 +1,126 @@
+---
+title: "Local Orchestrator with Docker"
+mode: "wide"
+sidebarTitle: "Local Orchestrator (Docker)"
+description: "Run the Rhinestone Orchestrator locally with Docker and connect the SDK to forked chains."
+---
+
+## Overview
+
+Spin up a local test environment that includes:
+- **Two Anvil forks**: Ethereum Sepolia and Base Sepolia
+- **Rhinestone Orchestrator** (mockestrator) wired to those forks via `rpcs.json`
+
+This setup lets you develop and test intents locally with full control over RPC state and fast iteration.
+
+## Prerequisites
+
+- Docker and Docker Compose installed
+- An Alchemy API key in your environment: `export ALCHEMY_API_KEY=...`
+
+## Steps
+
+### 1) Create `rpcs.json`
+
+```json
+{
+  "11155111": {
+    "rpc": "http://sepolia_fork:8545"
+  },
+  "84532": {
+    "rpc": "http://base_sepolia_fork:8545"
+  }
+}
+```
+
+### 2) Create `docker-compose.yaml`
+
+```yaml
+services:
+  base_sepolia_fork:
+    image: ghcr.io/foundry-rs/foundry
+    command:
+      - anvil --fork-url https://base-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY:?alchemy key missing for base-sepolia} --host 0.0.0.0 --hardfork prague --no-priority-fee --gas-price 12000000 --base-fee 12000000
+    ports:
+      - '30005:8545'
+    healthcheck:
+      test: ['CMD', 'sh', '-c', 'cast rpc eth_blockNumber > /dev/null 2>&1']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  sepolia_fork:
+    image: ghcr.io/foundry-rs/foundry
+    command:
+      - anvil --fork-url https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY:?alchemy key missing for sepolia} --host 0.0.0.0 --hardfork prague --no-priority-fee --gas-price 12000000 --base-fee 12000000
+    ports:
+      - '30006:8545'
+    healthcheck:
+      test: ['CMD', 'sh', '-c', 'cast rpc eth_blockNumber > /dev/null 2>&1']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  mockestrator:
+    image: public.ecr.aws/rhinestone/mockestrator:latest
+    ports: ['3000:3000']
+    depends_on:
+      sepolia_fork:
+        condition: service_healthy
+      base_sepolia_fork:
+        condition: service_healthy
+    volumes:
+      - ./rpcs.json:/app/rpcs.json
+```
+
+Start the stack:
+
+```bash
+docker compose up -d
+```
+
+Stop it:
+
+```bash
+docker compose down
+```
+
+### 3) Local Endpoints
+
+- Sepolia fork RPC: `http://localhost:30006`
+- Base Sepolia fork RPC: `http://localhost:30005`
+- Orchestrator: `http://localhost:3000`
+
+Note: If your app also uses port 3000, change the left-hand port for `mockestrator` (e.g., `3007:3000`) and update the examples accordingly.
+
+## SDK Configuration
+
+Point the SDK at the local Orchestrator and local RPCs.
+
+```ts
+import { RhinestoneSDK } from "@rhinestone/sdk";
+import { sepolia, baseSepolia } from "viem/chains";
+
+const rhinestone = new RhinestoneSDK({
+  endpointUrl: "http://localhost:3000",
+  provider: {
+    type: "custom",
+    urls: {
+      [sepolia.id]: "http://localhost:30006",
+      [baseSepolia.id]: "http://localhost:30005",
+    },
+  },
+  useDevContracts: true,
+});
+```
+
+## Troubleshooting
+
+- Ensure `ALCHEMY_API_KEY` is exported in your shell before starting Docker.
+- If containers appear unhealthy, check logs:
+  - `docker compose logs -f sepolia_fork`
+  - `docker compose logs -f base_sepolia_fork`
+  - `docker compose logs -f mockestrator`
+- For port conflicts, adjust the left-hand port mappings in `docker-compose.yaml`.
+
+
