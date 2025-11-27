@@ -79,7 +79,7 @@ Create a production-ready hook that integrates Openfort wallets with Rhinestone 
 <Note>Openfort provides embedded wallets with Shield security that can be accessed via a viem-compatible provider.</Note>
 
 ```tsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useUser, useWallets, useOpenfort } from '@openfort/react'
 import { createWalletClient, custom } from 'viem'
 import { sepolia } from 'viem/chains'
@@ -107,7 +107,7 @@ export function useOpenfortWallet(): OpenfortWalletState & {
     isAuthenticated: false,
   })
 
-  const initializeAccount = async () => {
+  const initializeAccount = useCallback(async () => {
     if (!isAuthenticated || !wallets || wallets.length === 0) {
       setState(prev => ({
         ...prev,
@@ -169,11 +169,11 @@ export function useOpenfortWallet(): OpenfortWalletState & {
         isAuthenticated: false,
       }))
     }
-  }
+  }, [isAuthenticated, wallets, client])
 
   useEffect(() => {
     initializeAccount()
-  }, [isAuthenticated, wallets])
+  }, [initializeAccount])
 
   return {
     ...state,
@@ -268,8 +268,7 @@ Send transactions using the Openfort-connected wallet with proper error handling
 
 ```tsx
 import { useState } from 'react'
-import { encodeFunctionData, parseUnits } from 'viem'
-import { erc20Abi } from 'viem/chains'
+import { encodeFunctionData, parseUnits, erc20Abi } from 'viem'
 import { baseSepolia, arbitrumSepolia } from 'viem/chains'
 
 function CrossChainTransfer({ rhinestoneAccount }) {
