@@ -125,14 +125,15 @@ export function useOpenfortWallet(): OpenfortWalletState & {
       // Get Ethereum provider from Openfort's embedded wallet
       const ethereumProvider = await client.embeddedWallet.getEthereumProvider()
 
+      // Get signer address from Openfort wallet
+      const signerAddress = wallets[0].address as `0x${string}`
+
       // Create wallet client with viem
       const walletClient = createWalletClient({
         chain: sepolia,
-        transport: custom(ethereumProvider)
+        transport: custom(ethereumProvider),
+        account: signerAddress
       })
-
-      // Get signer address from Openfort wallet
-      const signerAddress = wallets[0].address
 
       // Wrap wallet client for Rhinestone compatibility
       const wrappedWalletClient = walletClientToAccount(walletClient)
