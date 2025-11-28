@@ -40,7 +40,7 @@ const passkeyAccount = toWebAuthnAccount({
 const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'passkey',
-    account: passkeyAccount,
+    accounts: [passkeyAccount],
   },
 })
 ```
