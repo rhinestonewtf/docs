@@ -82,7 +82,8 @@
 									"smart-wallet/core/signers/privy",
 									"smart-wallet/core/signers/para",
 									"smart-wallet/core/signers/magic",
-									"smart-wallet/core/signers/turnkey"
+									"smart-wallet/core/signers/turnkey",
+									"smart-wallet/core/signers/openfort"
 								]
 							},
 							"smart-wallet/core/eip-7702",
