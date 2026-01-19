@@ -343,7 +343,7 @@ The example demonstrates:
 
 ## EIP-7702 Support
 
-For [EIP-7702](/smart-wallet/core/eip-7702) with Dynamic's WaaS wallets, you need to create a custom viem account that wraps Dynamic's signer. This is because Dynamic's `signAuthorization` method uses a different interface than viem expects.
+For [EIP-7702](/smart-wallet/core/eip-7702) with Dynamic, you need to create a custom viem account that wraps Dynamic's signer.
 
 Get the Dynamic signer from the connector, then use viem's `toAccount` to create a compatible account:
 
@@ -365,7 +365,7 @@ const eoaAccount = toAccount({
 });
 ```
 
-Pass this account to Rhinestone with the `eoa` parameter to enable 7702 functionality:
+Pass this account to Rhinestone with the `eoa` parameter:
 
 ```tsx
 const rhinestoneAccount = await sdk.createAccount({
