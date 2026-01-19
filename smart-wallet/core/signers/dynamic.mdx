@@ -341,9 +341,42 @@ The example demonstrates:
 - Cross-chain transactions
 - Error handling and best practices
 
+## EIP-7702 Support
+
+For [EIP-7702](/smart-wallet/7702/overview) with Dynamic's WaaS wallets, you need to create a custom viem account that wraps Dynamic's signer. This is because Dynamic's `signAuthorization` method uses a different interface than viem expects.
+
+Get the Dynamic signer from the connector, then use viem's `toAccount` to create a compatible account:
+
+```tsx
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { toAccount } from "viem/accounts";
+
+const { primaryWallet } = useDynamicContext();
+const connector = primaryWallet.connector;
+connector.setActiveAccount(primaryWallet.address);
+const dynamicSigner = await connector.getSigner();
+
+const eoaAccount = toAccount({
+  address: primaryWallet.address,
+  signMessage: ({ message }) => dynamicSigner.signMessage({ message }),
+  signTransaction: (tx) => dynamicSigner.signTransaction(tx),
+  signTypedData: (typedData) => dynamicSigner.signTypedData(typedData),
+  signAuthorization: (authorization) => dynamicSigner.signAuthorization(authorization),
+});
+```
+
+Pass this account to Rhinestone with the `eoa` parameter to enable 7702 functionality:
+
+```tsx
+const rhinestoneAccount = await sdk.createAccount({
+  owners: { type: "ecdsa", accounts: [eoaAccount] },
+  eoa: eoaAccount,
+});
+```
+
 ## Next Steps
 
-- **See it in action**: [Dynamic + Rhinestone Example](https://github.com/rhinestonewtf/e2e-examples/tree/main/dynamic) 
+- **See it in action**: [Dynamic + Rhinestone Example](https://github.com/rhinestonewtf/e2e-examples/tree/main/dynamic)
 - Learn more about [Dynamic's features](https://docs.dynamic.xyz/) for user onboarding
-- Explore [chain abstraction](../../chain-abstraction/unified-balance) capabilities  
+- Explore [chain abstraction](../../chain-abstraction/unified-balance) capabilities
 - Check out [creating an account](../create-account) for more details
