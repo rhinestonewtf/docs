@@ -5,13 +5,38 @@ description: "Extend account's capabilities with bespoke modules"
 
 Custom modules enable you to tailor the functionality of your smart wallet.
 
-With custom *Validators*, you can introduce novel ways to authorize user transactions. Custom *Executors* enable automated transaction flows against the user account. And with custom hooks, you can add custom logic that runs before or after any transaction executed on the account.
+With custom *validators*, you can introduce novel ways to authorize user transactions. Custom *executors* enable automated transaction flows against the user account. And with custom *hooks*, you can add custom logic that runs before or after any transaction executed on the account.
 
 To create a custom module, use the [ModuleKit](../../build-modules/overview).
 
+## Deployment
+
+You can install custom modules during account deployment by passing them in the `modules` field when creating the account:
+
+```ts
+import { createRhinestoneAccount } from '@rhinestone/sdk'
+
+const rhinestoneAccount = await createRhinestoneAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [owner],
+  },
+  modules: [
+    {
+      type: 'executor',
+      address: MODULE_ADDRESS,
+      // Optional
+      initData: MODULE_DATA,
+    },
+  ],
+})
+```
+
+This is useful when you want your account to have specific modules available from the start, without needing a separate installation transaction after deployment.
+
 ## Installing a Module
 
-With Rhinestone SDK, you can install and use custom validators, executors, and hooks.
+You can install and use custom validators, executors, and hooks.
 
 ```ts
 import { installModule, uninstallModule } from '@rhinestone/sdk/actions'
