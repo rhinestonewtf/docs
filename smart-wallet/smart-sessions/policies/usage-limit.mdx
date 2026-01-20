@@ -7,19 +7,23 @@ You can limit the number of times the session can be used.
 
 To enable the policy:
 
-```ts {6-11}
+```ts {6-15}
 const session: Session = {
   owners: {
-    type: "ecdsa",
-    accounts: [accountA],
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
   },
-  policies: [
+  actions: [
     {
-      type: "usage-limit",
-      limit: 10n,
+      policies: [
+        {
+          type: 'usage-limit',
+          limit: 10n,
+        },
+      ],
     },
   ],
-};
+}
 ```
 
 This will create a session that can only be used 10 times.

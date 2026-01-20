@@ -39,7 +39,7 @@ The reference value is a hex string of 32 bytes. For convenience, you can pass t
 
 To enable a call policy:
 
-```ts {8-19}
+```ts {8-31}
 const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 
 const session: Session = {
@@ -47,28 +47,30 @@ const session: Session = {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-  policies: [
+  actions: [
     {
-      type: 'universal-action',
-      rules: [
+      // ERC20 transfer action
+      target: usdcAddress,
+      selector: toFunctionSelector(
+        getAbiItem({
+          abi: erc20,
+          name: 'transfer',
+        }),
+      ),
+      policies: [
         {
-          condition: 'equal',
-          calldataOffset: 0n,
-          referenceValue: receiver,
+          type: 'universal-action',
+          rules: [
+            {
+              condition: 'equal',
+              calldataOffset: 0n,
+              referenceValue: receiver,
+            },
+          ],
         },
       ],
     },
   ],
-  // ERC20 transfer action
-  actions: [
-    target: usdcAddress,
-    selector: toFunctionSelector(
-      getAbiItem({
-        abi: erc20,
-        name: 'transfer',
-      }),
-    ),
-  ]
 }
 ```
 
@@ -80,29 +82,30 @@ You can limit the total accumulated value of a param across all session uses.
 
 This can be helpful if you want to e.g. limit the total value of tokens passed through the session.
 
-```ts {6-18}
+```ts {17}
 const session: Session = {
   owners: {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-  policies: [
+  actions: [
     {
-      type: 'universal-action',
-      rules: [
+      // ERC20 transfer action
+      policies: [
         {
-          condition: 'lessThan',
-          calldataOffset: 20n,
-          referenceValue: parseUnits("10", 6),
-          usageLimit: parseUnits("50", 6),
+          type: 'universal-action',
+          rules: [
+            {
+              condition: 'lessThan',
+              calldataOffset: 20n,
+              referenceValue: parseUnits('10', 6),
+              usageLimit: parseUnits('50', 6),
+            },
+          ],
         },
       ],
     },
   ],
-  // ERC20 transfer action
-  actions: [
-    // …
-  ]
 }
 ```
 
@@ -112,7 +115,7 @@ Together with an ERC20 transfer action, this will limit the token transferred to
 
 To limit the maximum value to pass for a single session use:
 
-```ts {11}
+```ts {14}
 const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 
 const session: Session = {
@@ -120,23 +123,24 @@ const session: Session = {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-  policies: [
+  actions: [
     {
-      type: 'universal-action',
-      valueLimitPerUse: parseUnits("0.1", 18),
-      rules: [
+      // ERC20 transfer action
+      policies: [
         {
-          condition: 'equal',
-          calldataOffset: 0n,
-          referenceValue: receiver,
+          type: 'universal-action',
+          valueLimitPerUse: parseUnits('0.1', 18),
+          rules: [
+            {
+              condition: 'equal',
+              calldataOffset: 0n,
+              referenceValue: receiver,
+            },
+          ],
         },
       ],
     },
   ],
-  // ERC20 transfer action
-  actions: [
-    // …
-  ]
 }
 ```
 
