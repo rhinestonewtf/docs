@@ -17,6 +17,10 @@ const endpoint = `${baseUrl}/intents/route`;
 const apiKey = "YOUR_RHINESTONE_API_KEY";
 
 const payload = {
+  account: {
+    address: EOA_ADDRESS,
+    accountType: "EOA",
+  },
   destinationChainId: 8453,
   tokenRequests: [
     {
@@ -24,10 +28,6 @@ const payload = {
       amount: "5000000",
     },
   ],
-  account: {
-    address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-    accountType: "EOA",
-  },
 };
 
 const res = await fetch(endpoint, {
@@ -56,6 +56,40 @@ The API response includes:
 * `intentOp`: the list of intent elements for the user to sign, along with intent metadata such as token prices
 * `intentCost`: the cost of the intent in input tokens
 * `tokenRequirements`: the list of [token requirements](./token-requirements) to fulfill
+
+## Executions (calls)
+
+You can make executions on behalf of the EOA on the destination chain.
+
+Note: the executions run in the context of the multicall contract. If you're sending any tokens, make sure to add a call to transfer any output back to the EOA.
+
+```ts
+const payload = {
+  // …
+  destinationExecutions: [
+    // Deposit USDC to a vault
+    {
+      to: VAULT_CONTRACT,
+      value: 0n,
+      data: encodeFunctionData({
+        abi: vaultAbi,
+        functionName: 'deposit',
+        args: [usdcAmount],
+      }),
+    },
+    // Send vault receipt token back to the EOA
+    {
+      to: USDC_VAULT_CONTRACT,
+      value: 0n,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [tokenAmount, EOA_ADDRESS],
+      }),
+    }
+  ],
+}
+```
 
 ## Sponsorship
 
