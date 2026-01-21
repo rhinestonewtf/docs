@@ -7,28 +7,32 @@ You can limit the amount of ERC20 tokens transferable with the policy.
 
 To enable the policy:
 
-```ts {6-20}
+```ts {6-24}
 const session: Session = {
   owners: {
-    type: "ecdsa",
-    accounts: [accountA],
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
   },
-  policies: [
+  actions: [
     {
-      type: "spending-limits",
-      limits: [
+      policies: [
         {
-          token: usdcAddress,
-          amount: parseUnits("10", 6),
-        },
-        {
-          token: wethAddress,
-          amount: parseUnits("0.1", 18),
+          type: 'spending-limits',
+          limits: [
+            {
+              token: usdcAddress,
+              amount: parseUnits('10', 6),
+            },
+            {
+              token: wethAddress,
+              amount: parseUnits('0.1', 18),
+            },
+          ],
         },
       ],
     },
   ],
-};
+}
 ```
 
 This will cap all transfers within the session to 10 USDC and 0.1 WETH in total.

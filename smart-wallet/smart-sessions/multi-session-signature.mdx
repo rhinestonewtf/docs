@@ -1,6 +1,6 @@
 ---
 title: "Multi-Session Signature"
-description: "Reuse the session signature across mulitple chains"
+description: "Reuse the session signature across multiple chains"
 ---
 
 ## Overview
@@ -52,44 +52,25 @@ const sessions: Session[] = [
 ]
 ```
 
-## Enabling the Sessions
+## Enabling the Session
 
 To enable a session, you need to get the session details and enable data. This step prepares the session for installation on the target chain:
 
 ```ts
+const sessionDetails =
+  await rhinestoneAccount.experimental_getSessionDetails(sessions)
+const enableSignature =
+  await rhinestoneAccount.experimental_signEnableSession(sessionDetails)
 const sessionIndex = 0 // Which session to enable
-const sessionDetails = await rhinestoneAccount.getSessionDetails(
-  sessions,
-  sessionIndex,
-)
 ```
 
 The method returns the data needed to install the session on-chain, including the signature required to enable sessions.
 
 The account owner will be prompted to sign the session installation request.
 
-## Reusing the Signature
+### Reusing the Signature
 
-One of the most powerful features is the ability to reuse an existing signature across multiple session installations. Once you have the signature to enable a session, you can use it for future installations:
-
-```ts {9-14}
-// First time: Get session details and signature
-const sessionDetails = await rhinestoneAccount.getSessionDetails(
-  sessions,
-  sessionIndex,
-)
-// Store the `sessionDetails` for later use
-
-// Later: Reuse the existing signature
-const sessionDetailsReused = await rhinestoneAccount.getSessionDetails(
-  sessions,
-  sessionIndex,
-  existingSessionDetails.nonces,
-  existingSessionDetails.signature
-)
-```
-
-<Warning>You also need to supply the original session nonces, otherwise the session digest will not match the signed digest.</Warning>
+One of the most powerful features is the ability to reuse an existing signature across multiple session installations. Once you have the signature to enable a session, you can use it for future installations. For this, store the `sessionDetails` and `enableSignature` for later use.
 
 This pattern allows you to:
 - Pre-sign all your sessions during user onboarding
@@ -101,7 +82,7 @@ This pattern allows you to:
 Once your sessions are enabled, you can use them to sign transactions on any supported chain:
 
 ```ts
-const data = await rhinestoneAccount.prepareUserOperation({
+const data = await rhinestoneAccount.prepareTransaction({
   chain,
   calls: [
     {
@@ -110,16 +91,20 @@ const data = await rhinestoneAccount.prepareUserOperation({
     },
   ],
   signers: {
-    type: 'session',
+    type: 'experimental_session',
     session: sessions[sessionIndex],
-    enableData: sessionDetails.enableSessionData,
+    enableData: {
+      userSignature: enableSignature,
+      hashesAndChainIds: sessionDetails.hashesAndChainIds,
+      sessionIndex,
+    },
   },
 })
 
 // Sign with the session key
-const signedData = await rhinestoneAccount.signUserOperation(data)
+const signedData = await rhinestoneAccount.signTransaction(data)
 
-await rhinestoneAccount.submitUserOperation(signedData)
+await rhinestoneAccount.submitTransaction(signedData)
 ```
 
 ## Complete Example
@@ -167,15 +152,15 @@ const sessions: Session[] = [
   },
 ]
 
-// Get the session installation details on Base
-const sessionIndexBase = 0
-const sessionDetailsBase = await rhinestoneAccount.getSessionDetails(
-  sessions,
-  sessionIndexBase,
-)
+// Get the session details and sign once
+const sessionDetails =
+  await rhinestoneAccount.experimental_getSessionDetails(sessions)
+const enableSignature =
+  await rhinestoneAccount.experimental_signEnableSession(sessionDetails)
 
 // Enable and use the session on Base
-const dataBase = await rhinestoneAccount.prepareUserOperation({
+const sessionIndexBase = 0
+const dataBase = await rhinestoneAccount.prepareTransaction({
   chain: baseSepolia,
   calls: [
     {
@@ -185,26 +170,21 @@ const dataBase = await rhinestoneAccount.prepareUserOperation({
   ],
   tokenRequests: [],
   signers: {
-    type: 'session',
+    type: 'experimental_session',
     session: sessions[sessionIndexBase],
-    enableData: sessionDetailsBase.enableSessionData,
+    enableData: {
+      userSignature: enableSignature,
+      hashesAndChainIds: sessionDetails.hashesAndChainIds,
+      sessionIndex: sessionIndexBase,
+    },
   },
 })
-const signedDataBase = await rhinestoneAccount.signUserOperation(dataBase)
-await rhinestoneAccount.submitUserOperation(signedDataBase)
+const signedDataBase = await rhinestoneAccount.signTransaction(dataBase)
+await rhinestoneAccount.submitTransaction(signedDataBase)
 
-// Get the session installation details on Optimism
+// Enable and use the session on Optimism (reusing the same signature)
 const sessionIndexOptimism = 1
-const sessionDetailsOptimism = await rhinestoneAccount.getSessionDetails(
-  sessions,
-  sessionIndexOptimism,
-  // Reusing the existing nonces and the signature
-  sessionDetails.nonces,
-  sessionDetails.signature
-)
-
-// Enable and use the session on Optimism
-const dataOptimism = await rhinestoneAccount.prepareUserOperation({
+const dataOptimism = await rhinestoneAccount.prepareTransaction({
   chain: optimismSepolia,
   calls: [
     {
@@ -214,11 +194,15 @@ const dataOptimism = await rhinestoneAccount.prepareUserOperation({
   ],
   tokenRequests: [],
   signers: {
-    type: 'session',
+    type: 'experimental_session',
     session: sessions[sessionIndexOptimism],
-    enableData: sessionDetailsOptimism.enableSessionData,
+    enableData: {
+      userSignature: enableSignature,
+      hashesAndChainIds: sessionDetails.hashesAndChainIds,
+      sessionIndex: sessionIndexOptimism,
+    },
   },
 })
-const signedDataOptimism = await rhinestoneAccount.signUserOperation(dataOptimism)
-await rhinestoneAccount.submitUserOperation(signedDataOptimism)
+const signedDataOptimism = await rhinestoneAccount.signTransaction(dataOptimism)
+await rhinestoneAccount.submitTransaction(signedDataOptimism)
 ```

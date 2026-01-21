@@ -16,7 +16,7 @@ Examples of the onchain permissions that can be tailored with Smart Sessions inc
 Key example use cases include:
 - **Skipping confirmations**: Store a session key locally for “one-click trading,” allowing seamless decentralized application (dapp) interactions without repeated signing prompts.
 - **Automating transactions**: Users share a scoped key for server-side execution, enabling:
-Subscription payments
+  - Subscription payments
   - Limit orders or stop orders
   - Auto-repaying loans to prevent liquidation
   - This granular control enhances security, streamlines dapp interactions, and makes Web3 more user-friendly.
@@ -58,105 +58,57 @@ Supported policies include:
 - [Usage limit](./policies/usage-limit): allows a limited number of transactions
 - Value limit: allows a limited ETH value transferred
 
-When defining multiple policies within a session or an action, a transaction that passes **every** specified policy is considered valid. If no policies are specified, **any** transaction will pass (i.e., the sudo policy is applied).
+When defining multiple policies within an action, a transaction that passes **every** specified policy is considered valid. If no policies are specified, **any** transaction will pass (i.e., the sudo policy is applied).
 
-### Signing policies
-
-You can also set up the [ERC-7739](https://eips.ethereum.org/EIPS/eip-7739) policies for clear signing with sessions.
-
-Here's an example of allowing the session to sign the `TransferWithAuthorization` requests for USDC:
-
-```ts {18-27}
-import {domainSeparator} from 'viem'
-
-const usdcDomain = {
-  name: 'USDC',
-  version: '2',
-  chainId: chain.id,
-  verifyingContract: usdcAddress,
-} as const
-const usdcDomainSeparator = domainSeparator({
-  domain: usdcDomain,
-})
-const session: Session = {
-  owners: {
-    type: 'ecdsa',
-    accounts: [sessionOwnerAccount],
-  },
-  chain,
-  signing: {
-    allowedContent: [
-      {
-        domainSeparator: usdcDomainSeparator,
-        contentName: [
-          'TransferWithAuthorization(address from,address to,uint256 value,uint256 validAfter,uint256 validBefore,bytes32 nonce)',
-        ],
-      },
-    ],
-  },
-}
-```
-
-You can then use the [signing utilties](../advanced/message-signing#typed-data-eip-712) to sign the transfer authorization on behalf of the account:
-
-```ts
-const authorizationSignature = await rhinestoneAccount.signTypedData(
-  {
-    domain: usdcDomain,
-    types: {
-      TransferWithAuthorization: [
-        { name: 'from', type: 'address' },
-        { name: 'to', type: 'address' },
-        { name: 'value', type: 'uint256' },
-        { name: 'validAfter', type: 'uint256' },
-        { name: 'validBefore', type: 'uint256' },
-        { name: 'nonce', type: 'bytes32' },
-      ],
-    },
-    primaryType: 'TransferWithAuthorization',
-    message: {
-      from: address,
-      to: receiver,
-      value: 42,
-      validAfter: 0,
-      validBefore: validBefore,
-      nonce,
-    },
-  },
-  chain,
-  {
-    type: 'session',
-    session,
-  },
-)
-```
+<Info>Policies work like a logical AND. If an action has two policies, the transaction must pass both policies to be valid.</Info>
 
 ## Usage
 
-<Note>At the moment, using smart sessions requires setting up [the ERC-4337 infrastructure](../advanced/use-erc-4337).</Note>
+<Warning>Smart session support is **experimental**. Expect breaking changes.</Warning>
 
-### Creating sessions
+### Installing the validation
 
-To create an account with a session key:
+You can install the validator during account deployment:
 
-```ts {1-6,16}
-const session: Session = {
-  owners: {
-    type: 'ecdsa',
-    accounts: [sessionOwnerAccount],
-  },
-}
-
-const rhinestone = new RhinestoneSDK({
-  apiKey: rhinestoneApiKey,
-})
+```ts {6-8}
 const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
     accounts: [ownerAccount],
   },
-  sessions: [session],
+  experimental_sessions: {
+    enabled: true,
+  },
 })
+```
+
+You can also install it when the account is already deployed:
+
+```ts
+import { installModule } from '@rhinestone/sdk/actions'
+
+const transactionData = await rhinestoneAccount.sendTransaction({
+  chain: base,
+  calls: [
+    installModule({
+      address: SMART_SESSION_ADDRESS,
+      type: 'validator',
+    }),
+  ],
+})
+```
+
+### Creating Sessions
+
+To create an account with a session key:
+
+```ts
+const session: Session = {
+  owners: {
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
+  },
+}
 ```
 
 You can also limit the session to specific allowed actions:
@@ -181,19 +133,14 @@ const session: Session = {
 }
 ```
 
-Finally, you can specify policies at both session and action levels:
+Finally, you can specify action-level policies:
 
-```ts {6-10,20-31}
+```ts {15-26}
 const session: Session = {
   owners: {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-  policies: [
-    {
-      type: 'sudo',
-    },
-  ],
   actions: [
     {
       target: usdcAddress,
@@ -225,18 +172,36 @@ const session: Session = {
 To enable a session:
 
 ```ts
-const transactionResult = await rhinestoneAccount.sendUserOperation({
+import { experimental_enableSession } from '@rhinestone/sdk/actions/smart-sessions'
+
+const sessions = [session]
+const sessionDetails =
+  await rhinestoneAccount.experimental_getSessionDetails(sessions)
+const enableSignature =
+  await rhinestoneAccount.experimental_signEnableSession(sessionDetails)
+const sessionIndex = 0
+
+const transactionResult = await rhinestoneAccount.sendTransaction({
   chain,
-  calls: [enableSession(session)],
+  calls: [
+    experimental_enableSession(
+      session,
+      enableSignature,
+      sessionDetails.hashesAndChainIds,
+      sessionIndex,
+    ),
+  ],
 })
 ```
+
+You can also enable session with a signature. See [Multi-Session Signature](./multi-session-signature) for more details.
 
 ### Using sessions
 
 To authorize a transaction with a session key you've enabled before:
 
 ```ts {13-16}
-const transactionResult = await rhinestoneAccount.sendUserOperation({
+const transactionResult = await rhinestoneAccount.sendTransaction({
   chain,
   calls: [
     {
@@ -249,8 +214,8 @@ const transactionResult = await rhinestoneAccount.sendUserOperation({
     },
   ],
   signers: {
-    type: 'session',
-    session: session,
+    type: 'experimental_session',
+    session,
   },
 })
 ```

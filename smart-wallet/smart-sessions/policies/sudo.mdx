@@ -7,15 +7,19 @@ Sudo policy allows any transaction to pass. It is the default session.
 
 To enable a sudo policy:
 
-```ts {6-10}
+```ts {6-14}
 const session: Session = {
   owners: {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-  policies: [
+  actions: [
     {
-      type: 'sudo',
+      policies: [
+        {
+          type: 'sudo',
+        },
+      ],
     },
   ],
 }

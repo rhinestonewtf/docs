@@ -4,16 +4,11 @@ title: "ECDSA"
 
 To make an EOA account the session owner:
 
-```ts {2-5}
+```ts
 const session: Session = {
   owners: {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-  policies: [
-    {
-      type: 'sudo',
-    },
-  ],
 }
 ```
