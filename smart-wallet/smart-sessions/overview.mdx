@@ -58,7 +58,9 @@ Supported policies include:
 - [Usage limit](./policies/usage-limit): allows a limited number of transactions
 - Value limit: allows a limited ETH value transferred
 
-When defining multiple policies within a session or an action, a transaction that passes **every** specified policy is considered valid. If no policies are specified, **any** transaction will pass (i.e., the sudo policy is applied).
+When defining multiple policies within an action, a transaction that passes **every** specified policy is considered valid. If no policies are specified, **any** transaction will pass (i.e., the sudo policy is applied).
+
+<Info>Policies work like a logical AND. If an action has two policies, the transaction must pass both policies to be valid.</Info>
 
 ## Usage
 
