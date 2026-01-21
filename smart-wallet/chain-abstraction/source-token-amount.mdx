@@ -1,0 +1,102 @@
+---
+title: "Source Token Amount"
+---
+
+You can specify the exact amount of source (input) tokens to spend for the bridging.
+
+This can be helpful if you want to limit the amount of tokens to bridge, or if you want to bridge the entire token balance.
+
+To bridge a specific amount of tokens:
+
+```ts  {4-10}
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChains: [optimism],
+  targetChain: base,
+  sourceAssets: [
+    {
+      chain: optimism,
+      address: 'USDC',
+      amount: parseUnits('10', 6),
+    }
+  ],
+  tokenRequests: [
+    {
+      // Note: no amount specified for the target token
+      address: 'USDC',
+    },
+  ],
+})
+```
+
+This will bridge 10 USDC from Optimism to Base.
+
+## Entire Balance
+
+To bridge the entire balance of a token:
+
+```ts {10-15,24}
+import { getTokenAddress } from '@rhinestone/sdk'
+
+const sourceChain = optimism
+const targetChain = base
+
+const publicClient = createPublicClient({
+  chain: sourceChain,
+  transport: http(),
+})
+const usdcBalance = await publicClient.readContract({
+  address: getTokenAddress('USDC', sourceChain.id),
+  abi: erc20Abi,
+  functionName: 'balanceOf',
+  args: [address],
+})
+
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChains: [sourceChain],
+  targetChain,
+  sourceAssets: [
+    {
+      chain: sourceChain,
+      address: 'USDC',
+      amount: usdcBalance,
+    },
+  ],
+  tokenRequests: [
+    {
+      address: 'USDC',
+    },
+  ],
+})
+```
+
+This will sweep the user's USDC balance on Optimism to Base.
+
+## Multichain
+
+You can specify exact source amounts from multiple source chains:
+
+```ts {4-15}
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChains: [optimism, base],
+  targetChain: arbitrum,
+  sourceAssets: [
+    {
+      chain: optimism,
+      address: 'USDC',
+      amount: parseUnits('50', 6),
+    },
+    {
+      chain: base,
+      address: 'USDC',
+      amount: parseUnits('30', 6),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: 'USDC',
+    },
+  ],
+})
+```
+
+This will bridge 50 USDC from Optimism and 30 USDC from Base to Arbitrum, combining them into a single balance on the target chain.

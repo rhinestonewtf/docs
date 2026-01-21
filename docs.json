@@ -109,10 +109,10 @@
 							"smart-wallet/chain-abstraction/swaps",
 							"smart-wallet/chain-abstraction/resource-locks",
 							"smart-wallet/chain-abstraction/unified-balance",
-							"smart-wallet/chain-abstraction/max-spendable-amount",
+							"smart-wallet/chain-abstraction/source-token-amount",
 							"smart-wallet/chain-abstraction/account-deployment",
 							"smart-wallet/chain-abstraction/error-handling",
-              "smart-wallet/chain-abstraction/local-orchestrator-docker"
+							"smart-wallet/chain-abstraction/local-orchestrator-docker"
 						]
 					},
 					{
