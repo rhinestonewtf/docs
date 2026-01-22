@@ -85,16 +85,22 @@ const rhinestoneAccount = await rhinestone.createAccount({
 You can also install it when the account is already deployed:
 
 ```ts
-import { installModule } from '@rhinestone/sdk/actions'
+import { experimental_enable } from '@rhinestone/sdk/actions/smart-sessions'
 
 const transactionData = await rhinestoneAccount.sendTransaction({
   chain: base,
-  calls: [
-    installModule({
-      address: SMART_SESSION_ADDRESS,
-      type: 'validator',
-    }),
-  ],
+  calls: [experimental_enable()],
+})
+```
+
+To uninstall the validator:
+
+```ts
+import { experimental_disable } from '@rhinestone/sdk/actions/smart-sessions'
+
+const transactionData = await rhinestoneAccount.sendTransaction({
+  chain: base,
+  calls: [experimental_disable()],
 })
 ```
 
@@ -195,6 +201,14 @@ const transactionResult = await rhinestoneAccount.sendTransaction({
 ```
 
 You can also enable session with a signature. See [Multi-Session Signature](./multi-session-signature) for more details.
+
+### Checking session status
+
+To check if a session is enabled:
+
+```ts
+const isEnabled = await rhinestoneAccount.experimental_isSessionEnabled(session)
+```
 
 ### Using sessions
 
