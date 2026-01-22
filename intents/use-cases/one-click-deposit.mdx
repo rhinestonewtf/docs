@@ -51,9 +51,9 @@ The following diagram shows the three key addresses involved in a cross-chain de
 
 ```mermaid
 sequenceDiagram
-    participant User as User EOA<br/>(userAddress)
-    participant Companion as Companion Account<br/>(companionAccount.getAddress())
-    participant Recipient as Deposit Destination<br/>(recipient)
+    participant User as User EOA
+    participant Companion as Companion Account
+    participant Recipient as Deposit Destination
 
     Note over User: Owns funds on source chain
     Note over Companion: Ephemeral smart account<br/>1-of-2 multisig (User + App Signer)
