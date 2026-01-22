@@ -15,6 +15,8 @@ The flow works as follows:
 
 This way, the user only needs to approve a single transaction (ERC-20 token transfer from the source chain).
 
+The companion account is a 1-of-2 multisig where both your app's signer and the user can operate. This means funds are never custodial—even if your app goes offline, the user can always recover funds using their wallet.
+
 ## Getting a Quote
 
 Start by getting a deposit quote from Rhinestone:
@@ -31,35 +33,51 @@ Start by getting a deposit quote from Rhinestone:
   // Your user's address
   "account": {
     "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+  },
+  // Optional: constrain the source tokens
+  "accountAccessList": {
+    "chainTokens": {
+      "1": ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"]
+    }
   }
 }
 ```
 
-## Companion account
+<Note>The API uses `accountAccessList` to specify which tokens can be spent. When using the SDK's `prepareTransaction`, the equivalent parameter is called `sourceAssets`.</Note>
 
-Next, create a "companion" smart account for the user. The simplest way to do it is to use [the Rhinestone SDK](../../smart-wallet/quickstart):
+## Companion Account
+
+The following diagram shows the three key addresses involved in a cross-chain deposit:
+
+```mermaid
+sequenceDiagram
+    participant User as User EOA<br/>(userAddress)
+    participant Companion as Companion Account<br/>(companionAccount.getAddress())
+    participant Recipient as Deposit Destination<br/>(recipient)
+
+    Note over User: Owns funds on source chain
+    Note over Companion: Ephemeral smart account<br/>1-of-2 multisig (User + App Signer)
+    Note over Recipient: Final destination<br/>(e.g., vault, protocol)
+
+    User->>Companion: 1. Transfer tokens (source chain)
+    Note over Companion: Holds tokens temporarily
+    Companion->>Recipient: 2. Intent execution (destination chain)
+    Note over Recipient: Receives deposit
+```
+
+Create a "companion" smart account for the user. The simplest way to do it is to use [the Rhinestone SDK](../../smart-wallet/quickstart):
 
 ```ts
 import { RhinestoneSDK } from "@rhinestone/sdk";
+import { toViewOnlyAccount } from "@rhinestone/sdk/utils";
 
 const rhinestone = new RhinestoneSDK({
   // The endpoint of the API proxy, see our "Security" guide
   endpointUrl: `${appBaseUrl}/api`,
 });
 
-// Read-only user's account
-const ownerAccount = toAccount({
-  address: ownerAddress,
-  signMessage: async () => {
-    throw new Error("Not implemented");
-  },
-  signTransaction: async () => {
-    throw new Error("Not implemented");
-  },
-  signTypedData: async () => {
-    throw new Error("Not implemented");
-  },
-});
+// Read-only reference to the user's EOA
+const ownerAccount = toViewOnlyAccount(ownerAddress);
 
 // Signer of the smart account stored in your app
 // Make sure to persist this
@@ -80,7 +98,7 @@ In most cases, this account will be operated by your app (with the key stored on
 
 This account will only be funded to execute deposit intents.
 
-## Account funding
+## Account Funding
 
 Now, prompt the user to fund this "companion" account by making a token transfer to it:
 
@@ -99,6 +117,8 @@ await waitForTransactionReceipt(wagmiConfig, {
 ```
 
 <Note>When deciding the fund amount, consider the gas costs to deploy the smart account, the potential price fluctuations, and the existing companion account balance if it has been used before.</Note>
+
+<Note>For native token deposits (e.g., ETH), transfer the native token directly to the companion account. The intent system will handle wrapping to WETH internally since Permit2 only supports ERC-20 tokens.</Note>
 
 ## Executing the Intent
 
@@ -130,4 +150,12 @@ await companionAccount.sendTransaction({
 
 Since we're using the local signer private key, there will be no additional user interaction for this step.
 
+<Note>After submitting the intent, poll the intent status until it reaches a terminal state (`COMPLETED`, `FILLED`, `FAILED`, or `EXPIRED`). This typically takes a few seconds for cross-chain settlements.</Note>
+
 Once the intent is executed, the deposit will be complete.
+
+## Recovery
+
+If a deposit fails mid-flow (e.g., the user closes the app after funding but before intent execution), funds remain safe in the companion account. Since the user's EOA is a co-owner of the 1-of-2 multisig, they can always recover funds by signing a withdrawal transaction directly.
+
+Make sure to persist the app's signer key so you can retry failed intents without requiring the user to re-fund the account.
