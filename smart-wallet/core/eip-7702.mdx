@@ -86,6 +86,10 @@ const transactionData = await rhinestoneAccount.prepareTransaction({
 })
 ```
 
+<Info>
+The init signature is unique to the account address and only needs to be signed once. Cache it after the first request and pass it for each transaction on a new chain where the account is not yet deployed. Use `account.isDeployed` to check whether the account is already deployed on a given chain and skip passing the signature when it is.
+</Info>
+
 ### Signing the authorization
 
 When sending the transaction, you will need to sign the EIP-7702 authorization:
