@@ -4,42 +4,72 @@ sidebarTitle: "Supported Chains"
 description: "Learn what chains our services are deployed on"
 ---
 
+export const ChainsTable = ({ apiUrl }) => {
+  const [chains, setChains] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+
+  React.useEffect(() => {
+    fetch(apiUrl)
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch chains');
+        return res.json();
+      })
+      .then(data => {
+        const chainsArray = Object.entries(data).map(([chainId, chain]) => ({
+          ...chain,
+          chainId: parseInt(chainId, 10)
+        }));
+        setChains(chainsArray.sort((a, b) => a.chainId - b.chainId));
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [apiUrl]);
+
+  if (loading) {
+    return <div className="text-gray-500 dark:text-gray-400 py-4">Loading chains...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500 dark:text-red-400 py-4">Error loading chains: {error}</div>;
+  }
+
+  return (
+    <table className="min-w-full">
+      <thead>
+        <tr className="border-b border-gray-200 dark:border-gray-700">
+          <th className="text-left py-2 pr-4 font-semibold">Name</th>
+          <th className="text-right py-2 pr-4 font-semibold">Chain ID</th>
+          <th className="text-left py-2 font-semibold">Tokens</th>
+        </tr>
+      </thead>
+      <tbody>
+        {chains.map((chain) => (
+          <tr key={chain.chainId} className="border-b border-gray-100 dark:border-gray-800">
+            <td className="py-2 pr-4">{chain.name}</td>
+            <td className="py-2 pr-4 text-right">{chain.chainId}</td>
+            <td className="py-2">{chain.supportsSwaps ? 'All' : (chain.supportedTokens?.map(t => t.symbol).join(', ') || '-')}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+};
+
 ## Intent-Based Transaction Support
 
 Rhinestone intents can be supported on any chain where an integrated settlement layer is deployed. Today, we support Across, Relay, and Eco.
 
 ### Mainnet
 
-| Name         |   Chain | Tokens                | Active       |
-| :----------- | ------: | :-------------------- | :----------- |
-| Ethereum     |       1 | ETH, WETH, USDC, USDT | Yes          |
-| Base         |    8453 | ETH, WETH, USDC, USDT | Yes          |
-| Optimism     |      10 | ETH, WETH, USDC, USDT | Yes          |
-| Arbitrum One |   42161 | ETH, WETH, USDC, USDT | Yes          |
-| Polygon      |     137 | WETH, USDC, USDT      | Yes          |
-| zkSync       |     324 | ETH, WETH, USDC, USDT | Yes          |
-| Soneium      |    1868 | ETH, WETH, USDC       | Yes          |
-| Aleph Zero   |    2039 | ETH, WETH, USDC       | Upon Request |
-| Blast        |   81457 | ETH, WETH, USDC       | Upon Request |
-| Ink          |   57073 | ETH, WETH, USDC       | Upon Request |
-| Lens         |     232 | ETH, WETH, USDC       | Upon Request |
-| Linea        |   59144 | ETH, WETH, USDC       | Upon Request |
-| Lisk         |    1135 | ETH, WETH, USDC       | Upon Request |
-| Mode         |   34443 | ETH, WETH, USDC       | Upon Request |
-| Redstone     |     690 | ETH, WETH, USDC       | Upon Request |
-| Scroll       |  534352 | ETH, WETH, USDC       | Upon Request |
-| Unichain     |     130 | ETH, WETH, USDC       | Upon Request |
-| World Chain  |     480 | ETH, WETH, USDC       | Upon Request |
-| Zora         | 7777777 | ETH, WETH, USDC       | Upon Request |
+<ChainsTable apiUrl="https://v1.orchestrator.rhinestone.dev/chains" />
 
 ### Testnet
 
-| Name             |    Chain | Tokens          |
-| :--------------- | -------: | :-------------- |
-| Sepolia          | 11155111 | ETH, WETH, USDC |
-| Base Sepolia     |    84532 | ETH, WETH, USDC |
-| Optimism Sepolia | 11155420 | ETH, WETH, USDC |
-| Arbitrum Sepolia |   421614 | ETH, WETH, USDC |
+<ChainsTable apiUrl="https://staging.v1.orchestrator.rhinestone.dev/chains" />
 
 ## Smart Account Infra
 
