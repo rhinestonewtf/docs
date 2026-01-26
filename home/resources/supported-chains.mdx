@@ -43,8 +43,7 @@ export const ChainsTable = ({ apiUrl }) => {
         <tr className="border-b border-gray-200 dark:border-gray-700">
           <th className="text-left py-2 pr-4 font-semibold">Name</th>
           <th className="text-right py-2 pr-4 font-semibold">Chain ID</th>
-          <th className="text-left py-2 pr-4 font-semibold">Tokens</th>
-          <th className="text-left py-2 font-semibold">Swaps</th>
+          <th className="text-left py-2 font-semibold">Tokens</th>
         </tr>
       </thead>
       <tbody>
@@ -52,8 +51,7 @@ export const ChainsTable = ({ apiUrl }) => {
           <tr key={chain.chainId} className="border-b border-gray-100 dark:border-gray-800">
             <td className="py-2 pr-4">{chain.name}</td>
             <td className="py-2 pr-4 text-right">{chain.chainId}</td>
-            <td className="py-2 pr-4">{chain.supportedTokens?.map(t => t.symbol).join(', ') || '-'}</td>
-            <td className="py-2">{chain.supportsSwaps ? 'Yes' : 'No'}</td>
+            <td className="py-2">{chain.supportsSwaps ? 'All' : (chain.supportedTokens?.map(t => t.symbol).join(', ') || '-')}</td>
           </tr>
         ))}
       </tbody>
