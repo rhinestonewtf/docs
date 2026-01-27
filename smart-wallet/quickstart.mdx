@@ -28,7 +28,8 @@ bun install viem @rhinestone/sdk
 
 </CodeGroup>
 
-## Creating a Wallet
+<Steps>
+<Step title="Create a Wallet">
 
 Let's create a smart account with a single owner:
 
@@ -70,7 +71,8 @@ const address = rhinestoneAccount.getAddress()
 console.log(`Smart account address: ${address}`)
 ```
 
-## Funding the Account
+</Step>
+<Step title="Fund the Account">
 
 We will send some ETH from the funding account to the created smart account. The Orchestrator will use some of that ETH to deploy the account on the target chain, as well as to convert it to USDC for a transfer transaction.
 
@@ -93,7 +95,8 @@ const txHash = await fundingClient.sendTransaction({
 await publicClient.waitForTransactionReceipt({ hash: txHash })
 ```
 
-## Sending a Cross-chain Transaction
+</Step>
+<Step title="Send a Cross-chain Transaction">
 
 Finally, let's make a cross-chain token transfer:
 
@@ -130,6 +133,9 @@ console.log('Result', transactionResult)
 After running that, you will get a smart account deployed on both Base Sepolia and Arbitrum Sepolia, and make a cross-chain USDC transfer.
 
 Note that you don't need to manage the gas tokens or do the ETH → USDC swap when making a transfer. The Orchestrator will handle that for you!
+
+</Step>
+</Steps>
 
 ## Next Steps
 

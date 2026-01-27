@@ -13,19 +13,29 @@ External wallets like MetaMask, Coinbase Wallet, and WalletConnect-compatible wa
 - External wallet installed (MetaMask, Coinbase Wallet, etc.)
 - Basic familiarity with wallet connections
 
-## Installation
+<Steps>
+<Step title="Install Dependencies">
 
 Install the required dependencies:
 
-```bash
-# Core dependencies
-npm install @rhinestone/sdk viem
+<CodeGroup>
 
-# For AppKit (recommended for WalletConnect)
-npm install @reown/appkit @reown/appkit-adapter-wagmi wagmi
+```bash npm
+npm install @rhinestone/sdk viem @reown/appkit @reown/appkit-adapter-wagmi wagmi
 ```
 
-## Using AppKit (WalletConnect)
+```bash pnpm
+pnpm add @rhinestone/sdk viem @reown/appkit @reown/appkit-adapter-wagmi wagmi
+```
+
+```bash bun
+bun install @rhinestone/sdk viem @reown/appkit @reown/appkit-adapter-wagmi wagmi
+```
+
+</CodeGroup>
+
+</Step>
+<Step title="Set Up AppKit">
 
 The easiest way to integrate multiple wallets including WalletConnect. AppKit provides a beautiful, pre-built UI:
 
@@ -103,7 +113,10 @@ export function WalletConnector() {
 }
 ```
 
-### Cross-Chain Transaction Example
+</Step>
+</Steps>
+
+## Cross-Chain Transaction Example
 
 ```tsx
 async function sendCrossChainTransaction(rhinestoneAccount) {
@@ -132,7 +145,7 @@ async function sendCrossChainTransaction(rhinestoneAccount) {
 }
 ```
 
-### Wallet Detection
+## Wallet Detection
 
 ```tsx
 export function getAvailableWallets() {
@@ -154,7 +167,7 @@ if (availableWallets.length === 0) {
 }
 ```
 
-### Good Practice: Graceful Degradation
+## Good Practice: Graceful Degradation
 
 Always check for wallet availability when using server-side rendering:
 

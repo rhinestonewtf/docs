@@ -15,15 +15,29 @@ Magic provides passwordless authentication and embedded wallet infrastructure th
 - Rhinestone API key
 - React/Next.js application setup
 
-## Installation
+<Steps>
+<Step title="Install Dependencies">
 
 Install the required dependencies:
 
-```bash
+<CodeGroup>
+
+```bash npm
 npm install magic-sdk @rhinestone/sdk viem
 ```
 
-## Setup Magic Provider
+```bash pnpm
+pnpm add magic-sdk @rhinestone/sdk viem
+```
+
+```bash bun
+bun install magic-sdk @rhinestone/sdk viem
+```
+
+</CodeGroup>
+
+</Step>
+<Step title="Set Up Magic Provider">
 
 First, set up the Magic provider in your React application:
 
@@ -48,7 +62,8 @@ function App() {
 }
 ```
 
-## Create a Magic Integration Hook
+</Step>
+<Step title="Create Integration Hook">
 
 Create a custom hook that integrates Magic authentication with Rhinestone accounts. This demonstrates the core pattern: **get the wallet client from Magic, then pass it to Rhinestone**.
 
@@ -134,6 +149,9 @@ export function useMagicWallet() {
   }
 }
 ```
+
+</Step>
+</Steps>
 
 ## Usage
 

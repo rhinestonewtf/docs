@@ -15,15 +15,29 @@ Dynamic provides embedded wallet infrastructure that enables seamless user onboa
 - Dynamic API key
 - React application setup
 
-## Installation
+<Steps>
+<Step title="Install Dependencies">
 
 Install the required dependencies:
 
-```bash
+<CodeGroup>
+
+```bash npm
 npm install @dynamic-labs/sdk-react @rhinestone/sdk viem wagmi
 ```
 
-## Setup Dynamic Provider
+```bash pnpm
+pnpm add @dynamic-labs/sdk-react @rhinestone/sdk viem wagmi
+```
+
+```bash bun
+bun install @dynamic-labs/sdk-react @rhinestone/sdk viem wagmi
+```
+
+</CodeGroup>
+
+</Step>
+<Step title="Set Up Dynamic Provider">
 
 First, set up the Dynamic provider in your React application:
 
@@ -44,7 +58,8 @@ function App() {
 }
 ```
 
-## Create a Dynamic Integration Hook
+</Step>
+<Step title="Create Integration Hook">
 
 Create a production-ready hook that integrates Dynamic wallets with Rhinestone accounts. This demonstrates the core pattern: **get the wallet client from wagmi, then pass it to Rhinestone**.
 
@@ -138,6 +153,9 @@ export function useGlobalWallet(): GlobalWalletState & {
   }
 }
 ```
+
+</Step>
+</Steps>
 
 ## Usage
 

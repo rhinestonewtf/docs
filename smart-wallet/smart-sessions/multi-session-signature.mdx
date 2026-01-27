@@ -18,7 +18,8 @@ The key innovation is the “enable mode” — where you prepare all your sessi
 While this guide focuses on multi-chain usage, you can also use this pattern on a single chain to pre-sign multiple different sessions and enable them over time as your application needs to evolve.
 </Info>
 
-## Creating the Sessions
+<Steps>
+<Step title="Create the Sessions">
 
 First, define your sessions for different chains. Each session can have different owners, policies, and actions depending on your use case:
 
@@ -52,7 +53,8 @@ const sessions: Session[] = [
 ]
 ```
 
-## Enabling the Session
+</Step>
+<Step title="Enable the Session">
 
 To enable a session, you need to get the session details and enable data. This step prepares the session for installation on the target chain:
 
@@ -77,7 +79,8 @@ This pattern allows you to:
 - Enable specific sessions on-demand without additional signatures
 - Batch multiple session installations with the same signature
 
-## Using the Sessions
+</Step>
+<Step title="Use the Sessions">
 
 Once your sessions are enabled, you can use them to sign transactions on any supported chain:
 
@@ -106,6 +109,9 @@ const signedData = await rhinestoneAccount.signTransaction(data)
 
 await rhinestoneAccount.submitTransaction(signedData)
 ```
+
+</Step>
+</Steps>
 
 ## Complete Example
 

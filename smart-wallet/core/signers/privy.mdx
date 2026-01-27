@@ -15,15 +15,29 @@ Privy provides simple, secure wallet infrastructure that enables seamless user a
 - Privy App ID
 - React application setup
 
-## Installation
+<Steps>
+<Step title="Install Dependencies">
 
 Install the required dependencies:
 
-```bash
+<CodeGroup>
+
+```bash npm
 npm install @privy-io/react-auth @privy-io/wagmi-connector @rhinestone/sdk viem wagmi
 ```
 
-## Setup Privy Provider
+```bash pnpm
+pnpm add @privy-io/react-auth @privy-io/wagmi-connector @rhinestone/sdk viem wagmi
+```
+
+```bash bun
+bun install @privy-io/react-auth @privy-io/wagmi-connector @rhinestone/sdk viem wagmi
+```
+
+</CodeGroup>
+
+</Step>
+<Step title="Set Up Privy Provider">
 
 First, set up the Privy provider in your React application:
 
@@ -60,7 +74,8 @@ function App() {
 }
 ```
 
-## Create a Privy Integration Hook
+</Step>
+<Step title="Create Integration Hook">
 
 Create a custom hook that integrates Privy authentication with Rhinestone accounts. This hook demonstrates the key pattern: **use wagmi to get the wallet client from Privy, then pass it to Rhinestone as a signer**.
 
@@ -110,6 +125,9 @@ export function usePrivyWallet() {
   }
 }
 ```
+
+</Step>
+</Steps>
 
 ## Usage
 

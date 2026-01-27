@@ -16,15 +16,29 @@ Para uses a different signature format (0/1 v-byte) than standard EVM wallets (2
 - A Para account and API key from [Para Dashboard](https://developer.getpara.com)
 - Rhinestone API key
 
-## Installation
+<Steps>
+<Step title="Install Dependencies">
 
 Install the required dependencies:
 
-```bash
+<CodeGroup>
+
+```bash npm
 npm install @getpara/react-sdk @getpara/viem @rhinestone/sdk viem @tanstack/react-query
 ```
 
-## Setup Para Provider
+```bash pnpm
+pnpm add @getpara/react-sdk @getpara/viem @rhinestone/sdk viem @tanstack/react-query
+```
+
+```bash bun
+bun install @getpara/react-sdk @getpara/viem @rhinestone/sdk viem @tanstack/react-query
+```
+
+</CodeGroup>
+
+</Step>
+<Step title="Set Up Para Provider">
 
 Create a context provider that wraps your application with Para and React Query. This setup enables Para's authentication modal, wallet management, and proper React state handling.
 
@@ -103,7 +117,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-## Initialize Rhinestone with Para
+</Step>
+<Step title="Initialize Rhinestone with Para">
 
 The key is to wrap the Para viem account with `wrapParaAccount` before passing it to Rhinestone:
 
@@ -149,6 +164,9 @@ export function useRhinestoneAccount() {
 <Note>
 Use a [backend proxy](../../security) for your Rhinestone API key in production.
 </Note>
+
+</Step>
+</Steps>
 
 ## Send Transactions
 

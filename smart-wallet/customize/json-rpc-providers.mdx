@@ -8,9 +8,10 @@ Many public providers are heavily throttled and are not suitable for high traffi
 
 For production use, we recommend setting up a custom JSON-RPC provider with your own API key.
 
-## Alchemy
+<Tabs>
+<Tab title="Alchemy">
 
-To use the [Alchemy](https://www.alchemy.com) bundler, provide an API key during account initialization:
+To use [Alchemy](https://www.alchemy.com), provide an API key during SDK initialization:
 
 ```ts {2-6}
 const rhinestone = new RhinestoneSDK({
@@ -26,8 +27,11 @@ const rhinestoneAccount = await rhinestone.createAccount({
     accounts: [accountA, accountB, accountC],
     threshold: 2,
   },
-  
+
 })
 ```
+
+</Tab>
+</Tabs>
 
 [Reach out](https://github.com/rhinestonewtf/sdk/issues) if you need support for other JSON-RPC providers!
