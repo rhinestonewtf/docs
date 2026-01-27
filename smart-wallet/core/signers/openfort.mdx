@@ -16,15 +16,29 @@ Openfort provides embedded wallet infrastructure that enables seamless user auth
 - Shield publishable key
 - React application setup
 
-## Installation
+<Steps>
+<Step title="Install Dependencies">
 
 Install the required dependencies:
 
-```bash
+<CodeGroup>
+
+```bash npm
 npm install @openfort/react @tanstack/react-query @rhinestone/sdk viem wagmi
 ```
 
-## Setup Openfort Provider
+```bash pnpm
+pnpm add @openfort/react @tanstack/react-query @rhinestone/sdk viem wagmi
+```
+
+```bash bun
+bun install @openfort/react @tanstack/react-query @rhinestone/sdk viem wagmi
+```
+
+</CodeGroup>
+
+</Step>
+<Step title="Set Up Openfort Provider">
 
 First, set up the Openfort provider with wagmi and React Query in your React application:
 
@@ -72,7 +86,8 @@ function App() {
 }
 ```
 
-## Create an Openfort Integration Hook
+</Step>
+<Step title="Create Integration Hook">
 
 Create a production-ready hook that integrates Openfort wallets with Rhinestone accounts. This demonstrates the core pattern: **get the wallet client from Openfort's embedded wallet, then pass it to Rhinestone**.
 
@@ -182,6 +197,9 @@ export function useOpenfortWallet(): OpenfortWalletState & {
   }
 }
 ```
+
+</Step>
+</Steps>
 
 ## Usage
 

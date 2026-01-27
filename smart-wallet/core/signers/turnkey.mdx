@@ -15,15 +15,29 @@ Turnkey provides secure key management infrastructure that enables you to create
 - Turnkey API credentials (API public/private key pair)
 - Your organization ID from Turnkey
 
-## Installation
+<Steps>
+<Step title="Install Dependencies">
 
 Install the required dependencies:
 
-```bash
+<CodeGroup>
+
+```bash npm
 npm install @turnkey/http @turnkey/api-key-stamper @turnkey/viem @rhinestone/sdk viem
 ```
 
-## Create a Signer Wallet
+```bash pnpm
+pnpm add @turnkey/http @turnkey/api-key-stamper @turnkey/viem @rhinestone/sdk viem
+```
+
+```bash bun
+bun install @turnkey/http @turnkey/api-key-stamper @turnkey/viem @rhinestone/sdk viem
+```
+
+</CodeGroup>
+
+</Step>
+<Step title="Create a Signer Wallet">
 
 Using the Turnkey dashboard or API, create a new Ethereum (EVM) wallet. This wallet will be the owner of the Rhinestone smart account.
 
@@ -32,7 +46,8 @@ Using the Turnkey dashboard or API, create a new Ethereum (EVM) wallet. This wal
 3. Create a new Ethereum wallet
 4. Note the wallet address for the next step
 
-## Create a Turnkey Signer
+</Step>
+<Step title="Create a Turnkey Signer">
 
 Create a viem Account instance that integrates with Turnkey for signing. This creates a viem-compatible signer that Rhinestone can use, similar to how wagmi provides wallet clients in the other examples.
 
@@ -70,7 +85,8 @@ function createTurnkeySigner(walletAddress: Address) {
 }
 ```
 
-## Initialize Rhinestone Account
+</Step>
+<Step title="Initialize Rhinestone Account">
 
 Create a new Rhinestone account using the Turnkey signer. This is the same pattern as with other providers - pass the signer to Rhinestone, and it wraps it with cross-chain functionality:
 
@@ -90,6 +106,9 @@ const rhinestoneAccount = await rhinestone.createAccount({
   },
 });
 ```
+
+</Step>
+</Steps>
 
 ## Usage
 

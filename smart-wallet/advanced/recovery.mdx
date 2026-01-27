@@ -71,7 +71,8 @@ const rhinestoneAccount = await rhinestone.createAccount({
 
 ## Usage
 
-### ECDSA Account
+<Tabs>
+<Tab title="ECDSA Account">
 
 To recover access to the account:
 
@@ -102,7 +103,8 @@ for (const call of recoveryCalls) {
 
 This will prompt a signature from the guardian account, and submit a transaction on its behalf to update the ownership.
 
-### Passkey Account
+</Tab>
+<Tab title="Passkey Account">
 
 To recover access to the account:
 
@@ -140,3 +142,6 @@ for (const call of recoveryCalls) {
 ```
 
 This will prompt a signature from the guardian account, and submit a transaction on its behalf to update the ownership.
+
+</Tab>
+</Tabs>

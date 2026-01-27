@@ -18,9 +18,8 @@ This setup lets you develop and test intents locally with full control over RPC 
 - Docker and Docker Compose installed
 - An Alchemy API key in your environment: `export ALCHEMY_API_KEY=...`
 
-## Steps
-
-### 1) Create `rpcs.json`
+<Steps>
+<Step title="Create rpcs.json">
 
 ```json
 {
@@ -33,7 +32,8 @@ This setup lets you develop and test intents locally with full control over RPC 
 }
 ```
 
-### 2) Create `docker-compose.yaml`
+</Step>
+<Step title="Create docker-compose.yaml">
 
 ```yaml
 services:
@@ -85,13 +85,17 @@ Stop it:
 docker compose down
 ```
 
-### 3) Local Endpoints
+</Step>
+<Step title="Verify Local Endpoints">
 
 - Sepolia fork RPC: `http://localhost:30006`
 - Base Sepolia fork RPC: `http://localhost:30005`
 - Orchestrator: `http://localhost:3000`
 
 Note: If your app also uses port 3000, change the left-hand port for `mockestrator` (e.g., `3007:3000`) and update the examples accordingly.
+
+</Step>
+</Steps>
 
 ## SDK Configuration
 

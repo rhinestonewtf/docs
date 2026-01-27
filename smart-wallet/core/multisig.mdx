@@ -22,7 +22,8 @@ Both our [ECDSA signer](./ecdsa-signer) (Ownable Validator) and [passkeys signer
 
 ## Initialization
 
-### ECDSA
+<Tabs>
+<Tab title="ECDSA">
 
 To create a multisig account:
 
@@ -49,7 +50,8 @@ const rhinestoneAccount = await rhinestone.createAccount({
 
 By default, the `threshold` is 1 (any multisig owner can sign any transaction).
 
-### Passkeys
+</Tab>
+<Tab title="Passkeys">
 
 To create a multisig account:
 
@@ -75,6 +77,9 @@ const rhinestoneAccount = await rhinestone.createAccount({
 ```
 
 By default, the `threshold` is 1 (any multisig owner can sign any transaction).
+
+</Tab>
+</Tabs>
 
 ## Usage
 
@@ -104,6 +109,9 @@ const transaction = await rhinestoneAccount.sendTransaction({
 
 To add a new signer to your multisig:
 
+<Tabs>
+<Tab title="ECDSA">
+
 ```ts
 import { addOwner } from '@rhinestone/sdk/actions/ecdsa'
 
@@ -114,7 +122,8 @@ const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
 })
 ```
 
-For passkeys:
+</Tab>
+<Tab title="Passkeys">
 
 ```ts
 import { addOwner } from '@rhinestone/sdk/actions/passkeys'
@@ -130,9 +139,15 @@ const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
 })
 ```
 
+</Tab>
+</Tabs>
+
 ### Remove Signer
 
 To remove an existing signer from your multisig:
+
+<Tabs>
+<Tab title="ECDSA">
 
 ```ts
 import { removeOwner } from '@rhinestone/sdk/actions/ecdsa'
@@ -144,21 +159,28 @@ const removeOwnerTransaction = await rhinestoneAccount.sendTransaction({
 })
 ```
 
-For passkeys:
+</Tab>
+<Tab title="Passkeys">
 
 ```ts
 import { removeOwner } from '@rhinestone/sdk/actions/passkeys'
 
-// Add a new owner
-const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
+// Remove an owner
+const removeOwnerTransaction = await rhinestoneAccount.sendTransaction({
   chain,
   calls: [removeOwner(pubKeyX, pubKeyY)],
 })
 ```
 
+</Tab>
+</Tabs>
+
 ### Change Threshold
 
 To update the signature threshold for your multisig:
+
+<Tabs>
+<Tab title="ECDSA">
 
 ```ts
 import { changeThreshold } from '@rhinestone/sdk/actions/ecdsa'
@@ -170,7 +192,8 @@ const changeThresholdTransaction = await rhinestoneAccount.sendTransaction({
 })
 ```
 
-For passkeys:
+</Tab>
+<Tab title="Passkeys">
 
 ```ts
 import { changeThreshold } from '@rhinestone/sdk/actions/passkeys'
@@ -181,6 +204,9 @@ const changeThresholdTransaction = await rhinestoneAccount.sendTransaction({
   calls: [changeThreshold(2)],
 })
 ```
+
+</Tab>
+</Tabs>
 
 ### Get Owners
 

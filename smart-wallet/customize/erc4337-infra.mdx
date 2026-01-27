@@ -8,9 +8,10 @@ Supplying the API key is optional and only recommended when [using the ERC-4337 
 
 ## Bundlers
 
-### Pimlico
+Provide a bundler API key during SDK initialization:
 
-To use the [Pimlico](https://www.pimlico.io/) bundler, provide an API key during account initialization:
+<Tabs>
+<Tab title="Pimlico">
 
 ```ts {2-6}
 const rhinestone = new RhinestoneSDK({
@@ -28,9 +29,8 @@ const rhinestoneAccount = await rhinestone.createAccount({
 })
 ```
 
-### Biconomy
-
-To use the [Biconomy](https://www.biconomy.io) bundler, provide an API key during account initialization:
+</Tab>
+<Tab title="Biconomy">
 
 ```ts {2-6}
 const rhinestone = new RhinestoneSDK({
@@ -47,13 +47,17 @@ const rhinestoneAccount = await rhinestone.createAccount({
   },
 })
 ```
+
+</Tab>
+</Tabs>
 
 
 ## Paymasters
 
-### Pimlico
+Provide a paymaster API key during SDK initialization:
 
-To use the [Pimlico](https://www.pimlico.io/) paymaster, provide an API key during account initialization:
+<Tabs>
+<Tab title="Pimlico">
 
 ```ts {2-6}
 const rhinestone = new RhinestoneSDK({
@@ -71,9 +75,8 @@ const rhinestoneAccount = await rhinestone.createAccount({
 })
 ```
 
-### Biconomy
-
-To use the [Biconomy](https://www.biconomy.io) paymaster, provide an API key during account initialization:
+</Tab>
+<Tab title="Biconomy">
 
 ```ts {2-6}
 const rhinestone = new RhinestoneSDK({
@@ -90,5 +93,8 @@ const rhinestoneAccount = await rhinestone.createAccount({
   },
 })
 ```
+
+</Tab>
+</Tabs>
 
 [Reach out](https://github.com/rhinestonewtf/sdk/issues) if you need support for other ERC-4337 providers!
