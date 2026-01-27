@@ -32,6 +32,30 @@ const rhinestoneAccount = await rhinestone.createAccount({
 ```
 
 </Tab>
+<Tab title="Custom URLs">
+
+To use custom JSON-RPC URLs, provide a mapping of chain IDs to RPC URLs:
+
+```ts {2-9}
+const rhinestone = new RhinestoneSDK({
+  provider: {
+    type: 'custom',
+    urls: {
+      1: 'https://my-rpc.example.com/eth',
+      8453: 'https://my-rpc.example.com/base',
+      42161: 'https://my-rpc.example.com/arb',
+    },
+  },
+})
+const rhinestoneAccount = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  },
+})
+```
+
+</Tab>
 </Tabs>
 
 [Reach out](https://github.com/rhinestonewtf/sdk/issues) if you need support for other JSON-RPC providers!
