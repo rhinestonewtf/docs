@@ -5,20 +5,26 @@ description: "Integrate Magic signers with Rhinestone smart accounts."
 
 ## Overview
 
-Magic provides passwordless authentication and embedded wallet infrastructure that enables seamless user onboarding. This guide shows you how to integrate Magic signers with Rhinestone smart accounts to create a unified, cross-chain wallet experience.
+Magic provides wallet infrastructure with two integration paths:
 
-**How it works:** Magic handles user authentication and provides wallet clients. We use Magic's authenticated user data to create Rhinestone smart accounts, which enables cross-chain functionality with a single wallet experience.
+- **Embedded Wallets**: Client-side Magic SDK handles authentication and signing. Keys are managed by Magic and signing happens through their RPC provider.
+- **Server Wallets**: Backend-managed wallets via Magic Express API. Keys live in Magic's TEE (Trusted Execution Environment) and signing happens through server-side API calls.
 
-## Prerequisites
+Both paths produce a viem-compatible account that becomes the owner of a Rhinestone smart account, enabling cross-chain functionality.
 
-- A Magic account and API key
+## Integration
+
+<Tabs>
+<Tab title="Embedded Wallet">
+
+### Prerequisites
+
+- A Magic account and publishable API key
 - Rhinestone API key
-- React/Next.js application setup
+- React application setup
 
 <Steps>
 <Step title="Install Dependencies">
-
-Install the required dependencies:
 
 <CodeGroup>
 
@@ -37,177 +43,296 @@ bun install magic-sdk @rhinestone/sdk viem
 </CodeGroup>
 
 </Step>
-<Step title="Set Up Magic Provider">
+<Step title="Set Up Magic SDK">
 
-First, set up the Magic provider in your React application:
+Initialize the Magic SDK in your application:
 
 ```tsx
 import { Magic } from 'magic-sdk'
-import { OAuthExtension } from '@magic-ext/oauth'
 
-const magic = new Magic(process.env.NEXT_PUBLIC_MAGIC_API_KEY, {
-  network: {
-    rpcUrl: 'https://eth-sepolia.g.alchemy.com/v2/your-api-key',
-    chainId: 11155111, // Sepolia
-  },
-  extensions: [new OAuthExtension()],
-})
-
-function App() {
-  return (
-    <MagicProvider value={{ magic }}>
-      {/* Your app components */}
-    </MagicProvider>
-  )
-}
+const magic = new Magic(process.env.NEXT_PUBLIC_MAGIC_API_KEY)
 ```
 
 </Step>
-<Step title="Create Integration Hook">
+<Step title="Authenticate and Get Wallet Address">
 
-Create a custom hook that integrates Magic authentication with Rhinestone accounts. This demonstrates the core pattern: **get the wallet client from Magic, then pass it to Rhinestone**.
-
-<Note>Magic provides a direct RPC provider that we convert to a viem wallet client compatible with Rhinestone.</Note>
+Use Magic's client-side SDK for authentication:
 
 ```tsx
-import { useState, useEffect, useCallback } from "react"
-import { useMagic } from "./MagicProvider"
+// Login with Magic email OTP
+await magic.auth.loginWithEmailOTP({ email: "user@example.com" })
+
+// Get the wallet address
+const accounts = (await magic.rpcProvider.request({
+  method: "eth_accounts",
+})) as string[]
+
+const address = accounts[0]
+```
+
+Magic also supports SMS, social login, WebAuthn, and more. See [Magic's authentication overview](https://docs.magic.link/embedded-wallets/authentication/overview) for all options.
+
+</Step>
+<Step title="Create Rhinestone Account">
+
+Create a viem account from Magic's provider and pass it to Rhinestone:
+
+```tsx
 import { RhinestoneSDK, walletClientToAccount } from "@rhinestone/sdk"
 import { createWalletClient, custom } from "viem"
+import { toAccount } from "viem/accounts"
+import type { SignableMessage, TypedDataDefinition } from "viem"
 
-export function useMagicWallet() {
-  const { magic } = useMagic()
-  const [rhinestoneAccount, setRhinestoneAccount] = useState(null)
-  const [magicAddress, setMagicAddress] = useState(null)
-  const [isConnected, setIsConnected] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-
-  const initializeRhinestoneAccount = useCallback(async () => {
-    if (!magic) return
-
-    setIsLoading(true)
-
-    try {
-      // Check if user is logged in with Magic
-      const isLoggedIn = await magic.user.isLoggedIn()
-      if (!isLoggedIn) {
-        setIsConnected(false)
-        return
-      }
-
-      // Get user's Magic wallet address
-      const userMetadata = await magic.user.getMetadata()
-      const address = userMetadata.publicAddress
-
-      if (!address) {
-        throw new Error("No Magic wallet address found")
-      }
-
-      // Create a viem wallet client using Magic's provider
-      const walletClient = createWalletClient({
-        account: address as `0x${string}`,
-        transport: custom(magic.rpcProvider as any),
-      })
-
-      // Ensure the wallet client has the address property for Rhinestone
-      const wrappedWalletClient = walletClientToAccount(walletClient)
-      }
-
-      // Pass the Magic wallet client to Rhinestone
-      // Rhinestone wraps it with cross-chain transaction capabilities
-      const rhinestone = new RhinestoneSDK({
-        apiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
-      })
-      const account = await rhinestone.createAccount({
-        owners: {
-          type: "ecdsa",
-          accounts: [wrappedWalletClient],
-        },
-      })
-
-      setRhinestoneAccount(account)
-      setMagicAddress(address)
-      setIsConnected(true)
-    } catch (error) {
-      console.error("Failed to initialize Rhinestone account:", error)
-      setIsConnected(false)
-    } finally {
-      setIsLoading(false)
+// Magic RPC requires BigInts as decimal strings
+function serializeBigInts(obj: unknown): unknown {
+  if (obj === null || obj === undefined) return obj
+  if (typeof obj === "bigint") return obj.toString(10)
+  if (Array.isArray(obj)) return obj.map(serializeBigInts)
+  if (typeof obj === "object") {
+    const result: Record<string, unknown> = {}
+    for (const key in obj) {
+      result[key] = serializeBigInts((obj as Record<string, unknown>)[key])
     }
-  }, [magic])
-
-  useEffect(() => {
-    initializeRhinestoneAccount()
-  }, [initializeRhinestoneAccount])
-
-  return {
-    rhinestoneAccount,
-    magicAddress,
-    isConnected,
-    isLoading,
-    reconnect: initializeRhinestoneAccount,
+    return result
   }
+  return obj
 }
+
+// 1. Create a viem wallet client using Magic's provider
+const walletClient = createWalletClient({
+  account: address as `0x${string}`,
+  transport: custom(magic.rpcProvider as any),
+})
+
+const wrappedWalletClient = walletClientToAccount(walletClient)
+
+// 2. Wrap with toAccount to handle BigInt serialization
+//    for signTypedData (required by Magic's RPC)
+const account = toAccount({
+  address: wrappedWalletClient.address,
+  async signMessage({ message }: { message: SignableMessage }) {
+    return wrappedWalletClient.signMessage({ message })
+  },
+  async signTransaction(transaction: any) {
+    return wrappedWalletClient.signTransaction(transaction)
+  },
+  async signTypedData(typedData: TypedDataDefinition) {
+    const serialized = serializeBigInts(typedData)
+    return wrappedWalletClient.signTypedData(serialized as any)
+  },
+})
+
+// 3. Create the Rhinestone account
+const rhinestone = new RhinestoneSDK({
+  apiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
+})
+const rhinestoneAccount = await rhinestone.createAccount({
+  owners: {
+    type: "ecdsa",
+    accounts: [account],
+  },
+})
 ```
 
 </Step>
 </Steps>
 
-## Usage
+</Tab>
+<Tab title="Server Wallet">
 
-### Basic Authentication Flow
+### Prerequisites
 
-Use the hook to handle Magic authentication and smart account creation:
+- A Magic account, publishable API key, and secret key
+- Rhinestone API key
+- A backend server (Node.js, Bun, etc.)
+- An OIDC provider registered with Magic Express (see below)
 
-```tsx {4-6}
-import { useMagicWallet } from './hooks/useMagicWallet'
-import { useMagic } from './hooks/MagicProvider'
+<Steps>
+<Step title="Install Dependencies">
 
-function MagicWalletDashboard() {
-  const { magic } = useMagic()
-  const { rhinestoneAccount, magicAddress, isConnected, isLoading } = useMagicWallet()
+<CodeGroup>
 
-  const handleLogin = async () => {
-    try {
-      await magic.auth.loginWithEmailOTP({ email: 'user@example.com' })
-      // Account will be automatically initialized via the hook
-    } catch (error) {
-      console.error('Login failed:', error)
-    }
+```bash npm
+npm install @rhinestone/sdk viem
+```
+
+```bash pnpm
+pnpm add @rhinestone/sdk viem
+```
+
+```bash bun
+bun install @rhinestone/sdk viem
+```
+
+</CodeGroup>
+
+<Note>Server wallets don't need the `magic-sdk` client package. You interact with the Magic Express API directly from your backend.</Note>
+
+</Step>
+<Step title="Register OIDC Provider">
+
+Server wallets use the [Magic Express API](https://magic.link/docs/wallets/wallet-types/server-wallets), which requires OIDC-based authentication. Your backend acts as an OIDC provider: it signs JWTs that Magic Express verifies using your public keys.
+
+Generate an RS256 key pair and register it with Magic (one-time setup):
+
+```ts
+// register-oidc-provider.ts
+const res = await fetch(
+  "https://tee.express.magiclabs.com/v1/identity/provider",
+  {
+    method: "POST",
+    headers: {
+      "X-Magic-Secret-Key": process.env.MAGIC_SECRET_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      issuer: "https://your-app.com", // Your backend URL
+      audience: "magic-express",
+      jwks_uri: "https://your-app.com/.well-known/jwks.json",
+    }),
   }
+)
 
-  if (isLoading) {
-    return <div>Setting up your global wallet...</div>
+const { id } = await res.json()
+// Save this as MAGIC_OIDC_PROVIDER_ID
+```
+
+<Note>Your backend must expose a `/.well-known/jwks.json` endpoint serving the public key in JWKS format. Magic Express uses this to verify JWTs from your server.</Note>
+
+</Step>
+<Step title="Set Up Backend API">
+
+Create helper functions to interact with the Magic Express API:
+
+```ts
+const MAGIC_EXPRESS_API = "https://tee.express.magiclabs.com"
+
+function magicHeaders(jwt: string) {
+  return {
+    Authorization: `Bearer ${jwt}`,
+    "X-Magic-API-Key": process.env.MAGIC_API_KEY!,
+    "X-OIDC-Provider-ID": process.env.MAGIC_OIDC_PROVIDER_ID!,
+    "X-Magic-Chain": "ETH",
+    "Content-Type": "application/json",
   }
+}
 
-  if (!isConnected) {
-    return (
-      <div>
-        <h2>Welcome to Rhinestone</h2>
-        <button onClick={handleLogin}>Sign in with Magic</button>
-      </div>
-    )
-  }
+export async function getOrCreateWallet(jwt: string) {
+  const res = await fetch(`${MAGIC_EXPRESS_API}/v1/wallet`, {
+    method: "POST",
+    headers: magicHeaders(jwt),
+  })
+  return res.json() as Promise<{ public_address: string }>
+}
 
-  return (
-    <div>
-      <h2>Connected!</h2>
-      <p>Magic Address: {magicAddress}</p>
-      <p>Smart Account: {rhinestoneAccount?.getAddress()}</p>
-    </div>
-  )
+export async function signHash(jwt: string, hash: string) {
+  const res = await fetch(`${MAGIC_EXPRESS_API}/v1/wallet/sign/data`, {
+    method: "POST",
+    headers: magicHeaders(jwt),
+    body: JSON.stringify({ raw_data_hash: hash }),
+  })
+  return res.json() as Promise<{ signature: string }>
 }
 ```
 
-### Cross-Chain Transactions
+Expose wallet and signing endpoints for your frontend. These routes authenticate the user session, issue a JWT for Magic Express, and proxy the request:
 
-Send transactions using the Magic-connected wallet:
+```ts
+// GET /api/wallet
+app.get("/api/wallet", async (c) => {
+  const user = getAuthenticatedUser(c) // Your auth middleware
+  if (!user) return c.json({ error: "Unauthorized" }, 401)
 
-```tsx {2-14}
+  const jwt = await issueJwt(user.id) // Sign JWT with your RS256 private key
+  const data = await getOrCreateWallet(jwt)
+  return c.json(data)
+})
+
+// POST /api/sign
+app.post("/api/sign", async (c) => {
+  const user = getAuthenticatedUser(c)
+  if (!user) return c.json({ error: "Unauthorized" }, 401)
+
+  const { hash } = await c.req.json()
+  const jwt = await issueJwt(user.id)
+  const data = await signHash(jwt, hash)
+  return c.json(data)
+})
+```
+
+</Step>
+<Step title="Create Rhinestone Account">
+
+On the frontend, create a viem account that delegates signing to your backend, then pass it to Rhinestone:
+
+```tsx
+import { RhinestoneSDK } from "@rhinestone/sdk"
+import { toAccount } from "viem/accounts"
+import { hashTypedData, hashMessage } from "viem"
+import type { SignableMessage, TypedDataDefinition, Hex } from "viem"
+
+// 1. Get wallet address from your backend
+const walletRes = await fetch("/api/wallet", {
+  credentials: "include",
+})
+const { public_address } = await walletRes.json()
+
+// 2. Create a viem account that signs via your backend
+const account = toAccount({
+  address: public_address as Hex,
+  async signMessage({ message }: { message: SignableMessage }) {
+    const hash = hashMessage(message)
+    const res = await fetch("/api/sign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ hash }),
+    })
+    if (!res.ok) throw new Error((await res.json()).error)
+    return (await res.json()).signature as Hex
+  },
+  async signTransaction() {
+    throw new Error("signTransaction not supported")
+  },
+  async signTypedData(typedData: TypedDataDefinition) {
+    const hash = hashTypedData(typedData)
+    const res = await fetch("/api/sign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ hash }),
+    })
+    if (!res.ok) throw new Error((await res.json()).error)
+    return (await res.json()).signature as Hex
+  },
+})
+
+// 3. Create the Rhinestone account
+const rhinestone = new RhinestoneSDK({
+  apiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY!,
+})
+const rhinestoneAccount = await rhinestone.createAccount({
+  owners: { type: "ecdsa", accounts: [account] },
+})
+```
+
+<Note>The key pattern: `toAccount` creates a viem account where `signMessage` and `signTypedData` hash data locally, then send the hash to your backend. Your backend forwards it to Magic Express for signing. The private key never leaves Magic's TEE.</Note>
+
+</Step>
+</Steps>
+
+</Tab>
+</Tabs>
+
+## Cross-Chain Transactions
+
+Once initialized, both wallet types use the same Rhinestone API:
+
+```tsx
 async function handleCrossChainTransfer() {
   const transaction = await rhinestoneAccount.sendTransaction({
-    sourceChains: [{ chainId: 42161 }], // Arbitrum
-    targetChain: { chainId: 8453 }, // Base
+    sourceChains: [baseSepolia],
+    targetChain: arbitrumSepolia,
     calls: [
       {
         to: "USDC",
@@ -228,100 +353,9 @@ async function handleCrossChainTransfer() {
 }
 ```
 
-## Authentication Methods
-
-Magic supports multiple authentication methods:
-
-- **Email OTP**: `magic.auth.loginWithEmailOTP({ email })`
-- **SMS**: `magic.auth.loginWithSMS({ phoneNumber })`
-- **Social**: `magic.oauth.loginWithRedirect({ provider: 'google' })`
-- **WebAuthn**: `magic.webauthn.loginWithWebAuthn({})`
-
-Each method provides the same wallet client that can be used with Rhinestone.
-
-## Environment Variables
-
-Make sure to set the following environment variables:
-
-```bash
-NEXT_PUBLIC_MAGIC_API_KEY=pk_live_your_magic_publishable_key
-NEXT_PUBLIC_RHINESTONE_API_KEY=your_rhinestone_api_key
-```
-
-## Complete Example
-
-Here's a minimal working example that demonstrates the integration:
-
-```tsx
-import { useState, useEffect } from 'react'
-import { Magic } from 'magic-sdk'
-import { RhinestoneSDK, walletClientToAccount } from '@rhinestone/sdk'
-import { createWalletClient, custom } from 'viem'
-
-const magic = new Magic(process.env.NEXT_PUBLIC_MAGIC_API_KEY)
-
-export function MagicDemo() {
-  const [account, setAccount] = useState(null)
-  const [email, setEmail] = useState('')
-
-  const login = async () => {
-    try {
-      // 1. Login with Magic
-      await magic.auth.loginWithEmailOTP({ email })
-      
-      // 2. Get user address
-      const { publicAddress } = await magic.user.getMetadata()
-      
-      // 3. Create wallet client
-      const walletClient = createWalletClient({
-        account: publicAddress as `0x${string}`,
-        transport: custom(magic.rpcProvider),
-      })
-
-      const wrappedWalletClient = walletClientToAccount(walletClient)
-
-      // 4. Create Rhinestone account
-      const rhinestone = new RhinestoneSDK({
-        apiKey: process.env.NEXT_PUBLIC_RHINESTONE_API_KEY,
-      })
-      const rhinestoneAccount = await rhinestone.createAccount({
-        owners: {
-          type: "ecdsa",
-          accounts: [wrappedWalletClient],
-        },
-      })
-
-      setAccount(rhinestoneAccount)
-    } catch (error) {
-      console.error('Setup failed:', error)
-    }
-  }
-
-  return (
-    <div>
-      {!account ? (
-        <div>
-          <input 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter email"
-          />
-          <button onClick={login}>Login with Magic</button>
-        </div>
-      ) : (
-        <div>
-          <p>Global Wallet: {account.getAddress()}</p>
-          <p>Ready for cross-chain transactions!</p>
-        </div>
-      )}
-    </div>
-  )
-}
-```
-
 ## Next Steps
 
 - **See it in action**: Check out our [complete Magic example](https://github.com/rhinestonewtf/e2e-examples/tree/main/magic) for a full working app
-- Learn more about [Magic's authentication methods](https://magic.link/docs/auth/overview)
-- Explore [chain abstraction](../../chain-abstraction/unified-balance) capabilities  
+- Learn more about [Magic's wallet types](https://magic.link/docs/wallets/wallet-types)
+- Explore [chain abstraction](../../chain-abstraction/unified-balance) capabilities
 - Check out [creating an account](../create-account) for more details
