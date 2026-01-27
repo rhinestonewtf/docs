@@ -192,7 +192,8 @@
 							"intents/guides/getting-a-quote",
 							"intents/guides/token-requirements",
 							"intents/guides/signing",
-							"intents/guides/submitting-the-intent"
+							"intents/guides/submitting-the-intent",
+							"intents/guides/error-handling"
 						]
 					}
 				]

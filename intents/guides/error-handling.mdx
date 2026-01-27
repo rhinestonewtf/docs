@@ -1,0 +1,61 @@
+---
+title: "Error Handling"
+description: "Common Orchestrator errors and how to resolve them"
+---
+
+<AccordionGroup>
+<Accordion title="Insufficient Balance">
+
+In most cases, getting this error means the account balance is not enough to cover the tokens required on the target chain, together with the gas costs.
+
+Sometimes, you have enough balance, but the cost to claim it is too high (e.g., on Ethereum Mainnet).
+
+You can also get the error if the contract is not deployed on any supported chain.
+
+Make sure your account is deployed and funded.
+
+Also, make sure you have enough funds for your transaction, taking gas costs into account. You can use the [spendable amount utility](/smart-wallet/chain-abstraction/source-token-amount) to get an estimate of how much you can spend.
+
+</Accordion>
+<Accordion title="Unsupported chain id">
+
+This error could mean that your `targetChain` [is not supported](/home/resources/supported-chains).
+
+It could also mean that you're using testnet chains on a production environment, or mainnet chains on a dev environment.
+
+Make sure the chain you're using matches the environment.
+
+Also, make sure that the chain you're using is supported.
+
+</Accordion>
+<Accordion title="Unsupported token addresses">
+
+Most likely, you will encounter this when the token that you're requesting on the target chain doesn't exist or is not supported.
+
+Make sure the token that you request corresponds to the target execution chain.
+
+</Accordion>
+<Accordion title="Authentication is required">
+
+Every request to the Orchestrator on mainnets requires an API key.
+
+Make sure you provide a key. [Reach out to us](https://t.me/konradkopp) if you need one.
+
+</Accordion>
+<Accordion title="Invalid API key">
+
+The API key you've provided when making a request is not valid.
+
+Make sure you provide a development API key if you're working with testnets, and a production API key if you're working with mainnets. [Reach out to us](https://t.me/konradkopp) if you miss the proper key.
+
+</Accordion>
+<Accordion title="Invalid bundle signature">
+
+The bundle signature doesn't match the account.
+
+Make sure the bundle hash you're signing is correct.
+
+Also, make sure the signer (or signers) of the hash is the owner of the account.
+
+</Accordion>
+</AccordionGroup>
