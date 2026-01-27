@@ -54,6 +54,27 @@ const transactionData = await rhinestoneAccount.prepareTransaction({
 })
 ```
 
+You can also choose which fee types to sponsor individually:
+
+```ts {11-15}
+const transactionData = await rhinestoneAccount.prepareTransaction({
+  sourceChains: [sourceChain],
+  targetChain,
+  calls: [
+    {
+      to: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+      value: 0n,
+      data: '0xdeadbeef',
+    },
+  ],
+  sponsored: {
+    gas: true,
+    bridging: true,
+    swaps: false,
+  },
+})
+```
+
 ## Sponsorship Policies
 
 Currently, the SDK doesn't provide any policies out of the box. You can implement bespoke, flexible policies on your backend.
