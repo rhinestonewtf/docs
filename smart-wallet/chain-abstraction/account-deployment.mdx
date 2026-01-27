@@ -34,3 +34,22 @@ await rhinestoneAccount.deploy(
   }
 )
 ```
+
+## Deploy from Another Account
+
+You can deploy an account from another smart account using the `deploy` action. This can be useful when you want to pay for a deployment with another account:
+
+```ts
+import { deploy } from '@rhinestone/sdk/actions'
+
+// Account that will be deployed
+const newAccount = await rhinestone.createAccount({
+  owners: { type: 'ecdsa', accounts: [newOwner] },
+})
+
+// Deploy newAccount from an existing sponsor account
+await sponsorAccount.sendTransaction({
+  chain,
+  calls: [deploy(newAccount)],
+})
+```
