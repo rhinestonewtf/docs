@@ -90,6 +90,24 @@ Here, we create an account owned by an external wallet like MetaMask and send ou
   </Step>
 </Steps>
 
+## Custom Nonce
+
+By default, the SDK uses a nonce of `0` to derive the account address. You can provide a custom nonce to derive a different address for the same set of owners. This is useful when you need multiple accounts per signer.
+
+```ts {3-6}
+const rhinestoneAccount = await rhinestone.createAccount({
+  owners: { type: 'ecdsa', accounts: [account] },
+  account: {
+    type: 'safe',
+    nonce: 1n,
+  },
+})
+```
+
+<Note>
+  Using a different nonce will result in a different account address, even if the owners are the same.
+</Note>
+
 <Columns cols={2}>
   <Card title="External Wallets" icon="globe" href="./signers/external-wallet-signer">
     Learn how to use Rhinestone accounts with WalletConnect.

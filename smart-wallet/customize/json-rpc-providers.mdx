@@ -13,9 +13,8 @@ For production use, we recommend setting up a custom JSON-RPC provider with your
 
 To use [Alchemy](https://www.alchemy.com), provide an API key during SDK initialization:
 
-```ts {2-6}
+```ts {2-5}
 const rhinestone = new RhinestoneSDK({
-  apiKey: rhinestoneApiKey,
   provider: {
     type: 'alchemy',
     apiKey: alchemyApiKey,
@@ -24,10 +23,32 @@ const rhinestone = new RhinestoneSDK({
 const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
-    accounts: [accountA, accountB, accountC],
-    threshold: 2,
+    accounts: [signer],
   },
+})
+```
 
+</Tab>
+<Tab title="Custom URLs">
+
+To use custom JSON-RPC URLs, provide a mapping of chain IDs to RPC URLs:
+
+```ts {2-9}
+const rhinestone = new RhinestoneSDK({
+  provider: {
+    type: 'custom',
+    urls: {
+      1: 'https://my-rpc.example.com/eth',
+      8453: 'https://my-rpc.example.com/base',
+      42161: 'https://my-rpc.example.com/arb',
+    },
+  },
+})
+const rhinestoneAccount = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [signer],
+  },
 })
 ```
 
