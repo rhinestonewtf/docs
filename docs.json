@@ -1,589 +1,226 @@
 {
-	"$schema": "https://mintlify.com/docs.json",
-	"theme": "mint",
-	"name": "Rhinestone",
-	"colors": {
-		"primary": "#1F178D",
-		"light": "#7369E9",
-		"dark": "#2D1FC6"
-	},
-	"background": {
-		"color": {
-			"dark": "#0D0926"
-		}
-	},
-	"icons": {
-		"library": "lucide"
-	},
-	"favicon": "/favicon.svg",
-	"navigation": {
-		"global": {
-			"anchors": [
-				{
-					"anchor": "Create API Key",
-					"icon": "key",
-					"href": "https://tally.so/r/wg22x4"
-				},
-				{
-					"anchor": "Examples",
-					"icon": "code",
-					"href": "https://github.com/rhinestonewtf/e2e-examples/"
-				}
-			]
-		},
-		"tabs": [
-			{
-				"tab": "Home",
-				"groups": [
-					{
-						"group": "Introduction",
-						"pages": [
-							"home/introduction/welcome-to-rhinestone",
-							"home/introduction/what-is-rhinestone",
-							"home/introduction/rhinestone-intents"
-						]
-					},
-					{
-						"group": "Concepts",
-						"pages": [
-							"home/concepts/intents-and-erc4337",
-							"home/concepts/resource-locks",
-							"home/concepts/smart-accounts",
-							"home/concepts/session-keys",
-							"home/concepts/smart-eoas-eip-7702"
-						]
-					},
-					{
-						"group": "Resources",
-						"pages": [
-							"home/resources/address-book",
-							"home/resources/supported-chains",
-							"home/resources/audit-reports",
-							"home/resources/fees",
-							"home/resources/erc-7579",
-							"home/resources/modules"
-						]
-					}
-				]
-			},
-			{
-				"tab": "Smart Wallet SDK",
-				"pages": [
-					"smart-wallet/quickstart",
-					{
-						"group": "Core",
-						"pages": [
-							"smart-wallet/core/create-account",
-							"smart-wallet/core/signers/external-wallet-signer",
-							{
-								"group": "Embedded Wallet Signer",
-								"pages": [
-									"smart-wallet/core/signers/dynamic",
-									"smart-wallet/core/signers/privy",
-									"smart-wallet/core/signers/para",
-									"smart-wallet/core/signers/magic",
-									"smart-wallet/core/signers/turnkey",
-									"smart-wallet/core/signers/openfort"
-								]
-							},
-							"smart-wallet/core/eip-7702",
-							"smart-wallet/core/create-first-transaction",
-							"smart-wallet/core/passkeys",
-							"smart-wallet/core/ecdsa-signer",
-							"smart-wallet/core/multisig"
-						]
-					},
-					{
-						"group": "Gas Sponsorship",
-						"pages": [
-							"smart-wallet/gas-sponsorship/overview",
-							"smart-wallet/gas-sponsorship/set-up-sponsorship",
-							"smart-wallet/gas-sponsorship/pay-gas-with-erc20"
-						]
-					},
-					{
-						"group": "Chain Abstraction",
-						"pages": [
-							"smart-wallet/chain-abstraction/single-chain-intent",
-							"smart-wallet/chain-abstraction/multi-chain-intent",
-							"smart-wallet/chain-abstraction/swaps",
-							"smart-wallet/chain-abstraction/resource-locks",
-							"smart-wallet/chain-abstraction/unified-balance",
-							"smart-wallet/chain-abstraction/source-token-amount",
-							"smart-wallet/chain-abstraction/account-deployment",
-							"smart-wallet/chain-abstraction/error-handling",
-							"smart-wallet/chain-abstraction/local-orchestrator-docker"
-						]
-					},
-					{
-						"group": "Smart Sessions",
-						"pages": [
-							"smart-wallet/smart-sessions/overview",
-							"smart-wallet/smart-sessions/multi-session-signature",
-							{
-								"group": "Signature Validators",
-								"pages": [
-									"smart-wallet/smart-sessions/signature-validators/ecdsa",
-									"smart-wallet/smart-sessions/signature-validators/multisig",
-									"smart-wallet/smart-sessions/signature-validators/passkey"
-								]
-							},
-							{
-								"group": "Policies",
-								"pages": [
-									"smart-wallet/smart-sessions/policies/sudo",
-									"smart-wallet/smart-sessions/policies/call",
-									"smart-wallet/smart-sessions/policies/spending-limit",
-									"smart-wallet/smart-sessions/policies/timeframe",
-									"smart-wallet/smart-sessions/policies/usage-limit"
-								]
-							}
-						]
-					},
-					{
-						"group": "Advanced",
-						"pages": [
-							"smart-wallet/advanced/batch-transactions",
-							"smart-wallet/advanced/multi-factor-authentication",
-							"smart-wallet/advanced/recovery",
-							"smart-wallet/advanced/custom-modules",
-							"smart-wallet/advanced/message-signing",
-							"smart-wallet/advanced/use-erc-4337",
-							"smart-wallet/advanced/migration-guide",
-							"smart-wallet/advanced/security"
-						]
-					},
-					"smart-wallet/module-sdk",
-					{
-						"group": "Customize",
-						"pages": [
-							"smart-wallet/customize/bring-your-own-account",
-							{
-								"group": "Smart Account Providers",
-								"pages": [
-									"smart-wallet/customize/smart-account-providers/nexus",
-									"smart-wallet/customize/smart-account-providers/safe",
-									"smart-wallet/customize/smart-account-providers/kernel",
-									"smart-wallet/customize/smart-account-providers/startale",
-									"smart-wallet/customize/smart-account-providers/prime"
-								]
-							},
-							"smart-wallet/customize/json-rpc-providers",
-							"smart-wallet/customize/erc4337-infra"
-						]
-					}
-				]
-			},
-			{
-				"tab": "Intents API",
-				"pages": [
-					"intents/overview",
-					{
-						"group": "Use Cases",
-						"pages": [
-							"intents/use-cases/one-click-deposit",
-							"intents/use-cases/chain-abstracted-swaps",
-							"intents/use-cases/multi-input-bridge"
-						]
-					},
-					{
-						"group": "Guides",
-						"pages": [
-							"intents/guides/getting-a-quote",
-							"intents/guides/token-requirements",
-							"intents/guides/signing",
-							"intents/guides/submitting-the-intent",
-							"intents/guides/error-handling"
-						]
-					}
-				]
-			},
-			{
-				"tab": "Build Modules",
-				"pages": [
-					"build-modules/overview",
-					"build-modules/getting-started",
-					{
-						"group": "Tutorials",
-						"pages": [
-							"build-modules/tutorials/multi-owner-validator",
-							"build-modules/tutorials/auto-swap-executor"
-						]
-					},
-					{
-						"group": "Guides",
-						"pages": [
-							{
-								"group": "Testing",
-								"pages": [
-									"build-modules/guides/testing/using-accounts",
-									"build-modules/guides/testing/simulating-userops",
-									"build-modules/guides/testing/calculating-gas",
-									"build-modules/guides/testing/erc7579-compliance"
-								]
-							},
-							{
-								"group": "Deploying",
-								"pages": ["build-modules/guides/deploying/deploying-modules"]
-							},
-							"build-modules/guides/migration-guide"
-						]
-					},
-					{
-						"group": "Reference",
-						"pages": [
-							{
-								"group": "Building",
-								"pages": [
-									{
-										"group": "Core",
-										"pages": [
-											"build-modules/reference/building/core/onInstall",
-											"build-modules/reference/building/core/onUninstall",
-											"build-modules/reference/building/core/isInitialized",
-											"build-modules/reference/building/core/name",
-											"build-modules/reference/building/core/version",
-											"build-modules/reference/building/core/isModuleType"
-										]
-									},
-									{
-										"group": "Validators",
-										"pages": [
-											"build-modules/reference/building/validators/validateUserOp",
-											"build-modules/reference/building/validators/isValidSignatureWithSender",
-											"build-modules/reference/building/validators/packValidationData",
-											"build-modules/reference/building/validators/unpackValidationData"
-										]
-									},
-									{
-										"group": "Executors",
-										"pages": [
-											"build-modules/reference/building/executors/execute",
-											"build-modules/reference/building/executors/executeDelegateCall"
-										]
-									},
-									{
-										"group": "Fallbacks",
-										"pages": [
-											"build-modules/reference/building/fallbacks/msgSender"
-										]
-									},
-									{
-										"group": "Hooks",
-										"pages": [
-											"build-modules/reference/building/hooks/preCheck",
-											"build-modules/reference/building/hooks/postCheck",
-											"build-modules/reference/building/hooks/onExecute",
-											"build-modules/reference/building/hooks/onExecuteBatch",
-											"build-modules/reference/building/hooks/onExecuteFromExecutor",
-											"build-modules/reference/building/hooks/onExecuteBatchFromExecutor",
-											"build-modules/reference/building/hooks/onInstallModule",
-											"build-modules/reference/building/hooks/onUninstallModule",
-											"build-modules/reference/building/hooks/onUnknownFunction",
-											"build-modules/reference/building/hooks/onPostCheck"
-										]
-									},
-									{
-										"group": "Scheduling Module",
-										"pages": [
-											"build-modules/reference/building/scheduling-module/executeOrder"
-										]
-									},
-									{
-										"group": "Trusted Forwarder",
-										"pages": [
-											"build-modules/reference/building/trusted-forwarder/getAccount"
-										]
-									},
-									{
-										"group": "Registry Adapter",
-										"pages": [
-											"build-modules/reference/building/registry-adapter/registry"
-										]
-									},
-									{
-										"group": "Smart Sessions",
-										"pages": [
-											"build-modules/reference/building/smart-sessions/initializeWithMultiplexer",
-											"build-modules/reference/building/smart-sessions/checkAction",
-											"build-modules/reference/building/smart-sessions/checkUserOp",
-											"build-modules/reference/building/smart-sessions/check1271SignedAction"
-										]
-									}
-								]
-							},
-							{
-								"group": "Testing",
-								"pages": [
-									{
-										"group": "Core",
-										"pages": [
-											"build-modules/reference/testing/core/makeAccountInstance",
-											"build-modules/reference/testing/core/exec",
-											"build-modules/reference/testing/core/getExecOps",
-											"build-modules/reference/testing/core/execUserOps"
-										]
-									},
-									{
-										"group": "Modules",
-										"pages": [
-											"build-modules/reference/testing/modules/installModule",
-											"build-modules/reference/testing/modules/isModuleInstalled",
-											"build-modules/reference/testing/modules/uninstallModule",
-											"build-modules/reference/testing/modules/getInstalledModules"
-										]
-									},
-									{
-										"group": "Signature Validation",
-										"pages": [
-											"build-modules/reference/testing/signature-validation/formatERC1271Hash",
-											"build-modules/reference/testing/signature-validation/isValidSignature",
-											"build-modules/reference/testing/signature-validation/formatERC1271Signature"
-										]
-									},
-									{
-										"group": "Smart Sessions",
-										"pages": [
-											"build-modules/reference/testing/smart-sessions/useSession",
-											"build-modules/reference/testing/smart-sessions/addSession",
-											"build-modules/reference/testing/smart-sessions/removeSession",
-											"build-modules/reference/testing/smart-sessions/isSessionEnabled",
-											"build-modules/reference/testing/smart-sessions/isPermissionEnabled",
-											"build-modules/reference/testing/smart-sessions/getPermissionId",
-											"build-modules/reference/testing/smart-sessions/getSessionDigest",
-											"build-modules/reference/testing/smart-sessions/getSessionNonce",
-											"build-modules/reference/testing/smart-sessions/makeMultiChainEnableData",
-											"build-modules/reference/testing/smart-sessions/encodeSignature"
-										]
-									},
-									{
-										"group": "Utilities",
-										"pages": [
-											"build-modules/reference/testing/utilities/expect4337Revert",
-											"build-modules/reference/testing/utilities/log4337Gas",
-											"build-modules/reference/testing/utilities/deployAccount",
-											"build-modules/reference/testing/utilities/simulateUserOp",
-											"build-modules/reference/testing/utilities/setAccountEnv",
-											"build-modules/reference/testing/utilities/withModuleStorageClearValidation"
-										]
-									}
-								]
-							},
-							{
-								"group": "Deploying",
-								"pages": [
-									{
-										"group": "Core",
-										"pages": [
-											"build-modules/reference/deploying/core/deployModule",
-											"build-modules/reference/deploying/core/predictModuleAddress",
-											"build-modules/reference/deploying/core/deployModuleViaFactory",
-											"build-modules/reference/deploying/core/registerModule"
-										]
-									},
-									{
-										"group": "Attestations",
-										"pages": [
-											"build-modules/reference/deploying/attestations/mockAttestToModule",
-											"build-modules/reference/deploying/attestations/isModuleAttestedMock"
-										]
-									},
-									{
-										"group": "Registry",
-										"pages": [
-											"build-modules/reference/deploying/registry/findResolver",
-											"build-modules/reference/deploying/registry/registerResolver",
-											"build-modules/reference/deploying/registry/findSchema",
-											"build-modules/reference/deploying/registry/registerSchema",
-											"build-modules/reference/deploying/registry/findModule",
-											"build-modules/reference/deploying/registry/setRegistry",
-											"build-modules/reference/deploying/registry/setResolverUID",
-											"build-modules/reference/deploying/registry/setSchemaUID"
-										]
-									}
-								]
-							},
-							"build-modules/reference/glossary/types",
-							{
-								"group": "CheckNSignatures",
-								"pages": [
-									{
-										"group": "CheckSignatures",
-										"pages": [
-											"build-modules/reference/checknsignatures/checksignatures/recoverNSignatures"
-										]
-									},
-									{
-										"group": "CheckNSignaturesFoundryHelper",
-										"pages": [
-											"build-modules/reference/checknsignatures/checknsignaturesfoundryhelper/sign"
-										]
-									}
-								]
-							},
-							{
-								"group": "ERC4337 Data Libs",
-								"pages": [
-									{
-										"group": "SentinelList",
-										"pages": [
-											{
-												"group": "SentinelListLib",
-												"pages": [
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/init",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/alreadyInitialized",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/getNext",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/push",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/safePush",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/pop",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/popAll",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/contains",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellistlib/getEntriesPaginated"
-												]
-											},
-											{
-												"group": "SentinelList4337Lib",
-												"pages": [
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/init",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/alreadyInitialized",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/getNext",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/push",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/safePush",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/pop",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/popAll",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/contains",
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellist4337lib/getEntriesPaginated"
-												]
-											},
-											{
-												"group": "LinkedBytes32Lib",
-												"pages": [
-													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/init",
-													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/alreadyInitialized",
-													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/getNext",
-													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/push",
-													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/safePush",
-													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/pop",
-													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/popAll",
-													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/contains",
-													"build-modules/reference/erc4337-data-libs/sentinellist/linkedbytes32lib/getEntriesPaginated"
-												]
-											},
-											{
-												"group": "SentinelListHelper",
-												"pages": [
-													"build-modules/reference/erc4337-data-libs/sentinellist/sentinellisthelper/findPrevious"
-												]
-											}
-										]
-									}
-								]
-							},
-							{
-								"group": "ERC4337 Validation",
-								"pages": [
-									{
-										"group": "Simulator",
-										"pages": [
-											"build-modules/reference/erc4337-validation/simulator/simulateUserOp"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"group": "ERC4337 Validation",
-						"pages": [
-							"build-modules/erc4337-validation/overview",
-							"build-modules/erc4337-validation/getting-started",
-							{
-								"group": "Simulator",
-								"pages": [
-									"build-modules/erc4337-validation/simulator/simulateUserOp"
-								]
-							}
-						]
-					},
-					{
-						"group": "Module Registry",
-						"pages": [
-							"build-modules/module-registry/overview",
-							"build-modules/module-registry/getting-started",
-							{
-								"group": "Guides",
-								"pages": [
-									{
-										"group": "Integrations",
-										"pages": [
-											"build-modules/module-registry/integrations/account",
-											"build-modules/module-registry/integrations/wallet"
-										]
-									},
-									{
-										"group": "Usage",
-										"pages": [
-											"build-modules/module-registry/usage/mock-attestation"
-										]
-									}
-								]
-							},
-							{
-								"group": "Reference",
-								"pages": [
-									{
-										"group": "Querying",
-										"pages": [
-											"build-modules/module-registry/querying/check",
-											"build-modules/module-registry/querying/checkForAccount",
-											"build-modules/module-registry/querying/trustAttesters",
-											"build-modules/module-registry/querying/findTrustedAttesters"
-										]
-									},
-									{
-										"group": "Modules",
-										"pages": [
-											"build-modules/module-registry/modules/deployModule",
-											"build-modules/module-registry/modules/deployViaFactory",
-											"build-modules/module-registry/modules/registerModule",
-											"build-modules/module-registry/modules/findModule",
-											"build-modules/module-registry/modules/calcModuleAddress"
-										]
-									},
-									"build-modules/module-registry/glossary/types"
-								]
-							}
-						]
-					}
-				]
-			},
-			{
-				"tab": "API Reference",
-				"openapi": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/orchestrator.json"
-			}
-		]
-	},
-	"navbar": {
-		"links": [
-			{
-				"label": "Dashboard",
-				"href": "https://dashboard.rhinestone.dev"
-			},
-			{
-				"label": "GitHub",
-				"href": "https://github.com/rhinestonewtf"
-			},
-			{
-				"label": "Legacy Docs",
-				"href": "https://legacy.docs.rhinestone.dev"
-			}
-		]
-	},
-	"contextual": {
-		"options": ["copy"]
-	},
-	"logo": {
-		"light": "/logo/light.svg",
-		"dark": "/logo/dark.svg"
-	}
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Rhinestone",
+  "colors": {
+    "primary": "#1F178D",
+    "light": "#7369E9",
+    "dark": "#2D1FC6"
+  },
+  "background": {
+    "color": {
+      "dark": "#0D0926"
+    }
+  },
+  "icons": {
+    "library": "lucide"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Create API Key",
+          "icon": "key",
+          "href": "https://tally.so/r/wg22x4"
+        },
+        {
+          "anchor": "Examples",
+          "icon": "code",
+          "href": "https://github.com/rhinestonewtf/e2e-examples/"
+        }
+      ]
+    },
+    "tabs": [
+      {
+        "tab": "Home",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": [
+              "home/introduction/welcome-to-rhinestone",
+              "home/introduction/what-is-rhinestone",
+              "home/introduction/rhinestone-intents"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "home/concepts/intents-and-erc4337",
+              "home/concepts/resource-locks",
+              "home/concepts/smart-accounts",
+              "home/concepts/session-keys",
+              "home/concepts/smart-eoas-eip-7702"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "home/resources/address-book",
+              "home/resources/supported-chains",
+              "home/resources/audit-reports",
+              "home/resources/fees",
+              "home/resources/erc-7579",
+              "home/resources/modules"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Smart Wallet SDK",
+        "pages": [
+          "smart-wallet/quickstart",
+          {
+            "group": "Core",
+            "pages": [
+              "smart-wallet/core/create-account",
+              "smart-wallet/core/signers/external-wallet-signer",
+              {
+                "group": "Embedded Wallet Signer",
+                "pages": [
+                  "smart-wallet/core/signers/dynamic",
+                  "smart-wallet/core/signers/privy",
+                  "smart-wallet/core/signers/para",
+                  "smart-wallet/core/signers/magic",
+                  "smart-wallet/core/signers/turnkey",
+                  "smart-wallet/core/signers/openfort"
+                ]
+              },
+              "smart-wallet/core/eip-7702",
+              "smart-wallet/core/create-first-transaction",
+              "smart-wallet/core/passkeys",
+              "smart-wallet/core/ecdsa-signer",
+              "smart-wallet/core/multisig"
+            ]
+          },
+          {
+            "group": "Gas Sponsorship",
+            "pages": [
+              "smart-wallet/gas-sponsorship/overview",
+              "smart-wallet/gas-sponsorship/set-up-sponsorship",
+              "smart-wallet/gas-sponsorship/pay-gas-with-erc20"
+            ]
+          },
+          {
+            "group": "Chain Abstraction",
+            "pages": [
+              "smart-wallet/chain-abstraction/single-chain-intent",
+              "smart-wallet/chain-abstraction/multi-chain-intent",
+              "smart-wallet/chain-abstraction/swaps",
+              "smart-wallet/chain-abstraction/resource-locks",
+              "smart-wallet/chain-abstraction/unified-balance",
+              "smart-wallet/chain-abstraction/source-token-amount",
+              "smart-wallet/chain-abstraction/account-deployment",
+              "smart-wallet/chain-abstraction/error-handling",
+              "smart-wallet/chain-abstraction/local-orchestrator-docker"
+            ]
+          },
+          {
+            "group": "Smart Sessions",
+            "pages": [
+              "smart-wallet/smart-sessions/overview",
+              "smart-wallet/smart-sessions/multi-session-signature",
+              {
+                "group": "Signature Validators",
+                "pages": [
+                  "smart-wallet/smart-sessions/signature-validators/ecdsa",
+                  "smart-wallet/smart-sessions/signature-validators/multisig",
+                  "smart-wallet/smart-sessions/signature-validators/passkey"
+                ]
+              },
+              {
+                "group": "Policies",
+                "pages": [
+                  "smart-wallet/smart-sessions/policies/sudo",
+                  "smart-wallet/smart-sessions/policies/call",
+                  "smart-wallet/smart-sessions/policies/spending-limit",
+                  "smart-wallet/smart-sessions/policies/timeframe",
+                  "smart-wallet/smart-sessions/policies/usage-limit"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "smart-wallet/advanced/batch-transactions",
+              "smart-wallet/advanced/multi-factor-authentication",
+              "smart-wallet/advanced/recovery",
+              "smart-wallet/advanced/custom-modules",
+              "smart-wallet/advanced/message-signing",
+              "smart-wallet/advanced/use-erc-4337",
+              "smart-wallet/advanced/migration-guide",
+              "smart-wallet/advanced/security"
+            ]
+          },
+          "smart-wallet/module-sdk",
+          {
+            "group": "Customize",
+            "pages": [
+              "smart-wallet/customize/bring-your-own-account",
+              {
+                "group": "Smart Account Providers",
+                "pages": [
+                  "smart-wallet/customize/smart-account-providers/nexus",
+                  "smart-wallet/customize/smart-account-providers/safe",
+                  "smart-wallet/customize/smart-account-providers/kernel",
+                  "smart-wallet/customize/smart-account-providers/startale",
+                  "smart-wallet/customize/smart-account-providers/prime"
+                ]
+              },
+              "smart-wallet/customize/json-rpc-providers",
+              "smart-wallet/customize/erc4337-infra"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Intents API",
+        "pages": [
+          "intents/overview",
+          {
+            "group": "Use Cases",
+            "pages": [
+              "intents/use-cases/one-click-deposit",
+              "intents/use-cases/chain-abstracted-swaps",
+              "intents/use-cases/multi-input-bridge"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "intents/guides/getting-a-quote",
+              "intents/guides/token-requirements",
+              "intents/guides/signing",
+              "intents/guides/submitting-the-intent",
+              "intents/guides/error-handling"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "openapi": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/orchestrator.json"
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Dashboard",
+        "href": "https://dashboard.rhinestone.dev"
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/rhinestonewtf"
+      }
+    ]
+  },
+  "contextual": {
+    "options": ["copy"]
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  }
 }
