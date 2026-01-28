@@ -13,9 +13,8 @@ For production use, we recommend setting up a custom JSON-RPC provider with your
 
 To use [Alchemy](https://www.alchemy.com), provide an API key during SDK initialization:
 
-```ts {2-6}
+```ts {2-5}
 const rhinestone = new RhinestoneSDK({
-  apiKey: rhinestoneApiKey,
   provider: {
     type: 'alchemy',
     apiKey: alchemyApiKey,
@@ -24,10 +23,8 @@ const rhinestone = new RhinestoneSDK({
 const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
-    accounts: [accountA, accountB, accountC],
-    threshold: 2,
+    accounts: [signer],
   },
-
 })
 ```
 
@@ -50,7 +47,7 @@ const rhinestone = new RhinestoneSDK({
 const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
-    accounts: [account],
+    accounts: [signer],
   },
 })
 ```
