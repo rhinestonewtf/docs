@@ -153,7 +153,14 @@
               "smart-wallet/advanced/security"
             ]
           },
-          "smart-wallet/module-sdk",
+          {
+            "title": "Module SDK",
+            "href": "https://erc7579.com/tooling/module-sdk"
+          },
+          {
+            "title": "ModuleKit",
+            "href": "https://erc7579.com/tooling/modulekit"
+          },
           {
             "group": "Customize",
             "pages": [
