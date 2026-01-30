@@ -8,6 +8,7 @@ Docs: https://docs.rhinestone.dev
 
 - `bunx mintlify dev` - Run local preview (port 3000)
 - `bunx mintlify dev --port 3333` - Custom port
+- `bunx mintlify dev --no-open` - Run without opening browser
 - `bunx mintlify broken-links` - Check for broken links
 
 ## Stack

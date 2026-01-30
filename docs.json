@@ -154,12 +154,11 @@
             ]
           },
           {
-            "title": "Module SDK",
-            "href": "https://erc7579.com/tooling/module-sdk"
-          },
-          {
-            "title": "ModuleKit",
-            "href": "https://erc7579.com/tooling/modulekit"
+            "group": "Module Development",
+            "pages": [
+              "smart-wallet/module-sdk",
+              "smart-wallet/modulekit"
+            ]
           },
           {
             "group": "Customize",
