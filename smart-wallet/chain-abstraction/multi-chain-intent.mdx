@@ -48,12 +48,6 @@ Under the hood, this will:
 4) Execute the _claim_ transaction on Arbitrum
 5) Execute the _fill_ transaction on Base
 
-## Token Requests
-
-`tokenRequests` is a list of token assets and their amounts that are required on the target chain to make the transaction. It tells the solvers to ensure those assets are present before executing the transaction `calls`. If you don't need any assets on the target chain, you can omit this.
-
-<Note>Solvers will supply all assets specified in the `tokenRequests`. If the user already has the required assets, don't add them into `tokenRequests`.</Note>
-
 ## Source Chain
 
 Providing the source chain deploys the account on that chain, as well as uses the funds on that chain to fulfill the intent.
@@ -63,8 +57,6 @@ If you already have an account deployed on one or more source chains, you can om
 ## Token Requests
 
 `tokenRequests` is a list of token assets and their amounts that are required on the target chain to make the transaction. It tells the solvers to ensure those assets are present before executing the transaction `calls`. If you don't need any assets on the target chain, you can omit this.
-
-<Note>Solvers will supply all assets specified in the `tokenRequests`. If the user already has the required assets, don't add them into `tokenRequests`.</Note>
 
 ## Gas Limit
 
@@ -121,6 +113,30 @@ const transaction = await rhinestoneAccount.sendTransaction({
 ```
 
 <Note>Chain-specific `sourceAssets` take precendence over `sourceChain` parameter.</Note>
+
+## Auxiliary Funds
+
+In case you have funds not available immediately for an intent (e.g. locked in a vault or sitting in an exchange), you can specify them as auxiliary funds:
+
+```ts {9-14}
+const transaction = await rhinestoneAccount.prepareTransaction({
+  targetChain: arbitrum,
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+  auxiliaryFunds: {
+    [base.id]: {
+      [USDC_ADDRESS]: parseUnits('100', 6),
+      [WETH_ADDRESS]: parseUnits('1', 18)
+    }
+  }
+})
+```
+
+This lets you get a quote before getting the funds ready on the account.
 
 ## Wait for Execution
 
