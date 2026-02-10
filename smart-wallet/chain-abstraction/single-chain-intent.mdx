@@ -63,6 +63,30 @@ const transaction = await rhinestoneAccount.sendTransaction({
 })
 ```
 
+## Auxiliary Funds
+
+In case you have funds not available immediately for an intent (e.g. locked in a vault or sitting in an exchange), you can specify them as auxiliary funds:
+
+```ts {9-14}
+const transaction = await rhinestoneAccount.prepareTransaction({
+  chain: base,
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+  auxiliaryFunds: {
+    [base.id]: {
+      [USDC_ADDRESS]: parseUnits('100', 6),
+      [WETH_ADDRESS]: parseUnits('1', 18)
+    }
+  }
+})
+```
+
+This lets you get a quote before getting the funds ready on the account.
+
 ## Wait for Execution
 
 `sendTransaction` returns a pending intent. To wait until it gets executed, use `waitForExecution`:
