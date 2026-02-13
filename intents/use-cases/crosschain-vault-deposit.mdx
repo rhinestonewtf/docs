@@ -1,0 +1,426 @@
+---
+title: "Crosschain Vault Deposit"
+description: "Deposit into an ERC-4626 vault on any chain using tokens from any supported chain."
+---
+
+With Rhinestone intents, you can deposit into any ERC-4626 vault on a destination chain using tokens from any supported chain. This is powered by `destinationExecutions` — arbitrary calls that run on the destination chain as part of the intent settlement.
+
+The flow works as follows:
+
+1. Encode the vault deposit call
+2. Build the meta intent with the deposit execution
+3. Get a quote from Rhinestone
+4. Fulfill any token requirements
+5. Sign the intent
+6. Submit and poll for completion
+
+## Encoding the Vault Deposit
+
+<Tabs>
+<Tab title="EOA">
+
+For EOAs, destination executions run in an intermediary contract — not in the user's account context. The requested tokens are automatically swept to the user after execution, but any tokens received as a result of the execution (such as vault shares) are not automatically swept.
+
+You must include an explicit `transfer` call to send the vault shares back to the user's address.
+
+```ts
+import { encodeFunctionData, erc20Abi, parseUnits } from "viem";
+
+const VAULT_ADDRESS = "0x..."; // ERC-4626 vault
+const DEPOSIT_TOKEN = "0x..."; // Vault's underlying asset
+const depositAmount = parseUnits("100", 6); // e.g. 100 USDC
+
+const vaultAbi = [
+  {
+    name: "deposit",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "assets", type: "uint256" },
+      { name: "receiver", type: "address" },
+    ],
+    outputs: [{ name: "shares", type: "uint256" }],
+  },
+] as const;
+
+const destinationExecutions = [
+  // 1. Deposit into the vault
+  {
+    to: VAULT_ADDRESS,
+    value: 0n,
+    data: encodeFunctionData({
+      abi: vaultAbi,
+      functionName: "deposit",
+      args: [depositAmount, VAULT_ADDRESS], // receiver is the intermediary
+    }),
+  },
+  // 2. Transfer vault shares back to the user
+  {
+    to: VAULT_ADDRESS, // ERC-4626 vaults are also ERC-20 share tokens
+    value: 0n,
+    data: encodeFunctionData({
+      abi: erc20Abi,
+      functionName: "transfer",
+      args: [USER_ADDRESS, depositAmount], // approximate share amount
+    }),
+  },
+];
+```
+
+<Note>
+Since executions run outside the user's account, you need the second `transfer` call to move vault shares to the user. This limitation will be addressed in a future API update with a new field for specifying expected output tokens.
+</Note>
+
+</Tab>
+<Tab title="Smart Account">
+
+For Smart Accounts, the IntentExecutor runs destination executions within the account's own context. Vault shares are minted directly to the account — no extra transfer needed.
+
+```ts
+import { encodeFunctionData, parseUnits } from "viem";
+
+const VAULT_ADDRESS = "0x..."; // ERC-4626 vault
+const DEPOSIT_TOKEN = "0x..."; // Vault's underlying asset
+const depositAmount = parseUnits("100", 6); // e.g. 100 USDC
+
+const vaultAbi = [
+  {
+    name: "deposit",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "assets", type: "uint256" },
+      { name: "receiver", type: "address" },
+    ],
+    outputs: [{ name: "shares", type: "uint256" }],
+  },
+] as const;
+
+const destinationExecutions = [
+  {
+    to: VAULT_ADDRESS,
+    value: 0n,
+    data: encodeFunctionData({
+      abi: vaultAbi,
+      functionName: "deposit",
+      args: [depositAmount, ACCOUNT_ADDRESS],
+    }),
+  },
+];
+```
+
+</Tab>
+</Tabs>
+
+## Constructing the Meta Intent
+
+<Tabs>
+<Tab title="EOA">
+
+```ts
+const metaIntent = {
+  destinationChainId: 42161, // e.g. Arbitrum
+  tokenRequests: [
+    {
+      tokenAddress: DEPOSIT_TOKEN,
+      amount: depositAmount.toString(),
+    },
+  ],
+  account: {
+    address: USER_ADDRESS,
+    accountType: "EOA",
+  },
+  destinationExecutions,
+};
+```
+
+</Tab>
+<Tab title="Smart Account">
+
+```ts
+const metaIntent = {
+  destinationChainId: 42161, // e.g. Arbitrum
+  tokenRequests: [
+    {
+      tokenAddress: DEPOSIT_TOKEN,
+      amount: depositAmount.toString(),
+    },
+  ],
+  account: {
+    address: ACCOUNT_ADDRESS,
+    accountType: "ERC7579",
+    setupOps: [], // include factory args if the account is not yet deployed
+  },
+  destinationExecutions,
+};
+```
+
+</Tab>
+</Tabs>
+
+## Getting a Quote
+
+Submit the meta intent to the `/intents/route` endpoint to get a quote:
+
+```ts
+const baseUrl = "https://v1.orchestrator.rhinestone.dev";
+const apiKey = "YOUR_RHINESTONE_API_KEY";
+
+const res = await fetch(`${baseUrl}/intents/route`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    Accept: "application/json",
+  },
+  body: JSON.stringify(metaIntent, (_, value) =>
+    typeof value === "bigint" ? value.toString() : value,
+  ),
+});
+
+const data = await res.json();
+const { intentOp, intentCost, tokenRequirements } = data;
+```
+
+The response includes:
+
+- `intentOp`: the intent operation elements to sign
+- `intentCost`: the cost of the intent in input tokens
+- `tokenRequirements`: any prerequisite token operations (EOA only)
+
+<Card
+  title="Getting a Quote"
+  icon="route"
+  href="../guides/getting-a-quote"
+>
+  See the full guide for advanced options like sponsorship and source chain filtering
+</Card>
+
+## Fulfilling Token Requirements
+
+<Tabs>
+<Tab title="EOA">
+
+Before submitting, EOAs must fulfill the token requirements returned in the quote. There are two types:
+
+**ERC-20 Approvals** — approve tokens to the Permit2 contract:
+
+```ts
+import { maxUint256 } from "viem";
+
+const PERMIT2 = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
+
+const hash = await walletClient.writeContract({
+  address: tokenAddress,
+  abi: erc20Abi,
+  functionName: "approve",
+  args: [PERMIT2, maxUint256],
+});
+```
+
+**ETH Wrapping** — wrap native ETH to WETH:
+
+```ts
+const hash = await walletClient.writeContract({
+  address: WETH_ADDRESS,
+  abi: [
+    {
+      name: "deposit",
+      type: "function",
+      stateMutability: "payable",
+      inputs: [],
+      outputs: [],
+    },
+  ],
+  functionName: "deposit",
+  value: wrapAmount,
+});
+```
+
+<Info>
+Approvals are only ever to the [Permit2](https://github.com/Uniswap/permit2) contract. We recommend using max approvals for the best UX. Alternatively, inspect the `tokensSpent` field on the intent elements for the exact amount needed.
+</Info>
+
+</Tab>
+<Tab title="Smart Account">
+
+Smart Accounts handle token approvals and wrapping automatically via pre-claim ops — no manual steps are needed. You can proceed directly to signing.
+
+</Tab>
+</Tabs>
+
+<Card
+  title="Token Requirements"
+  icon="list-check"
+  href="../guides/token-requirements"
+>
+  Full details on fulfilling token requirements
+</Card>
+
+## Signing the Intent
+
+<Tabs>
+<Tab title="EOA">
+
+EOAs sign each intent element using EIP-712 typed data via Permit2. You need one signature per input chain. The last origin signature doubles as the destination signature.
+
+```ts
+import { type Hex } from "viem";
+
+const signatures: Hex[] = [];
+
+for (const element of intentOp.elements) {
+  const typedData = getTypedData(
+    element,
+    BigInt(intentOp.nonce),
+    BigInt(intentOp.expires),
+  );
+
+  const signature = await walletClient.signTypedData({
+    domain: typedData.domain,
+    types: typedData.types,
+    primaryType: typedData.primaryType,
+    message: typedData.message,
+  });
+
+  signatures.push(signature);
+}
+
+const originSignatures = signatures;
+const destinationSignature = signatures.at(-1)!;
+```
+
+<Card
+  title="Signing"
+  icon="signature"
+  href="../guides/signing"
+>
+  See the full signing guide for the `getTypedData` implementation and type definitions
+</Card>
+
+</Tab>
+<Tab title="Smart Account">
+
+Smart Accounts compute a digest over the intent bundle and sign it, then encode the signature with the ownable validator.
+
+```ts
+import {
+  type Hex,
+  type Address,
+  hashTypedData,
+  keccak256,
+  encodePacked,
+} from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { getOwnableValidator } from "@rhinestone/module-sdk";
+
+const account = privateKeyToAccount(OWNER_PRIVATE_KEY);
+
+// Compute the digest for each element
+const digest = getCompactDigest(intentOp);
+
+// Sign the digest
+const signature = await account.signMessage({
+  message: { raw: digest },
+});
+
+// Encode with the ownable validator
+const ownableValidator = getOwnableValidator({
+  owners: [account.address],
+  threshold: 1,
+});
+
+const encodedSignature: Hex = encodePacked(
+  ["address", "uint8", "bytes"],
+  [
+    ownableValidator.address,
+    0, // config ID
+    signature,
+  ],
+);
+
+const originSignatures = Array(intentOp.elements.length).fill(
+  encodedSignature,
+);
+const destinationSignature = encodedSignature;
+```
+
+<Note>
+The `getCompactDigest` function routes to the appropriate digest computation based on the settlement layer. See the [signing guide](../guides/signing) for details on the underlying typed data structure.
+</Note>
+
+</Tab>
+</Tabs>
+
+## Submitting and Polling
+
+Submit the signed intent to the `/intent-operations` endpoint:
+
+```ts
+const res = await fetch(`${baseUrl}/intent-operations`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    Accept: "application/json",
+  },
+  body: JSON.stringify(
+    {
+      intentOp,
+      originSignatures,
+      destinationSignature,
+    },
+    (_, value) => (typeof value === "bigint" ? value.toString() : value),
+  ),
+});
+
+const { bundleResults } = await res.json();
+const operationId = bundleResults[0].bundleId;
+```
+
+Poll for status using the operation ID:
+
+```ts
+const poll = async (operationId: string) => {
+  const res = await fetch(`${baseUrl}/intent-operation/${operationId}`, {
+    headers: { "x-api-key": apiKey },
+  });
+  return res.json();
+};
+```
+
+Intent operations can have the following statuses:
+
+- `PENDING` — in progress
+- `CLAIMED` — source funds claimed by the solver, not yet executed on destination
+- `PRECONFIRMED` — confirmed by the solver, not yet executed onchain
+- `FILLED` — executed on destination, source funds not yet claimed
+- `COMPLETED` — fully completed
+- `EXPIRED` — missed the execution deadline
+- `FAILED` — failed to execute
+
+## Next Steps
+
+<CardGroup cols={3}>
+<Card
+  title="Error Handling"
+  icon="triangle-exclamation"
+  href="../guides/error-handling"
+>
+  Handle common error scenarios
+</Card>
+<Card
+  title="Multi-input Bridge"
+  icon="arrows-split-up-and-left"
+  href="./multi-input-bridge"
+>
+  Source tokens from multiple chains in a single intent
+</Card>
+<Card
+  title="1-Click Deposit"
+  icon="arrow-pointer"
+  href="./one-click-deposit"
+>
+  Streamline deposits with a companion account pattern
+</Card>
+</CardGroup>
