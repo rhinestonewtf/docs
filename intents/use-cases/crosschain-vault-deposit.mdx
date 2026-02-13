@@ -389,38 +389,4 @@ const poll = async (operationId: string) => {
 };
 ```
 
-Intent operations can have the following statuses:
-
-- `PENDING` — in progress
-- `CLAIMED` — source funds claimed by the solver, not yet executed on destination
-- `PRECONFIRMED` — confirmed by the solver, not yet executed onchain
-- `FILLED` — executed on destination, source funds not yet claimed
-- `COMPLETED` — fully completed
-- `EXPIRED` — missed the execution deadline
-- `FAILED` — failed to execute
-
-## Next Steps
-
-<CardGroup cols={3}>
-<Card
-  title="Error Handling"
-  icon="triangle-exclamation"
-  href="../guides/error-handling"
->
-  Handle common error scenarios
-</Card>
-<Card
-  title="Multi-input Bridge"
-  icon="arrows-split-up-and-left"
-  href="./multi-input-bridge"
->
-  Source tokens from multiple chains in a single intent
-</Card>
-<Card
-  title="1-Click Deposit"
-  icon="arrow-pointer"
-  href="./one-click-deposit"
->
-  Streamline deposits with a companion account pattern
-</Card>
-</CardGroup>
+See the [submitting guide](../guides/submitting-the-intent) for the full list of intent statuses.
