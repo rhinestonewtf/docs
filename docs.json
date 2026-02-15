@@ -187,10 +187,10 @@
           {
             "group": "Use Cases",
             "pages": [
-              "intents/use-cases/one-click-deposit",
+              "intents/use-cases/automated-zaps",
               "intents/use-cases/chain-abstracted-swaps",
               "intents/use-cases/multi-input-bridge",
-              "intents/use-cases/crosschain-vault-deposit"
+              "intents/use-cases/vault-deposit"
             ]
           },
           {
