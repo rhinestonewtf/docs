@@ -13,9 +13,11 @@ const endpoint = `${baseUrl}/intent-operations`;
 const apiKey = "YOUR_RHINESTONE_API_KEY";
 
 const payload = {
-  intentOp,
-  originSignatures,
-  destinationSignature
+  signedIntentOp: {
+    ...intentOp,
+    originSignatures,
+    destinationSignature,
+  },
 };
 
 const res = await fetch(endpoint, {

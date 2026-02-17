@@ -19,10 +19,15 @@ interface TokenPermissions {
   amount: bigint;
 }
 
-interface Execution {
+interface Ops {
   to: Address;
   value: string;
   data: Hex;
+}
+
+interface Op {
+  vt: Hex;
+  ops: Ops[];
 }
 
 interface IntentOpElementMandate {
@@ -30,17 +35,16 @@ interface IntentOpElementMandate {
   tokenOut: [[string, string]];
   destinationChainId: string;
   fillDeadline: string;
-  destinationOps: Execution[];
-  preClaimOps: Execution[];
+  destinationOps: Op;
+  preClaimOps: Op;
   qualifier: {
     settlementContext: {
       settlementLayer: string;
       usingJIT: boolean;
       using7579: boolean;
     };
-    encodedVal: string;
+    encodedVal: Hex;
   };
-  v: number;
   minGas: string;
 }
 
@@ -60,6 +64,10 @@ export interface IntentOpElement {
   mandate: IntentOpElementMandate;
 }
 
+function toToken(id: bigint): Address {
+  return `0x${(id & ((1n << 160n) - 1n)).toString(16).padStart(40, "0")}`;
+}
+
 function getTypedData(
   element: IntentOpElement,
   nonce: bigint,
@@ -67,13 +75,14 @@ function getTypedData(
 ) {
   const PERMIT2_ADDRESS = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
 
-  const tokens = element.idsAndAmounts.map(
-    ([id, amount]) => [BigInt(id), BigInt(amount)] as const,
-  );
+  const tokens = element.idsAndAmounts.map(([id, amount]) => [
+    BigInt(id),
+    BigInt(amount),
+  ]);
   const tokenPermissions = tokens.reduce<TokenPermissions[]>(
     (permissions, [id, amountIn]) => {
-      const token = toToken(id);
-      const amount = amountIn;
+      const token = toToken(BigInt(id));
+      const amount = BigInt(amountIn);
       const permission: TokenPermissions = { token, amount };
       permissions.push(permission);
       return permissions;
@@ -83,23 +92,11 @@ function getTypedData(
   const spender = element.arbiter;
   const mandate = element.mandate;
 
-  // Pre-process ops to ensure proper typing
-  const originOps = mandate.preClaimOps.map((op) => ({
-    to: op.to as Address,
-    value: BigInt(op.value),
-    data: op.data as Hex,
-  }));
-  const destOps = mandate.destinationOps.map((op) => ({
-    to: op.to as Address,
-    value: BigInt(op.value),
-    data: op.data as Hex,
-  }));
-
   const typedData = {
     domain: {
       name: "Permit2",
       chainId: Number(element.chainId),
-      verifyingContract: PERMIT2_ADDRESS as Hex,
+      verifyingContract: PERMIT2_ADDRESS,
     },
     types: {
       TokenPermissions: [
@@ -116,17 +113,20 @@ function getTypedData(
         { name: "targetChain", type: "uint256" },
         { name: "fillExpiry", type: "uint256" },
       ],
-      Op: [
+      Ops: [
         { name: "to", type: "address" },
         { name: "value", type: "uint256" },
         { name: "data", type: "bytes" },
       ],
+      Op: [
+        { name: "vt", type: "bytes32" },
+        { name: "ops", type: "Ops[]" },
+      ],
       Mandate: [
         { name: "target", type: "Target" },
-        { name: "v", type: "uint8" },
         { name: "minGas", type: "uint128" },
-        { name: "originOps", type: "Op[]" },
-        { name: "destOps", type: "Op[]" },
+        { name: "originOps", type: "Op" },
+        { name: "destOps", type: "Op" },
         { name: "q", type: "bytes32" },
       ],
       PermitBatchWitnessTransferFrom: [
@@ -137,7 +137,7 @@ function getTypedData(
         { name: "mandate", type: "Mandate" },
       ],
     },
-    primaryType: "PermitBatchWitnessTransferFrom" as const,
+    primaryType: "PermitBatchWitnessTransferFrom",
     message: {
       permitted: tokenPermissions,
       spender: spender,
@@ -153,14 +153,13 @@ function getTypedData(
           targetChain: BigInt(mandate.destinationChainId),
           fillExpiry: BigInt(mandate.fillDeadline),
         },
-        v: mandate.v,
         minGas: BigInt(mandate.minGas),
-        originOps,
-        destOps,
-        q: keccak256(mandate.qualifier.encodedVal as Hex),
+        originOps: mandate.preClaimOps,
+        destOps: mandate.destinationOps,
+        q: keccak256(mandate.qualifier.encodedVal),
       },
     },
-  };
+  } as const;
 
   return typedData;
 }
@@ -183,10 +182,10 @@ for (const element of intentOp.elements) {
   const signature = await signTypedData(wagmiConfig, {
     ...typedData,
   });
-  signatures.push(signature)
+  signatures.push(signature);
 }
-// The destination (output) signature is the last input signature
-const destinationSignature: Hex = signature.at(-1)
+const originSignatures = signatures; // all signatures, including the last
+const destinationSignature = signatures.at(-1); // last one reused
 ```
 
 ## Next Steps
