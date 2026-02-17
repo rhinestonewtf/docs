@@ -184,8 +184,8 @@ for (const element of intentOp.elements) {
   });
   signatures.push(signature);
 }
-// The destination (output) signature is the first input signature
-const destinationSignature: Hex = signatures[0];
+// The destination (output) signature is the last input signature
+const destinationSignature: Hex = signatures.at(-1);
 ```
 
 ## Next Steps
