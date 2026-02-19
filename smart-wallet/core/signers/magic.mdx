@@ -98,10 +98,26 @@ function serializeBigInts(obj: unknown): unknown {
   return obj
 }
 
-// 1. Create a viem wallet client using Magic's provider
+// 1. Wrap Magic's provider to handle chain switching
+//    The Rhinestone SDK calls wallet_switchEthereumChain before signing
+//    intents, but Magic embedded wallets don't support this. Since the
+//    signing itself (signTypedData) is chain-agnostic, we can safely
+//    no-op chain switch requests.
+const magicProvider = {
+  request: async (args: { method: string; params?: any[] }) => {
+    if (
+      args.method === "wallet_switchEthereumChain" ||
+      args.method === "wallet_addEthereumChain"
+    ) {
+      return null
+    }
+    return (magic.rpcProvider as any).request(args)
+  },
+}
+
 const walletClient = createWalletClient({
   account: address as `0x${string}`,
-  transport: custom(magic.rpcProvider as any),
+  transport: custom(magicProvider),
 })
 
 const wrappedWalletClient = walletClientToAccount(walletClient)
