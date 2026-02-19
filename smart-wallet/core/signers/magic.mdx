@@ -329,7 +329,10 @@ const rhinestoneAccount = await rhinestone.createAccount({
 Once initialized, both wallet types use the same Rhinestone API:
 
 ```tsx
-async function handleCrossChainTransfer() {
+import { encodeFunctionData, parseUnits, erc20Abi } from 'viem'
+import { baseSepolia, arbitrumSepolia } from 'viem/chains'
+
+async function handleCrossChainTransfer(rhinestoneAccount) {
   const transaction = await rhinestoneAccount.sendTransaction({
     sourceChains: [baseSepolia],
     targetChain: arbitrumSepolia,
@@ -351,6 +354,21 @@ async function handleCrossChainTransfer() {
     ],
   })
 }
+```
+
+## Environment Variables
+
+Make sure to set the following environment variables:
+
+```bash
+# Embedded wallet
+NEXT_PUBLIC_MAGIC_API_KEY=your_magic_publishable_key
+NEXT_PUBLIC_RHINESTONE_API_KEY=your_rhinestone_api_key
+
+# Server wallet (additional)
+MAGIC_SECRET_KEY=your_magic_secret_key
+MAGIC_API_KEY=your_magic_api_key
+MAGIC_OIDC_PROVIDER_ID=your_oidc_provider_id
 ```
 
 ## Next Steps

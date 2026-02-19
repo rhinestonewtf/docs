@@ -173,6 +173,9 @@ Use a [backend proxy](../../security) for your Rhinestone API key in production.
 Once initialized, use the Rhinestone account for cross-chain transactions:
 
 ```tsx
+import { encodeFunctionData, parseUnits, erc20Abi } from 'viem'
+import { baseSepolia, arbitrumSepolia } from 'viem/chains'
+
 const transaction = await rhinestoneAccount.sendTransaction({
   sourceChains: [baseSepolia],
   targetChain: arbitrumSepolia,
