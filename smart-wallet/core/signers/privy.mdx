@@ -23,30 +23,44 @@ Install the required dependencies:
 <CodeGroup>
 
 ```bash npm
-npm install @privy-io/react-auth @privy-io/wagmi-connector @rhinestone/sdk viem wagmi
+npm install @privy-io/react-auth @privy-io/wagmi @tanstack/react-query @rhinestone/sdk viem wagmi
 ```
 
 ```bash pnpm
-pnpm add @privy-io/react-auth @privy-io/wagmi-connector @rhinestone/sdk viem wagmi
+pnpm add @privy-io/react-auth @privy-io/wagmi @tanstack/react-query @rhinestone/sdk viem wagmi
 ```
 
 ```bash bun
-bun install @privy-io/react-auth @privy-io/wagmi-connector @rhinestone/sdk viem wagmi
+bun install @privy-io/react-auth @privy-io/wagmi @tanstack/react-query @rhinestone/sdk viem wagmi
 ```
 
 </CodeGroup>
 
-</Step>
-<Step title="Set Up Privy Provider">
+<Note>Make sure to import `createConfig` and `WagmiProvider` from `@privy-io/wagmi` rather than from `wagmi` directly. Privy's wrappers ensure the two libraries stay in sync.</Note>
 
-First, set up the Privy provider in your React application:
+</Step>
+<Step title="Set Up Providers">
+
+Set up the Privy, wagmi, and TanStack Query providers in your React application:
 
 ```tsx
 import { PrivyProvider } from '@privy-io/react-auth'
-import { WagmiConfig } from 'wagmi'
+import { createConfig, WagmiProvider } from '@privy-io/wagmi'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { http } from 'wagmi'
 import { mainnet, polygon, arbitrum, base } from 'viem/chains'
 
-const supportedChains = [mainnet, polygon, arbitrum, base]
+const queryClient = new QueryClient()
+
+const wagmiConfig = createConfig({
+  chains: [mainnet, polygon, arbitrum, base],
+  transports: {
+    [mainnet.id]: http(),
+    [polygon.id]: http(),
+    [arbitrum.id]: http(),
+    [base.id]: http(),
+  },
+})
 
 function App() {
   return (
@@ -59,16 +73,19 @@ function App() {
           accentColor: '#676FFF',
         },
         embeddedWallets: {
-          createOnLogin: 'users-without-wallets',
-          noPromptOnSignature: false,
+          ethereum: {
+            createOnLogin: 'users-without-wallets',
+          },
         },
         defaultChain: base,
-        supportedChains,
+        supportedChains: [mainnet, polygon, arbitrum, base],
       }}
     >
-      <WagmiConfig config={wagmiConfig}>
-        {/* Your app components */}
-      </WagmiConfig>
+      <QueryClientProvider client={queryClient}>
+        <WagmiProvider config={wagmiConfig}>
+          {/* Your app components */}
+        </WagmiProvider>
+      </QueryClientProvider>
     </PrivyProvider>
   )
 }
@@ -82,21 +99,37 @@ Create a custom hook that integrates Privy authentication with Rhinestone accoun
 <Note>The `useWalletClient()` hook from wagmi automatically connects to Privy's embedded wallets and external wallet connections.</Note>
 
 ```tsx
+import { useState, useEffect } from 'react'
 import { usePrivy, useWallets } from "@privy-io/react-auth"
 import { useWalletClient, useAccount } from "wagmi"
 import { RhinestoneSDK, walletClientToAccount } from "@rhinestone/sdk"
+
+interface PrivyWalletState {
+  rhinestoneAccount: any | null
+  isLoading: boolean
+  error: string | null
+}
 
 export function usePrivyWallet() {
   const { ready, authenticated, login, logout } = usePrivy()
   const { wallets } = useWallets()
   const { address } = useAccount()
   const { data: walletClient } = useWalletClient()
-  const [rhinestoneAccount, setRhinestoneAccount] = useState(null)
+  const [state, setState] = useState<PrivyWalletState>({
+    rhinestoneAccount: null,
+    isLoading: false,
+    error: null,
+  })
 
-  useEffect(() => {
-    async function initializeAccount() {
-      if (!ready || !authenticated || !address || !walletClient) return
+  const initializeAccount = async () => {
+    if (!ready || !authenticated || !address || !walletClient) {
+      setState({ rhinestoneAccount: null, isLoading: false, error: null })
+      return
+    }
 
+    setState(prev => ({ ...prev, isLoading: true, error: null }))
+
+    try {
       // wrap the wagmi client for the sdk
       const wrappedWalletClient = walletClientToAccount(walletClient)
 
@@ -111,17 +144,29 @@ export function usePrivyWallet() {
         },
       })
 
-      setRhinestoneAccount(account)
+      setState({ rhinestoneAccount: account, isLoading: false, error: null })
+    } catch (error) {
+      console.error('Failed to initialize Rhinestone account:', error)
+      setState({
+        rhinestoneAccount: null,
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Failed to initialize account',
+      })
     }
+  }
 
+  useEffect(() => {
     initializeAccount()
   }, [ready, authenticated, address, walletClient])
 
   return {
-    rhinestoneAccount,
+    rhinestoneAccount: state.rhinestoneAccount,
+    isLoading: state.isLoading,
+    error: state.error,
     authenticated,
     login,
     logout,
+    reconnect: initializeAccount,
   }
 }
 ```
@@ -135,11 +180,24 @@ export function usePrivyWallet() {
 
 Use the hook to handle Privy authentication and smart account creation:
 
-```tsx {4-6}
+```tsx
 import { usePrivyWallet } from './hooks/usePrivyWallet'
 
 function PrivyWalletDashboard() {
-  const { authenticated, login, logout, rhinestoneAccount } = usePrivyWallet()
+  const { authenticated, login, logout, rhinestoneAccount, isLoading, error, reconnect } = usePrivyWallet()
+
+  if (isLoading) {
+    return <p>Setting up your wallet...</p>
+  }
+
+  if (error) {
+    return (
+      <div>
+        <p>Error: {error}</p>
+        <button onClick={reconnect}>Try Again</button>
+      </div>
+    )
+  }
 
   if (!authenticated) {
     return (
@@ -164,8 +222,12 @@ function PrivyWalletDashboard() {
 
 Send transactions using the Privy-connected wallet:
 
-```tsx {2-14}
-async function handleCrossChainTransfer() {
+```tsx
+import { encodeFunctionData, parseUnits } from 'viem'
+import { erc20Abi } from 'viem'
+import { baseSepolia, arbitrumSepolia } from 'viem/chains'
+
+async function handleCrossChainTransfer(rhinestoneAccount) {
   const transaction = await rhinestoneAccount.sendTransaction({
     sourceChains: [baseSepolia],
     targetChain: arbitrumSepolia,
@@ -205,7 +267,7 @@ This pattern means you can easily switch between providers or support multiple p
 Privy supports multiple authentication methods out of the box:
 
 - **Email**: Users can sign in with their email address
-- **Social**: Google, Twitter, Discord, and other OAuth providers  
+- **Social**: Google, Twitter, Discord, and other OAuth providers
 - **Wallet**: Connect external wallets like MetaMask
 - **SMS**: Phone number verification
 
@@ -239,7 +301,7 @@ The example demonstrates:
 ## Next Steps
 
 - **See it in action**: [Privy + Rhinestone Example](https://github.com/rhinestonewtf/e2e-examples/tree/main/privy)
-- Learn more about [Privy's authentication flows](https://docs.privy.io/) 
-- Explore [embedded wallet features](https://docs.privy.io/guide/frontend/embedded/overview)
-- Explore [chain abstraction](../../chain-abstraction/unified-balance) capabilities  
+- Learn more about [Privy's authentication flows](https://docs.privy.io/)
+- Explore [embedded wallet features](https://docs.privy.io/guide/react/wallets/embedded/creation)
+- Explore [chain abstraction](../../chain-abstraction/unified-balance) capabilities
 - Check out [creating an account](../create-account) for more details
