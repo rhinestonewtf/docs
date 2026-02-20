@@ -12,12 +12,9 @@ First, compute the splits for the amount you want to transfer:
 ```ts
 const splits = await rhinestone.splitIntents({
   chain: base,
-  tokens: [
-    {
-      address: "USDC",
-      amount: parseUnits("100000", 6),
-    },
-  ],
+  tokens: {
+    "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913": 100000000000n, // 100k USDC
+  },
 });
 ```
 
@@ -29,7 +26,7 @@ const transactions = await Promise.all(
     rhinestoneAccount.sendTransaction({
       sourceChains: [optimism],
       targetChain: base,
-      tokenRequests: Object.entries(split).map(([address, amount]) => ({
+      tokenRequests: Object.entries(split.tokens).map(([address, amount]) => ({
         address,
         amount,
       })),
@@ -43,10 +40,12 @@ const transactions = await Promise.all(
 
 You can optionally filter which settlement layers to use:
 
-```ts {6}
+```ts {5}
 const splits = await rhinestone.splitIntents({
   chain: base,
-  tokens: [{ address: "USDC", amount: parseUnits("100000", 6) }],
-  settlementLayers: ["across", "relay"],
+  tokens: {
+    "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913": 100000000000n,
+  },
+  settlementLayers: ["ACROSS", "ECO"],
 });
 ```
