@@ -87,6 +87,7 @@
                 ]
               },
               "smart-wallet/core/eip-7702",
+              "smart-wallet/core/eoa",
               "smart-wallet/core/create-first-transaction",
               "smart-wallet/core/passkeys",
               "smart-wallet/core/ecdsa-signer",
@@ -110,6 +111,8 @@
               "smart-wallet/chain-abstraction/resource-locks",
               "smart-wallet/chain-abstraction/unified-balance",
               "smart-wallet/chain-abstraction/source-token-amount",
+              "smart-wallet/chain-abstraction/custom-recipient",
+              "smart-wallet/chain-abstraction/liquidity-splitting",
               "smart-wallet/chain-abstraction/account-deployment",
               "smart-wallet/chain-abstraction/error-handling",
               "smart-wallet/chain-abstraction/local-orchestrator-docker"
@@ -148,6 +151,7 @@
               "smart-wallet/advanced/recovery",
               "smart-wallet/advanced/custom-modules",
               "smart-wallet/advanced/message-signing",
+              "smart-wallet/advanced/custom-signing",
               "smart-wallet/advanced/use-erc-4337",
               "smart-wallet/advanced/migration-guide",
               "smart-wallet/advanced/security"
