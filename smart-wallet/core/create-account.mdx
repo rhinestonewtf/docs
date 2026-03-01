@@ -53,7 +53,9 @@ Here, we create an account owned by an external wallet like MetaMask and send ou
     Create an account using the external wallet as the sole owner:
 
     ```ts
-    const rhinestone = new RhinestoneSDK()
+    const rhinestone = new RhinestoneSDK({
+  apiKey: process.env.RHINESTONE_API_KEY,
+})
 
     const account = walletClientToAccount(accountClient);
     console.log(account);
