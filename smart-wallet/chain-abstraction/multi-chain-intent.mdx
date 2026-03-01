@@ -166,3 +166,41 @@ const transaction = await rhinestoneAccount.sendTransaction({
 })
 const transactionResult = await rhinestone.getIntentStatus(transaction.id)
 ```
+
+## Large Intents
+
+When an intent is too large for a single relayer to fill, you can use `splitIntents` to break it into smaller sub-intents that can each be filled independently.
+
+`splitIntents` takes the chain and a map of token addresses to amounts, and returns an array of token maps — one per sub-intent. Submit each independently using `sendTransaction`.
+
+```ts
+import { splitIntents } from '@rhinestone/sdk'
+
+const { intents } = await rhinestone.splitIntents({
+  chain: base,
+  tokens: {
+    [USDC_ADDRESS]: parseUnits('10000', 6), // 10,000 USDC — too large for one relayer
+  },
+})
+
+// Submit each sub-intent separately
+for (const tokens of intents) {
+  const tokenRequests = Object.entries(tokens).map(([address, amount]) => ({
+    address: address as Address,
+    amount,
+  }))
+
+  await rhinestoneAccount.sendTransaction({
+    sourceChains: [base],
+    targetChain: arbitrum,
+    calls: [
+      // …
+    ],
+    tokenRequests,
+  })
+}
+```
+
+<Note>
+  In a future SDK version, large intent splitting will be handled automatically inside `sendTransaction`.
+</Note>

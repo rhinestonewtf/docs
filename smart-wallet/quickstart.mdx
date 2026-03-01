@@ -60,7 +60,9 @@ const privateKey = generatePrivateKey()
 console.log(`Owner private key: ${privateKey}`)
 const account = privateKeyToAccount(privateKey)
 
-const rhinestone = new RhinestoneSDK()
+const rhinestone = new RhinestoneSDK({
+  apiKey: process.env.RHINESTONE_API_KEY,
+})
 const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
