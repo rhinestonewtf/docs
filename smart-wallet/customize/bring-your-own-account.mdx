@@ -48,6 +48,50 @@ const rhinestoneAccount = await rhinestone.createAccount({
 })
 ```
 
+## Reusing Rhinestone Accounts
+
+If the account was originally created with the Rhinestone SDK, you can use `experimental_getRhinestoneInitData` to compute the `initData` automatically instead of providing the factory and factory data manually.
+
+```ts {1,3-5,10}
+import { experimental_getRhinestoneInitData } from '@rhinestone/sdk'
+
+const initData = await experimental_getRhinestoneInitData({
+  address: accountAddress,
+})
+
+const rhinestoneAccount = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [accountA],
+  },
+  initData,
+})
+```
+
+<Note>This API is **experimental** and may change in future versions.</Note>
+
+## Legacy V0 Accounts
+
+For accounts created with the Rhinestone SDK V0, use `experimental_getV0InitData`:
+
+```ts {1,3-5,10}
+import { experimental_getV0InitData } from '@rhinestone/sdk'
+
+const initData = await experimental_getV0InitData({
+  address: accountAddress,
+})
+
+const rhinestoneAccount = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [accountA],
+  },
+  initData,
+})
+```
+
+<Warning>V0 accounts may use [legacy modules](#legacy-modules). Make sure to specify the correct module address in the `owners` configuration.</Warning>
+
 ## Legacy Modules
 
 In most cases, an existing account would probably have the [legacy modules](../../home/resources/address-book#legacy) installed. In this case, you need to explicitly specify the module address when setting the `owners`.

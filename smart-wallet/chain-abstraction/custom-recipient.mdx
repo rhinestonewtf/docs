@@ -1,0 +1,47 @@
+---
+title: "Custom Recipient"
+description: "Send funds to a different address than the sender"
+---
+
+By default, the destination funds are sent to the sender's account. You can override this with the `recipient` parameter to send funds to a different address.
+
+## Address Recipient
+
+Pass a plain address to send funds to an arbitrary address:
+
+```ts {4}
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChains: [optimism],
+  targetChain: base,
+  recipient: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+});
+```
+
+## Smart Account Recipient
+
+You can also pass a `RhinestoneAccountConfig` to send funds to a smart account:
+
+```ts {4-9}
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChains: [optimism],
+  targetChain: base,
+  recipient: {
+    owners: {
+      type: "ecdsa",
+      accounts: [recipientOwner],
+    },
+  },
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+});
+```

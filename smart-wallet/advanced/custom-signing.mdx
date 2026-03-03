@@ -1,0 +1,36 @@
+---
+title: "Custom Signing"
+description: "Inspect and manually sign intent messages"
+---
+
+Use `getTransactionMessages` to extract the raw typed data messages from a prepared transaction. This gives you full control over the signing process.
+
+Custom signing is useful when you need to implement custom signing flows (e.g. sign async with each owner, use a custom signing method, etc).
+
+## Example
+
+```ts
+import { signTypedData } from "viem/accounts";
+
+// 1. Prepare the transaction
+const transactionData = await rhinestoneAccount.prepareTransaction({
+  // …
+});
+
+// 2. Extract messages
+const { origin, destination } =
+  rhinestoneAccount.getTransactionMessages(transactionData);
+
+// 3. Sign each message
+const originSignatures = await Promise.all(
+  origin.map((message) => sign(message)),
+);
+const destinationSignature = await sign(destination);
+
+// 4. Submit the transaction
+const transaction = await rhinestoneAccount.submitTransaction({
+  ...transactionData,
+  originSignatures,
+  destinationSignature,
+});
+```

@@ -1,0 +1,27 @@
+---
+title: "EOA"
+description: "Use a plain EOA (without EIP-7702) with the Rhinestone SDK"
+---
+
+You can use a plain EOA with the Rhinestone SDK without upgrading it to a smart account via EIP-7702.
+
+This is different from [EIP-7702 smart EOAs](./eip-7702), where the EOA is delegated to a smart account implementation. With a plain EOA, the account stays as-is — no delegation, no modules.
+
+## Setup
+
+```ts {3}
+const rhinestoneAccount = await rhinestone.createAccount({
+  account: {
+    type: 'eoa',
+  },
+  eoa: accountOwner,
+})
+```
+
+The EOA itself is the signer, so you don't need to specify `owners`.
+
+Once created, the transaction API is identical to smart accounts — see [Create First Transaction](./create-first-transaction) and [Chain Abstraction](../chain-abstraction/single-chain-intent) for usage.
+
+## Limitations
+
+Plain EOAs do not support modules, session keys, recovery, or multisig. If you need these features, consider using [EIP-7702](./eip-7702) or [creating a new smart account](./create-account).
