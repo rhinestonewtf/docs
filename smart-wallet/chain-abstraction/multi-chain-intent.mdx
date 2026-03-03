@@ -166,3 +166,50 @@ const transaction = await rhinestoneAccount.sendTransaction({
 })
 const transactionResult = await rhinestone.getIntentStatus(transaction.id)
 ```
+
+## Liquidity Splitting
+
+When transferring large token amounts, a single settlement layer may not have enough liquidity to fill the intent efficiently. Use `splitIntents` to break the amount into smaller portions that can be routed through different settlement layers in parallel, improving execution speed and pricing.
+
+First, compute the splits:
+
+```ts
+const splits = await rhinestone.splitIntents({
+  chain: base,
+  tokens: {
+    [USDC_ADDRESS]: parseUnits('100000', 6), // 100k USDC
+  },
+})
+```
+
+Then, send each split as a separate transaction:
+
+```ts
+const transactions = await Promise.all(
+  splits.map((split) =>
+    rhinestoneAccount.sendTransaction({
+      sourceChains: [optimism],
+      targetChain: base,
+      tokenRequests: Object.entries(split.tokens).map(([address, amount]) => ({
+        address,
+        amount,
+      })),
+      calls: [
+        // …
+      ],
+    }),
+  ),
+)
+```
+
+You can optionally filter which settlement layers to use:
+
+```ts {5}
+const splits = await rhinestone.splitIntents({
+  chain: base,
+  tokens: {
+    [USDC_ADDRESS]: parseUnits('100000', 6),
+  },
+  settlementLayers: ['ACROSS', 'ECO'],
+})
+```

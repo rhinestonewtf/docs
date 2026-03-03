@@ -98,10 +98,26 @@ function serializeBigInts(obj: unknown): unknown {
   return obj
 }
 
-// 1. Create a viem wallet client using Magic's provider
+// 1. Wrap Magic's provider to handle chain switching
+//    The Rhinestone SDK calls wallet_switchEthereumChain before signing
+//    intents, but Magic embedded wallets don't support this. Since the
+//    signing itself (signTypedData) is chain-agnostic, we can safely
+//    no-op chain switch requests.
+const magicProvider = {
+  request: async (args: { method: string; params?: any[] }) => {
+    if (
+      args.method === "wallet_switchEthereumChain" ||
+      args.method === "wallet_addEthereumChain"
+    ) {
+      return null
+    }
+    return (magic.rpcProvider as any).request(args)
+  },
+}
+
 const walletClient = createWalletClient({
   account: address as `0x${string}`,
-  transport: custom(magic.rpcProvider as any),
+  transport: custom(magicProvider),
 })
 
 const wrappedWalletClient = walletClientToAccount(walletClient)
@@ -329,7 +345,10 @@ const rhinestoneAccount = await rhinestone.createAccount({
 Once initialized, both wallet types use the same Rhinestone API:
 
 ```tsx
-async function handleCrossChainTransfer() {
+import { encodeFunctionData, parseUnits, erc20Abi } from 'viem'
+import { baseSepolia, arbitrumSepolia } from 'viem/chains'
+
+async function handleCrossChainTransfer(rhinestoneAccount) {
   const transaction = await rhinestoneAccount.sendTransaction({
     sourceChains: [baseSepolia],
     targetChain: arbitrumSepolia,
@@ -351,6 +370,21 @@ async function handleCrossChainTransfer() {
     ],
   })
 }
+```
+
+## Environment Variables
+
+Make sure to set the following environment variables:
+
+```bash
+# Embedded wallet
+NEXT_PUBLIC_MAGIC_API_KEY=your_magic_publishable_key
+NEXT_PUBLIC_RHINESTONE_API_KEY=your_rhinestone_api_key
+
+# Server wallet (additional)
+MAGIC_SECRET_KEY=your_magic_secret_key
+MAGIC_API_KEY=your_magic_api_key
+MAGIC_OIDC_PROVIDER_ID=your_oidc_provider_id
 ```
 
 ## Next Steps

@@ -12,7 +12,7 @@ Dynamic provides embedded wallet infrastructure that enables seamless user onboa
 ## Prerequisites
 
 - A Dynamic account and project
-- Dynamic API key
+- Dynamic Environment ID
 - React application setup
 
 <Steps>
@@ -23,15 +23,15 @@ Install the required dependencies:
 <CodeGroup>
 
 ```bash npm
-npm install @dynamic-labs/sdk-react @rhinestone/sdk viem wagmi
+npm install @dynamic-labs/sdk-react-core @dynamic-labs/ethereum @dynamic-labs/wagmi-connector @tanstack/react-query @rhinestone/sdk viem wagmi
 ```
 
 ```bash pnpm
-pnpm add @dynamic-labs/sdk-react @rhinestone/sdk viem wagmi
+pnpm add @dynamic-labs/sdk-react-core @dynamic-labs/ethereum @dynamic-labs/wagmi-connector @tanstack/react-query @rhinestone/sdk viem wagmi
 ```
 
 ```bash bun
-bun install @dynamic-labs/sdk-react @rhinestone/sdk viem wagmi
+bun install @dynamic-labs/sdk-react-core @dynamic-labs/ethereum @dynamic-labs/wagmi-connector @tanstack/react-query @rhinestone/sdk viem wagmi
 ```
 
 </CodeGroup>
@@ -39,20 +39,45 @@ bun install @dynamic-labs/sdk-react @rhinestone/sdk viem wagmi
 </Step>
 <Step title="Set Up Dynamic Provider">
 
-First, set up the Dynamic provider in your React application:
+Set up the Dynamic provider with wagmi and TanStack Query in your React application:
 
 ```tsx
-import { DynamicContextProvider } from '@dynamic-labs/sdk-react'
+import { DynamicContextProvider } from '@dynamic-labs/sdk-react-core'
+import { EthereumWalletConnectors } from '@dynamic-labs/ethereum'
+import { DynamicWagmiConnector } from '@dynamic-labs/wagmi-connector'
+import { createConfig, WagmiProvider } from 'wagmi'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { http } from 'viem'
+import { mainnet, polygon, arbitrum, base } from 'viem/chains'
+
+const wagmiConfig = createConfig({
+  chains: [mainnet, polygon, arbitrum, base],
+  multiInjectedProviderDiscovery: false,
+  transports: {
+    [mainnet.id]: http(),
+    [polygon.id]: http(),
+    [arbitrum.id]: http(),
+    [base.id]: http(),
+  },
+})
+
+const queryClient = new QueryClient()
 
 function App() {
   return (
     <DynamicContextProvider
       settings={{
         environmentId: process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID,
-        walletConnectors: ['metamask', 'coinbase', 'walletconnect'],
+        walletConnectors: [EthereumWalletConnectors],
       }}
     >
-      {/* Your app components */}
+      <WagmiProvider config={wagmiConfig}>
+        <QueryClientProvider client={queryClient}>
+          <DynamicWagmiConnector>
+            {/* Your app components */}
+          </DynamicWagmiConnector>
+        </QueryClientProvider>
+      </WagmiProvider>
     </DynamicContextProvider>
   )
 }
@@ -165,17 +190,17 @@ Use the enhanced hook in your React components with proper loading and error sta
 
 ```tsx
 import { useGlobalWallet } from './hooks/useGlobalWallet'
-import { useDynamicContext } from '@dynamic-labs/sdk-react'
+import { useDynamicContext } from '@dynamic-labs/sdk-react-core'
 
 function WalletDashboard() {
   const { setShowAuthFlow } = useDynamicContext()
-  const { 
-    rhinestoneAccount, 
-    address, 
-    isLoading, 
-    error, 
+  const {
+    rhinestoneAccount,
+    address,
+    isLoading,
+    error,
     isConnected,
-    reconnect 
+    reconnect
   } = useGlobalWallet()
 
   // Handle loading state
@@ -194,7 +219,7 @@ function WalletDashboard() {
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
         <h3 className="text-red-800 font-medium">Wallet Setup Error</h3>
         <p className="text-red-600 text-sm mt-1">{error}</p>
-        <button 
+        <button
           onClick={reconnect}
           className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
         >
@@ -214,7 +239,7 @@ function WalletDashboard() {
         <p className="text-gray-600 mb-6">
           Connect with Dynamic to access cross-chain functionality
         </p>
-        <button 
+        <button
           onClick={() => setShowAuthFlow(true)}
           className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
@@ -246,8 +271,7 @@ Send transactions using the Dynamic-connected wallet with proper error handling:
 
 ```tsx
 import { useState } from 'react'
-import { encodeFunctionData, parseUnits } from 'viem'
-import { erc20Abi } from 'viem/chains'
+import { encodeFunctionData, parseUnits, erc20Abi } from 'viem'
 import { baseSepolia, arbitrumSepolia } from 'viem/chains'
 
 function CrossChainTransfer({ rhinestoneAccount }) {
@@ -286,7 +310,7 @@ function CrossChainTransfer({ rhinestoneAccount }) {
 
       // Wait for transaction execution
       const result = await rhinestoneAccount.waitForExecution(transaction)
-      
+
       setTxResult({
         id: transaction.id,
         hash: result.transactionHash,
@@ -318,8 +342,8 @@ function CrossChainTransfer({ rhinestoneAccount }) {
 
       {txResult && (
         <div className="text-green-600 text-sm">
-          Transaction successful! 
-          <a 
+          Transaction successful!
+          <a
             href={`https://arbiscan.io/tx/${txResult.hash}`}
             target="_blank"
             rel="noopener noreferrer"

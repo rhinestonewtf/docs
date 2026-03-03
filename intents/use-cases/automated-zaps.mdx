@@ -1,0 +1,299 @@
+---
+title: "Automated Zaps"
+description: "Streamline crosschain deposits, withdrawals, and automated vault actions for EOA users."
+---
+
+With Rhinestone, you can build app-managed crosschain vault deposits and withdrawals for EOA users. The pattern uses a companion smart account owned by the user, operated by your app via scoped session keys.
+
+There are two execution modes:
+
+1. **Instant** — the user transfers tokens to the companion account, and the app executes the intent immediately
+2. **Delayed / Automated** — the user pre-approves tokens, and the app pulls and executes later (triggered by an event or schedule)
+
+In both cases, intents are signed by a scoped session key — no additional user interaction is needed after the initial setup.
+
+## Companion Account
+
+Each user gets a companion smart account owned solely by their EOA. The account has smart sessions enabled so your app can operate it via a session key.
+
+```ts
+import { RhinestoneSDK } from "@rhinestone/sdk";
+import { toViewOnlyAccount } from "@rhinestone/sdk/utils";
+
+const rhinestone = new RhinestoneSDK({
+  endpointUrl: `${appBaseUrl}/api`,
+});
+
+// Read-only reference to the user's EOA (the sole owner)
+const ownerAccount = toViewOnlyAccount(userEoaAddress);
+
+const companionAccount = await rhinestone.createAccount({
+  owners: {
+    type: "ecdsa",
+    accounts: [ownerAccount],
+  },
+  experimental_sessions: {
+    enabled: true,
+  },
+});
+```
+
+Since the user's EOA is the sole owner, the account is fully non-custodial. Your app can only perform actions authorized by the session key scope.
+
+## Session Key Setup
+
+Define multi-chain sessions scoped to the vault contracts your app supports. The session key is controlled by your app's service.
+
+```ts
+import { type Session } from "@rhinestone/sdk";
+import { arbitrum, optimism } from "viem/chains";
+import { privateKeyToAccount } from "viem/accounts";
+
+// Session key controlled by your app's service
+const sessionOwnerAccount = privateKeyToAccount(appSessionKey);
+
+const sessions: Session[] = [
+  {
+    chain: arbitrum,
+    owners: {
+      type: "ecdsa",
+      accounts: [sessionOwnerAccount],
+    },
+    actions: [
+      { target: ARBITRUM_VAULT_ADDRESS },
+    ],
+  },
+  {
+    chain: optimism,
+    owners: {
+      type: "ecdsa",
+      accounts: [sessionOwnerAccount],
+    },
+    actions: [
+      { target: OPTIMISM_VAULT_A_ADDRESS },
+      { target: OPTIMISM_VAULT_B_ADDRESS },
+    ],
+  },
+];
+```
+
+The user signs once to authorize all sessions across all chains:
+
+```ts
+const sessionDetails =
+  await companionAccount.experimental_getSessionDetails(sessions);
+
+const enableSignature =
+  await companionAccount.experimental_signEnableSession(sessionDetails);
+```
+
+Persist the session credentials for your service to use later:
+
+```ts
+const sessionCredentials = {
+  hashesAndChainIds: sessionDetails.hashesAndChainIds,
+  enableSignature,
+};
+```
+
+<Note>
+Sessions can be further scoped to specific contract functions (e.g., `deposit` and `withdraw`) and guarded with policies like spending limits or timeframes. See the [Smart Sessions](/smart-wallet/smart-sessions/overview) docs.
+</Note>
+
+## Instant Execution
+
+In the instant flow, the user makes a single token transfer and your app handles the rest.
+
+### Funding the Account
+
+Prompt the user to transfer tokens to the companion account:
+
+```ts
+import { erc20Abi } from "viem";
+import { writeContract, waitForTransactionReceipt } from "@wagmi/core";
+
+const hash = await writeContract(wagmiConfig, {
+  address: usdcAddress,
+  abi: erc20Abi,
+  functionName: "transfer",
+  args: [companionAccount.address, depositAmount],
+});
+
+await waitForTransactionReceipt(wagmiConfig, { hash });
+```
+
+<Note>
+For native token deposits (e.g., ETH), transfer the native token directly to the companion account. The intent system handles wrapping to WETH internally.
+</Note>
+
+### Executing the Intent
+
+Once funded, the companion account executes the crosschain intent using the session key:
+
+```ts
+import { encodeFunctionData, erc20Abi } from "viem";
+
+await companionAccount.sendTransaction({
+  sourceChains: [ethereum],
+  targetChain: arbitrum,
+  calls: [
+    {
+      to: VAULT_ADDRESS,
+      data: encodeFunctionData({
+        abi: vaultAbi,
+        functionName: "deposit",
+        args: [depositAmount],
+      }),
+    },
+    // Transfer vault shares back to the user's EOA
+    {
+      to: VAULT_TOKEN_ADDRESS,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: "transfer",
+        args: [userEoaAddress, receiptTokenAmount],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: "USDC",
+      amount: depositAmount,
+    },
+  ],
+  signers: {
+    type: "experimental_session",
+    session: sessions[0],
+    enableData: {
+      userSignature: enableSignature,
+      hashesAndChainIds: sessionDetails.hashesAndChainIds,
+      sessionIndex: 0,
+    },
+  },
+});
+```
+
+<Note>
+After submitting the intent, poll the intent status until it reaches a terminal state (`COMPLETED`, `FILLED`, `FAILED`, or `EXPIRED`). This typically takes a few seconds for cross-chain settlements.
+</Note>
+
+## Delayed / Automated Execution
+
+In the delayed flow, the user pre-approves tokens and your app triggers execution later — for example, on a schedule, when a vault matures, or in response to an onchain event.
+
+### Step 1: User Approves Tokens
+
+The user approves the companion account to spend their tokens:
+
+```ts
+const hash = await writeContract(wagmiConfig, {
+  address: usdcAddress,
+  abi: erc20Abi,
+  functionName: "approve",
+  args: [companionAccount.address, depositAmount],
+});
+```
+
+### Step 2: Pull Funds and Execute
+
+When your app is ready to execute, it pulls the funds from the user and executes the intent in two steps.
+
+**Pull approved tokens into the companion account** (same-chain):
+
+```ts
+await companionAccount.sendTransaction({
+  targetChain: ethereum,
+  calls: [
+    {
+      to: USDC_ADDRESS,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: "transferFrom",
+        args: [userEoaAddress, companionAccount.address, depositAmount],
+      }),
+    },
+  ],
+  signers: {
+    type: "experimental_session",
+    session: vaultSession,
+    enableData: sessionEnableData,
+  },
+});
+```
+
+**Execute the crosschain intent** (bridge + vault deposit):
+
+```ts
+await companionAccount.sendTransaction({
+  sourceChains: [ethereum],
+  targetChain: arbitrum,
+  calls: [
+    {
+      to: VAULT_ADDRESS,
+      data: encodeFunctionData({
+        abi: vaultAbi,
+        functionName: "deposit",
+        args: [depositAmount],
+      }),
+    },
+    {
+      to: VAULT_TOKEN_ADDRESS,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: "transfer",
+        args: [userEoaAddress, receiptTokenAmount],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: "USDC",
+      amount: depositAmount,
+    },
+  ],
+  signers: {
+    type: "experimental_session",
+    session: vaultSession,
+    enableData: sessionEnableData,
+  },
+});
+```
+
+<Note>
+This two-step flow can potentially be simplified to a single step using source chain executions.
+</Note>
+
+## Gas Sponsorship
+
+You can sponsor the gas and bridging costs for the intent execution by passing `sponsored: true`:
+
+```ts
+const data = await companionAccount.prepareTransaction({
+  sourceChains: [ethereum],
+  targetChain: arbitrum,
+  calls: vaultDepositCalls,
+  tokenRequests: [{ address: "USDC", amount: depositAmount }],
+  sponsored: true,
+  signers: sessionSigners,
+});
+```
+
+<Note>
+The user still needs gas for the initial token transfer (instant flow) or approval transaction (delayed flow).
+</Note>
+
+See the [Gas Sponsorship](/smart-wallet/gas-sponsorship/overview) docs for setup details.
+
+## Event Listening Service
+
+For the delayed execution flow, your app implements a service that listens for onchain or offchain events to trigger executions. The service has access to the session key and stored credentials.
+
+<Note>
+The specific events to listen for (e.g., ERC-20 Transfer events, vault maturity events, or offchain triggers) and the service architecture are implementation-specific.
+</Note>
+
+## Recovery
+
+Funds are always non-custodial — the user's EOA is the sole owner of the companion account. If a deposit fails mid-flow (e.g., the app goes offline after funding), the user can always sign a withdrawal transaction directly using their wallet.
+
+Persist the app's session key so you can retry failed intents without requiring the user to re-approve.

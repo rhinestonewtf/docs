@@ -47,7 +47,6 @@
             "group": "Concepts",
             "pages": [
               "home/concepts/intents-and-erc4337",
-              "home/concepts/resource-locks",
               "home/concepts/smart-accounts",
               "home/concepts/session-keys",
               "home/concepts/smart-eoas-eip-7702"
@@ -108,11 +107,9 @@
               "smart-wallet/chain-abstraction/single-chain-intent",
               "smart-wallet/chain-abstraction/multi-chain-intent",
               "smart-wallet/chain-abstraction/swaps",
-              "smart-wallet/chain-abstraction/resource-locks",
               "smart-wallet/chain-abstraction/unified-balance",
               "smart-wallet/chain-abstraction/source-token-amount",
               "smart-wallet/chain-abstraction/custom-recipient",
-              "smart-wallet/chain-abstraction/liquidity-splitting",
               "smart-wallet/chain-abstraction/account-deployment",
               "smart-wallet/chain-abstraction/error-handling",
               "smart-wallet/chain-abstraction/local-orchestrator-docker"
@@ -191,9 +188,10 @@
           {
             "group": "Use Cases",
             "pages": [
-              "intents/use-cases/one-click-deposit",
+              "intents/use-cases/automated-zaps",
               "intents/use-cases/chain-abstracted-swaps",
-              "intents/use-cases/multi-input-bridge"
+              "intents/use-cases/multi-input-bridge",
+              "intents/use-cases/vault-deposit"
             ]
           },
           {
