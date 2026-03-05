@@ -102,22 +102,17 @@
             "pages": [
               "smart-wallet/core/eoa",
               "smart-wallet/core/create-account",
-              {
-                "group": "Setup the Signer",
-                "pages": [
-                  "smart-wallet/core/setup-signer",
-                  "smart-wallet/core/passkeys",
-                  "smart-wallet/core/ecdsa-signer",
-                  "smart-wallet/core/multisig",
-                  "smart-wallet/core/signers/external-wallet-signer",
-                  "smart-wallet/core/signers/privy",
-                  "smart-wallet/core/signers/dynamic",
-                  "smart-wallet/core/signers/para",
-                  "smart-wallet/core/signers/magic",
-                  "smart-wallet/core/signers/turnkey",
-                  "smart-wallet/core/signers/openfort"
-                ]
-              },
+              "smart-wallet/core/setup-signer",
+              "smart-wallet/core/passkeys",
+              "smart-wallet/core/ecdsa-signer",
+              "smart-wallet/core/multisig",
+              "smart-wallet/core/signers/external-wallet-signer",
+              "smart-wallet/core/signers/privy",
+              "smart-wallet/core/signers/dynamic",
+              "smart-wallet/core/signers/para",
+              "smart-wallet/core/signers/magic",
+              "smart-wallet/core/signers/turnkey",
+              "smart-wallet/core/signers/openfort",
               "smart-wallet/core/create-first-transaction"
             ]
           },
@@ -134,26 +129,16 @@
             "pages": [
               "smart-wallet/smart-sessions/overview",
               "smart-wallet/smart-sessions/multi-session-signature",
-              {
-                "group": "Signature Validators",
-                "pages": [
-                  "smart-wallet/smart-sessions/signature-validators/ecdsa",
-                  "smart-wallet/smart-sessions/signature-validators/passkey",
-                  "smart-wallet/smart-sessions/signature-validators/multisig"
-                ]
-              },
-              {
-                "group": "Policies",
-                "pages": [
-                  "smart-wallet/smart-sessions/policies/sudo",
-                  "smart-wallet/smart-sessions/policies/call",
-                  "smart-wallet/smart-sessions/policies/spending-limit",
-                  "smart-wallet/smart-sessions/policies/rate-limit",
-                  "smart-wallet/smart-sessions/policies/gas-limit",
-                  "smart-wallet/smart-sessions/policies/timeframe",
-                  "smart-wallet/smart-sessions/policies/usage-limit"
-                ]
-              }
+              "smart-wallet/smart-sessions/signature-validators/ecdsa",
+              "smart-wallet/smart-sessions/signature-validators/passkey",
+              "smart-wallet/smart-sessions/signature-validators/multisig",
+              "smart-wallet/smart-sessions/policies/sudo",
+              "smart-wallet/smart-sessions/policies/call",
+              "smart-wallet/smart-sessions/policies/spending-limit",
+              "smart-wallet/smart-sessions/policies/rate-limit",
+              "smart-wallet/smart-sessions/policies/gas-limit",
+              "smart-wallet/smart-sessions/policies/timeframe",
+              "smart-wallet/smart-sessions/policies/usage-limit"
             ]
           },
           {
@@ -174,16 +159,11 @@
             "group": "Customize",
             "pages": [
               "smart-wallet/customize/bring-your-own-account",
-              {
-                "group": "Smart Account Providers",
-                "pages": [
-                  "smart-wallet/customize/smart-account-providers/nexus",
-                  "smart-wallet/customize/smart-account-providers/safe",
-                  "smart-wallet/customize/smart-account-providers/kernel",
-                  "smart-wallet/customize/smart-account-providers/startale",
-                  "smart-wallet/customize/smart-account-providers/prime"
-                ]
-              },
+              "smart-wallet/customize/smart-account-providers/nexus",
+              "smart-wallet/customize/smart-account-providers/safe",
+              "smart-wallet/customize/smart-account-providers/kernel",
+              "smart-wallet/customize/smart-account-providers/startale",
+              "smart-wallet/customize/smart-account-providers/prime",
               "smart-wallet/customize/json-rpc-providers",
               "smart-wallet/customize/erc4337-infra"
             ]
