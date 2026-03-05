@@ -100,23 +100,33 @@
             ]
           },
           {
-            "group": "Wallet Setup",
+            "group": "Smart account setup",
             "pages": [
               "smart-wallet/core/create-account",
+              "smart-wallet/core/setup-signer",
               {
-                "group": "Setup the signer",
+                "group": "Native signers",
                 "pages": [
-                  "smart-wallet/core/setup-signer",
-                  "smart-wallet/core/passkeys",
                   "smart-wallet/core/ecdsa-signer",
-                  "smart-wallet/core/multisig",
-                  "smart-wallet/core/signers/external-wallet-signer",
+                  "smart-wallet/core/passkeys",
+                  "smart-wallet/advanced/multi-factor-authentication"
+                ]
+              },
+              {
+                "group": "Embedded wallet signers",
+                "pages": [
                   "smart-wallet/core/signers/privy",
                   "smart-wallet/core/signers/dynamic",
                   "smart-wallet/core/signers/para",
                   "smart-wallet/core/signers/magic",
                   "smart-wallet/core/signers/turnkey",
                   "smart-wallet/core/signers/openfort"
+                ]
+              },
+              {
+                "group": "External wallet signers",
+                "pages": [
+                  "smart-wallet/core/signers/external-wallet-signer"
                 ]
               },
               "smart-wallet/core/create-first-transaction"
@@ -161,7 +171,6 @@
             "group": "Advanced",
             "pages": [
               "smart-wallet/advanced/batch-transactions",
-              "smart-wallet/advanced/multi-factor-authentication",
               "smart-wallet/advanced/recovery",
               "smart-wallet/advanced/custom-modules",
               "smart-wallet/advanced/message-signing",
