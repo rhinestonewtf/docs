@@ -90,15 +90,10 @@
       },
       {
         "tab": "Wallet",
-        "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "smart-wallet/overview",
-              "smart-wallet/smart-accounts",
-              "smart-wallet/quickstart"
-            ]
-          },
+        "pages": [
+          "smart-wallet/overview",
+          "smart-wallet/smart-accounts",
+          "smart-wallet/quickstart",
           {
             "group": "Tutorials",
             "pages": [
@@ -207,13 +202,8 @@
       },
       {
         "tab": "Intents",
-        "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "home/introduction/rhinestone-intents"
-            ]
-          },
+        "pages": [
+          "home/introduction/rhinestone-intents",
           {
             "group": "Tutorial",
             "pages": [
