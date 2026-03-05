@@ -3,14 +3,11 @@
   "theme": "mint",
   "name": "Rhinestone",
   "colors": {
-    "primary": "#4f41ef",
-    "background": {
-      "dark": "#0C0C0C"
-    }
+    "primary": "#4f41ef"
   },
   "background": {
     "color": {
-      "dark": "#0D0926"
+      "dark": "#0C0C0C"
     }
   },
   "icons": {
