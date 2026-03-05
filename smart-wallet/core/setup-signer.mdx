@@ -7,53 +7,49 @@ Your choice of signer determines how users authenticate. The right one depends o
 
 ## Native signers
 
-Native signers are cryptographic primitives built directly into the Rhinestone SDK — no third-party provider required.
+Cryptographic primitives built into the SDK — no third-party provider required.
 
 <CardGroup cols={3}>
   <Card title="ECDSA" icon="key" href="./ecdsa-signer">
-    Standard Ethereum key pairs. Supports single-owner and multisig (n/m threshold) via the Ownable Validator. Best for server-side and agent wallets.
+    Standard Ethereum key pairs. Supports single-owner and multisig (n/m threshold). Best for server-side and agent wallets.
   </Card>
   <Card title="Passkey" icon="fingerprint" href="./passkeys">
-    WebAuthn-based biometric auth using the device secure enclave (Face ID, Touch ID). No seed phrases. Supports single-owner and multisig (n/m threshold). Best for consumer apps.
+    Device biometrics via WebAuthn (Face ID, Touch ID). No seed phrases. Supports single-owner and multisig. Best for consumer apps.
   </Card>
   <Card title="Multi-factor" icon="shield-check" href="../advanced/multi-factor-authentication">
-    Combine multiple validators in tandem — e.g. require both an ECDSA key and a passkey to sign. Best for high-security accounts.
+    Combine multiple validators — e.g. require both an ECDSA key and a passkey. Best for high-security accounts.
   </Card>
 </CardGroup>
 
 ## Embedded wallet signers
 
-Embedded wallets are generated and managed inside your app. Users authenticate via social login, email, or biometrics — no browser extension or seed phrase required. Keys are protected in a secure enclave (TEE), so neither you nor the provider ever sees the full key.
-
-Use these when you're onboarding users who don't already have a crypto wallet.
+Keys managed inside your app via secure enclave. Users authenticate with social login or email — no browser extension or seed phrase needed. Use these when onboarding users who don't already have a crypto wallet.
 
 <CardGroup cols={3}>
-  <Card title="Privy" icon="shield" href="./signers/privy">
-    Social and email login with embedded wallets. Most popular for consumer apps.
+  <Card title="Privy" href="./signers/privy">
+    Social and email login with embedded wallets.
   </Card>
-  <Card title="Dynamic" icon="bolt" href="./signers/dynamic">
+  <Card title="Dynamic" href="./signers/dynamic">
     Multi-chain embedded wallets with social and email login.
   </Card>
-  <Card title="Para" icon="globe" href="./signers/para">
+  <Card title="Para" href="./signers/para">
     Embedded wallets with MPC key management.
   </Card>
-  <Card title="Magic" icon="wand-magic" href="./signers/magic">
+  <Card title="Magic" href="./signers/magic">
     Email and social login with non-custodial embedded wallets.
   </Card>
-  <Card title="Turnkey" icon="server" href="./signers/turnkey">
-    Programmatic wallet infrastructure. Good for server-side and agent use cases.
+  <Card title="Turnkey" href="./signers/turnkey">
+    Programmatic wallet infrastructure for server-side and agent use cases.
   </Card>
-  <Card title="Openfort" icon="gamepad" href="./signers/openfort">
+  <Card title="Openfort" href="./signers/openfort">
     Embedded wallets with a gaming-first developer experience.
   </Card>
 </CardGroup>
 
 ## External wallet signers
 
-External wallets are browser extensions or mobile apps that users already own and hold keys to — MetaMask, Coinbase Wallet, Rabby, and any WalletConnect-compatible wallet.
-
-Use these when you're building a dApp for existing Web3 users who want to bring their own wallet.
+Browser extensions and mobile wallets users already own — MetaMask, Coinbase Wallet, and any WalletConnect-compatible wallet. Use these for dApps serving existing Web3 users.
 
 <Card title="External wallets" icon="wallet" href="./signers/external-wallet-signer">
-  Connect MetaMask, Coinbase Wallet, and any WalletConnect-compatible wallet as a smart account signer via Reown AppKit.
+  Connect MetaMask, Coinbase Wallet, and WalletConnect-compatible wallets via Reown AppKit.
 </Card>
