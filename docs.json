@@ -102,7 +102,6 @@
           {
             "group": "Wallet Setup",
             "pages": [
-              "smart-wallet/core/eoa",
               "smart-wallet/core/create-account",
               {
                 "group": "Setup the signer",
