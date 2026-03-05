@@ -3,7 +3,9 @@
   "theme": "mint",
   "name": "Rhinestone",
   "colors": {
-    "primary": "#4f41ef"
+    "primary": "#4f41ef",
+    "light": "#8479ff",
+    "dark": "#3428d1"
   },
   "background": {
     "color": {
