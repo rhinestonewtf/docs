@@ -3,9 +3,7 @@ title: "Signer types"
 description: "Choose how users authenticate and sign transactions in your Rhinestone smart account."
 ---
 
-A signer is the key that authorises transactions on a Rhinestone smart account. The account itself is a smart contract — it doesn't hold keys. Instead, you configure one or more signers that are authorised to control it.
-
-Choosing the right signer type depends on who your users are and how they interact with your app.
+Your choice of signer determines how users authenticate. The right one depends on who your users are and whether they already have a wallet.
 
 ## Native signers
 
@@ -39,7 +37,7 @@ Use these when you're onboarding users who don't already have a crypto wallet.
   <Card title="Para" icon="globe" href="./signers/para">
     Embedded wallets with MPC key management.
   </Card>
-  <Card title="Magic" icon="wand-magic-sparkles" href="./signers/magic">
+  <Card title="Magic" icon="wand-magic" href="./signers/magic">
     Email and social login with non-custodial embedded wallets.
   </Card>
   <Card title="Turnkey" icon="server" href="./signers/turnkey">
