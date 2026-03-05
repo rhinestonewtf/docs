@@ -3,9 +3,10 @@
   "theme": "mint",
   "name": "Rhinestone",
   "colors": {
-    "primary": "#1F178D",
-    "light": "#7369E9",
-    "dark": "#2D1FC6"
+    "primary": "#4f41ef",
+    "background": {
+      "dark": "#0C0C0C"
+    }
   },
   "background": {
     "color": {
@@ -268,10 +269,13 @@
     ]
   },
   "contextual": {
-    "options": ["copy"]
+    "options": [
+      "copy"
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
-  }
+  },
+  "appearance": "dark"
 }
