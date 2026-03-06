@@ -9,7 +9,7 @@ The Rhinestone SDK is a TypeScript library that gives wallet developers a unifie
 
 In one integration, you get:
 
-- **Smart account deployment and management** — create, configure, and interact with ERC-4337 smart accounts (or EIP-7702 upgraded EOAs)
+- **Smart account deployment and management** — create, configure, and interact with ERC-7579 smart accounts (or EIP-7702 upgraded EOAs)
 - **Crosschain transaction routing** — send intents that move funds and execute calls across any supported chain, without bridging
 - **Modular wallet features** — add passkeys, session keys, multisig, social recovery, and more via onchain modules
 
@@ -19,7 +19,7 @@ The SDK is built on [viem](https://viem.sh), the lightweight TypeScript Ethereum
 
 ### Smart Accounts
 
-Rhinestone smart accounts are ERC-4337-compatible smart contract wallets. They support:
+Rhinestone smart accounts are ERC-7579 modular smart accounts. They support:
 
 - **Multiple signer types** — ECDSA (EOA), passkeys (WebAuthn), or a combination of both
 - **Popular embedded wallet providers** — Privy, Dynamic, Magic, Turnkey, Para, Openfort
@@ -87,7 +87,7 @@ The SDK is signer-agnostic. Your wallet just needs to produce a valid signature 
 |---|---|
 | Language | TypeScript |
 | Ethereum client | [viem](https://viem.sh) |
-| Account standard | ERC-4337 + EIP-7702 |
+| Account standard | ERC-7579 + EIP-7702 |
 | Module standard | [ERC-7579](https://erc7579.com) |
 | Intent standard | ERC-7683 |
 
