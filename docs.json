@@ -184,9 +184,8 @@
               "smart-wallet/customize/bring-your-own-account",
               "smart-wallet/customize/smart-account-providers",
               "smart-wallet/customize/json-rpc-providers",
-              "smart-wallet/customize/erc4337-infra",
-              "smart-wallet/advanced/use-erc-4337",
-              "smart-wallet/advanced/migration-guide"
+              "smart-wallet/advanced/migration-guide",
+              "smart-wallet/advanced/erc4337"
             ]
           },
           {
