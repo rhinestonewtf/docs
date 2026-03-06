@@ -2,11 +2,11 @@
 title: "Quickstart"
 ---
 
-Create a smart account and send a crosschain transaction in a Node.js script — no browser, no wallet connection required. If you're building a browser app with wallet connect, see the [tutorial](./tutorials/setting-up-smart-account) instead.
+Create a smart account and send a crosschain transaction in a Node.js script — no browser, no wallet connection required.
 
 ## Prerequisites
 
-<Note>You don't need an API key to get started. For production use, you'll need one. For production setups that sponsor user fees or use dashboard API keys, see the [Security guide](./security) to proxy Orchestrator requests via a backend and avoid exposing your key.</Note>
+<Note>You don't need an API key to get started. For production use, you'll need one. For production setups that sponsor user fees or use dashboard API keys, see the [Security guide](./advanced/security) to proxy Orchestrator requests via a backend and avoid exposing your key.</Note>
 
 You will need some testnet funds. To get testnet ETH, you can use a faucet from [Quicknode](https://faucet.quicknode.com/drip) or [Alchemy](https://www.alchemy.com/faucets). To get testnet USDC, use [Circle Faucet](https://faucet.circle.com/).
 
@@ -29,6 +29,7 @@ bun install viem @rhinestone/sdk
 </CodeGroup>
 
 <Steps>
+
 <Step title="Create a Wallet">
 
 Let's create a smart account with a single owner:
@@ -74,6 +75,7 @@ console.log(`Smart account address: ${address}`)
 ```
 
 </Step>
+
 <Step title="Fund the Account">
 
 We will send some ETH from the funding account to the created smart account. The Orchestrator will use some of that ETH to deploy the account on the target chain, as well as to convert it to USDC for a transfer transaction.
@@ -98,6 +100,7 @@ await publicClient.waitForTransactionReceipt({ hash: txHash })
 ```
 
 </Step>
+
 <Step title="Send a Cross-chain Transaction">
 
 Finally, let's make a cross-chain token transfer:
@@ -137,18 +140,25 @@ After running that, you will get a smart account deployed on both Base Sepolia a
 Note that you don't need to manage the gas tokens or do the ETH → USDC swap when making a transfer. The Orchestrator will handle that for you!
 
 </Step>
+
 </Steps>
+
+<Info>
+  **Building a browser app?** Use the [Reown + Rhinestone example](https://github.com/rhinestonewtf/e2e-examples/tree/main/reown) to get wallet connection working with MetaMask or any WalletConnect-compatible wallet.
+</Info>
 
 ## Next Steps
 
-You've validated the SDK works. Now build something real.
-
-<CardGroup cols={2}>
-  <Card title="Build your first smart wallet" href="./tutorials/setting-up-smart-account">
-    Create a browser app with wallet connection — the foundation for a production integration.
+<CardGroup cols={3}>
+  <Card title="Sponsor gas" icon="fuel" href="./tutorials/sponsor-gas">
+    Cover gas and bridging fees for your users across any chain.
   </Card>
 
-  <Card title="Smart account setup" href="./core/create-account">
-    Dive deeper into account creation, signer types, and configuration options.
+  <Card title="Smart account setup" icon="settings" href="./core/create-account">
+    Configure signers — passkeys, embedded wallets, multisig, and more.
+  </Card>
+
+  <Card title="Smart Sessions" icon="key" href="./smart-sessions/overview">
+    Add session keys for one-click UX and automated transactions.
   </Card>
 </CardGroup>

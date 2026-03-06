@@ -95,7 +95,6 @@
           {
             "group": "Tutorials",
             "pages": [
-              "smart-wallet/tutorials/setting-up-smart-account",
               "smart-wallet/tutorials/sponsor-gas"
             ]
           },
