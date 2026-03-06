@@ -1,6 +1,130 @@
 ---
-title: "Overview"
-description: ""
+title: "Wallet Overview"
+description: "A high-level introduction to the Rhinestone SDK for wallet developers"
 ---
 
-Coming soon.
+## What is the Rhinestone SDK?
+
+The Rhinestone SDK is a TypeScript library that gives wallet developers a unified interface for deploying and managing self-custodial smart accounts, and connecting those accounts to Rhinestone's crosschain intent infrastructure (Warp).
+
+In one integration, you get:
+
+- **Smart account deployment and management** — create, configure, and interact with ERC-4337 smart accounts (or EIP-7702 upgraded EOAs)
+- **Crosschain transaction routing** — send intents that move funds and execute calls across any supported chain, without bridging
+- **Modular wallet features** — add passkeys, session keys, multisig, social recovery, and more via onchain modules
+
+The SDK is built on [viem](https://viem.sh), the lightweight TypeScript Ethereum library. If your stack already uses viem, the Rhinestone SDK slots in naturally.
+
+## Core Concepts
+
+### Smart Accounts
+
+Rhinestone smart accounts are ERC-4337-compatible smart contract wallets. They support:
+
+- **Multiple signer types** — ECDSA (EOA), passkeys (WebAuthn), or a combination of both
+- **Popular embedded wallet providers** — Privy, Dynamic, Magic, Turnkey, Para, Openfort
+- **External wallets** — MetaMask, Coinbase Wallet, and any WalletConnect-compatible wallet
+- **EIP-7702** — upgrade an existing EOA to a smart account without migrating assets
+- **Multiple account implementations** — Safe, Kernel, Nexus, Prime, and others via "Bring Your Own Account"
+
+When you create an account, the SDK installs the appropriate validator modules onchain and derives a deterministic address. The same account address is used across all supported chains.
+
+### Rhinestone Intents (Warp)
+
+Warp is Rhinestone's intent routing and execution engine. Instead of sending raw transactions, your users sign _intents_ — declarations of what they want to happen (e.g. "move 100 USDC from Optimism and call contract X on Base"). Rhinestone's infrastructure handles the rest.
+
+**How it works:**
+
+<Steps>
+  <Step title="Get a quote">
+    Your app calls the SDK to get a quote for the intent — fees, routes, estimated time.
+  </Step>
+
+  <Step title="Sign">
+    The SDK constructs an intent payload and passes it to the user's signer (wallet) for a single signature.
+  </Step>
+
+  <Step title="Submit">
+    The signed intent is submitted to the Orchestrator — Rhinestone's offchain routing service.
+  </Step>
+
+  <Step title="Execute">
+    The Orchestrator broadcasts to the Relayer Market. A solver executes the intent on the destination chain, typically in under 2 seconds.
+  </Step>
+</Steps>
+
+**Key capabilities:**
+
+- **Single- and multi-chain transactions** — send from one chain, execute on another, or sweep across many chains in a single signed intent
+- **Crosschain swaps** — solver-based swaps with zero slippage and MEV protection, or inject your own DEX aggregator
+- **Universal gas sponsorship** — deposit USDC on Base and sponsor gas, bridging, and swap fees on any supported chain for your users
+- **Multi-input intents** — aggregate tokens from multiple source chains in a single UX interaction
+
+### How the SDK, Smart Accounts, and Intents Fit Together
+
+The smart account is the **identity and authorization layer** — it owns the assets and validates that transactions were properly signed by the user's signer. Warp is the **execution layer** — it routes and settles transactions across chains as efficiently as possible.
+
+When a user transacts, the SDK:
+1. Encodes the intent against their smart account
+2. Passes it to their signer (wallet) for approval
+3. Sends the signed intent to Warp for routing and execution
+
+### Wallet/Signer Integration
+
+The SDK is signer-agnostic. Your wallet just needs to produce a valid signature — the SDK handles account configuration, intent construction, and submission.
+
+| Signer Type | Examples |
+|---|---|
+| External browser wallet | MetaMask, Coinbase Wallet, WalletConnect |
+| Embedded wallet | Privy, Dynamic, Magic, Turnkey, Para, Openfort |
+| Server-side / agent wallet | Any EOA private key |
+| Passkey (WebAuthn) | Device biometrics (Face ID, Touch ID) |
+| Multisig | m-of-n ECDSA or passkey combinations |
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Language | TypeScript |
+| Ethereum client | [viem](https://viem.sh) |
+| Account standard | ERC-4337 + EIP-7702 |
+| Module standard | [ERC-7579](https://erc7579.com) |
+| Intent standard | ERC-7683 |
+
+## Installation
+
+<CodeGroup>
+
+```bash npm
+npm install viem @rhinestone/sdk
+```
+
+```bash pnpm
+pnpm add viem @rhinestone/sdk
+```
+
+```bash bun
+bun add viem @rhinestone/sdk
+```
+
+</CodeGroup>
+
+## What's Next
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" href="/smart-wallet/quickstart">
+    Set up a smart account and send your first crosschain intent in minutes.
+  </Card>
+
+  <Card title="Smart Accounts" href="/home/concepts/smart-accounts">
+    Deeper dive into account abstraction, ERC-4337, and EIP-7702.
+  </Card>
+
+  <Card title="Session Keys" href="/smart-wallet/smart-sessions/overview">
+    Enable 1-click UX and automated transactions for your users.
+  </Card>
+
+  <Card title="Supported Chains" href="/home/resources/supported-chains">
+    See all chains supported by Rhinestone's intent infrastructure.
+  </Card>
+</CardGroup>
