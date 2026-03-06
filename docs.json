@@ -183,11 +183,7 @@
             "group": "Customize",
             "pages": [
               "smart-wallet/customize/bring-your-own-account",
-              "smart-wallet/customize/smart-account-providers/nexus",
-              "smart-wallet/customize/smart-account-providers/safe",
-              "smart-wallet/customize/smart-account-providers/kernel",
-              "smart-wallet/customize/smart-account-providers/startale",
-              "smart-wallet/customize/smart-account-providers/prime",
+              "smart-wallet/customize/smart-account-providers",
               "smart-wallet/customize/json-rpc-providers",
               "smart-wallet/customize/erc4337-infra"
             ]
