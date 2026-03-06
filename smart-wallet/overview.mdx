@@ -19,15 +19,11 @@ The SDK is built on [viem](https://viem.sh), the lightweight TypeScript Ethereum
 
 ### Smart Accounts
 
-Rhinestone smart accounts are ERC-7579 modular smart accounts. They support:
+Rhinestone smart accounts are [ERC-7579](https://erc7579.com) modular smart accounts. ERC-7579 defines a standard interface for pluggable modules — validators, executors, hooks, and fallbacks — so you can extend account behaviour without being locked into one implementation. Rhinestone's core modules include passkeys, session keys, multisig, and social recovery.
 
-- **Multiple signer types** — ECDSA (EOA), passkeys (WebAuthn), or a combination of both
-- **Popular embedded wallet providers** — Privy, Dynamic, Magic, Turnkey, Para, Openfort
-- **External wallets** — MetaMask, Coinbase Wallet, and any WalletConnect-compatible wallet
-- **EIP-7702** — upgrade an existing EOA to a smart account without migrating assets
-- **Multiple account implementations** — Safe, Kernel, Nexus, Prime, and others via "Bring Your Own Account"
+Rhinestone also supports [EIP-7702](https://eips.ethereum.org/EIPS/eip-7702), which lets you upgrade an existing EOA into a smart account without migrating assets — useful for onboarding users who already have a wallet.
 
-When you create an account, the SDK installs the appropriate validator modules onchain and derives a deterministic address. The same account address is used across all supported chains.
+When you create an account, the SDK installs the appropriate modules onchain and derives a deterministic address. The same address is used across all supported chains.
 
 ### Rhinestone Intents (Warp)
 
