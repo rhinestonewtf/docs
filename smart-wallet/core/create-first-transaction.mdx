@@ -1,20 +1,16 @@
 ---
-title: "Create First Transaction"
+title: "Send a transaction"
+description: "Send single-chain and cross-chain transactions from a Rhinestone smart account."
 ---
 
-Rhinestone uses intents to send transactions.
+## Send a single-chain transaction
 
-Intents are high-level instructions that can span across multiple chains. They are fulfilled by _relayers_ — actors that compete to offer the best execution for the intent.
-
-Unlike classical transactions, intents are very flexible. With intents, you can make both single-chain and cross-chain transactions. You can use ERC-20 tokens (e.g., USDC) to pay for gas, or you can sponsor the gas fees for your users. Intents can be funded with multiple source tokens, and tokens can be swapped as part of the intent, all while only requiring one signature from the user.
-
-In many ways, intents are similar to ERC-4337 User Operations. Unlike userops, intents are multi-chain by design (a single signature can authorize a cross-chain transaction), have less latency (especially when used with resource locking), and generally consume less gas.
-
-## Single-Chain Transactions
-
-Let's create a transaction that sends some USDC:
+Call `sendTransaction` with a `chain` and a list of `calls`. The example below transfers USDC on Base Sepolia:
 
 ```ts
+import { encodeFunctionData, erc20Abi } from 'viem'
+import { baseSepolia } from 'viem/chains'
+
 const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 const usdcAmount = 1n
 
@@ -33,37 +29,20 @@ const transaction = await rhinestoneAccount.sendTransaction({
   ],
 })
 
-const transactionResult = await rhinestoneAccount.waitForExecution(transaction)
-console.log('Result', transactionResult)
+const result = await rhinestoneAccount.waitForExecution(transaction)
+console.log('Result', result)
 ```
 
-Under the hood, this will:
+## Send a cross-chain transaction
 
-1) Get a quote from the Rhinestone backend
-2) Sign the intent using the account owner(s)
-3) Submit the intent
-4) Wait until the intent is submitted to the blockchain
-
-## Granular APIs
-
-You can also use lower-level APIs to get more control over the transaction flow.
-
-This approach is useful when you need to:
-- Separate data fetching from signing (e.g., fetch intent data on your backend API, then sign on a mobile frontend)
-- Present transaction details to the user before they sign
-- Manually control account deployment across chains
-
-Here's the same transaction as above made with the granular API methods:
+Swap `chain` for `sourceChains` + `targetChain`. The SDK handles bridging and routing — no separate bridge interaction required:
 
 ```ts
-const usdcAmount = 1n
-const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
+import { baseSepolia, arbitrumSepolia } from 'viem/chains'
 
-// Manually trigger the account deployment
-await rhinestoneAccount.deploy(sourceChain)
-// Prepare the transaction by fetching the intent data
-const transactionData = await rhinestoneAccount.prepareTransaction({
-  chain: baseSepolia,
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChains: [baseSepolia],
+  targetChain: arbitrumSepolia,
   calls: [
     {
       to: 'USDC',
@@ -75,15 +54,49 @@ const transactionData = await rhinestoneAccount.prepareTransaction({
       }),
     },
   ],
+  tokenRequests: [
+    {
+      address: 'USDC',
+      amount: usdcAmount,
+    },
+  ],
 })
-// Sign the transaction — this prompts the account owners to sign
+
+const result = await rhinestoneAccount.waitForExecution(transaction)
+```
+
+## Use the granular API
+
+Use `prepareTransaction` → `signTransaction` → `submitTransaction` when you need to separate fetching from signing — for example, to show the user transaction details before they approve, or to fetch intent data on a backend and sign on a mobile frontend:
+
+```ts
+// Fetch intent data (can be done server-side)
+const transactionData = await rhinestoneAccount.prepareTransaction({
+  chain: baseSepolia,
+  calls: [...],
+})
+
+// Sign — prompts account owners
 const signedData = await rhinestoneAccount.signTransaction(transactionData)
-// Submit the transaction to the blockchain
+
+// Submit
 const transaction = await rhinestoneAccount.submitTransaction(signedData)
 ```
 
-## Going Cross-Chain
+<Note>To deploy the account on a specific chain before transacting, call `await rhinestoneAccount.deploy(chain)` first.</Note>
 
-Similarly, you can also send cross-chain transactions. For example, you can send ETH on Base, receive USDC on Arbitrum, and deposit that to a savings vault, all in one go.
+## Next steps
 
-See [our guide](../chain-abstraction/multi-chain-intent) to get started with cross-chain transactions.
+<CardGroup cols={3}>
+  <Card title="Crosschain" icon="arrow-right-left" href="../chain-abstraction/multi-chain-intent">
+    Send funds across chains with a single signature — no bridging required.
+  </Card>
+
+  <Card title="Unified balance" icon="wallet" href="../chain-abstraction/unified-balance">
+    Aggregate user balances across chains to fund any intent.
+  </Card>
+
+  <Card title="Sponsor fees" icon="fuel" href="../tutorials/sponsor-fees">
+    Cover gas, bridging, and swap fees for your users.
+  </Card>
+</CardGroup>

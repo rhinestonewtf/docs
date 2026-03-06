@@ -1,0 +1,55 @@
+---
+title: "Signer types"
+description: "Choose how users authenticate and sign transactions in your Rhinestone smart account."
+---
+
+Your choice of signer determines how users authenticate. The right one depends on who your users are and whether they already have a wallet.
+
+## Native signers
+
+Cryptographic primitives built into the SDK — no third-party provider required.
+
+<CardGroup cols={3}>
+  <Card title="ECDSA" icon="key" href="./ecdsa-signer">
+    Standard Ethereum key pairs. Supports single-owner and multisig (n/m threshold). Best for server-side and agent wallets.
+  </Card>
+  <Card title="Passkey" icon="fingerprint" href="./passkeys">
+    Device biometrics via WebAuthn (Face ID, Touch ID). No seed phrases. Supports single-owner and multisig. Best for consumer apps.
+  </Card>
+  <Card title="Multi-factor" icon="shield-check" href="../advanced/multi-factor-authentication">
+    Combine multiple validators — e.g. require both an ECDSA key and a passkey. Best for high-security accounts.
+  </Card>
+</CardGroup>
+
+## Embedded wallet signers
+
+Keys managed inside your app via secure enclave. Users authenticate with social login or email — no browser extension or seed phrase needed. Use these when onboarding users who don't already have a crypto wallet.
+
+<CardGroup cols={3}>
+  <Card title="Privy" href="./signers/privy">
+    Social and email login with embedded wallets.
+  </Card>
+  <Card title="Dynamic" href="./signers/dynamic">
+    Multi-chain embedded wallets with social and email login.
+  </Card>
+  <Card title="Para" href="./signers/para">
+    Embedded wallets with MPC key management.
+  </Card>
+  <Card title="Magic" href="./signers/magic">
+    Email and social login with non-custodial embedded wallets.
+  </Card>
+  <Card title="Turnkey" href="./signers/turnkey">
+    Programmatic wallet infrastructure for server-side and agent use cases.
+  </Card>
+  <Card title="Openfort" href="./signers/openfort">
+    Embedded wallets with a gaming-first developer experience.
+  </Card>
+</CardGroup>
+
+## External wallet signers
+
+Browser extensions and mobile wallets users already own — MetaMask, Coinbase Wallet, and any WalletConnect-compatible wallet. Use these for dApps serving existing Web3 users.
+
+<Card title="External wallets" icon="wallet" href="./signers/external-wallet-signer">
+  Connect MetaMask, Coinbase Wallet, and WalletConnect-compatible wallets via Reown AppKit.
+</Card>

@@ -23,9 +23,7 @@ You can sponsor both cross-chain and same-chain transactions.
 
 When your users make transactions, you can select which (if any) fees you are willing to sponsor. Rather than charging the user these costs, the Orchestrator instead applies them against your sponsorship balance. You can sponsor up to their deposited amount, after which point, fees will be applied to your users' intents, ensuring continuity should you run out of funds.
 
-For any given intent, the orchestrator calculates 3 types of fees: swap, bridge, and gas. Swap fees are a fixed 50 basis point spread between the offer and ask tokens. Bridge fees are a fixed 3 basis points on the input token being bridged between chains. Gas fees are the sum of the estimated fill gas (including any deployment costs if the account is undeployed) and all claim transactions a relayer will need to execute to fulfill an intent. 
-
-When calculating the sponsored amount in USD, we take the cumulative fees — that would otherwise be applied to the user — and convert them to a USD value at the time of an intent.
+The sponsored amount is calculated in USD at the time of the intent, based on the cumulative fees that would otherwise be charged to the user.
 
 ## Setup
 

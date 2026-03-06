@@ -1,0 +1,204 @@
+---
+title: "Add session keys"
+description: "Enable one-click UX by letting users grant scoped permissions to your app."
+---
+
+By default, every transaction requires the user to sign. Session keys let your app hold a scoped key that can sign on the user's behalf — within limits you define. The user approves once; your app executes freely until the session expires or limits are hit.
+
+This tutorial walks through a one-click trading scenario: the user grants your app permission to execute USDC transfers up to a spending limit, without prompting for every trade.
+
+This tutorial builds on the [Quickstart](../quickstart). You'll need a working smart account before continuing.
+
+<Warning>Smart Sessions are **experimental**. Expect breaking changes.</Warning>
+
+## Prerequisites
+
+- Completed the [Quickstart](../quickstart)
+- A [Rhinestone dashboard](https://dashboard.rhinestone.dev) API key
+
+## Steps
+
+<Steps>
+
+<Step title="Install smart sessions on the account">
+
+Enable the Smart Sessions module when creating the account:
+
+```ts
+import { RhinestoneSDK } from '@rhinestone/sdk'
+
+const rhinestone = new RhinestoneSDK({
+  apiKey: process.env.RHINESTONE_API_KEY as string,
+})
+
+const rhinestoneAccount = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [ownerAccount],
+  },
+  experimental_sessions: {
+    enabled: true,
+  },
+})
+```
+
+If the account is already deployed, you can install the module in a separate transaction:
+
+```ts
+import { experimental_enable } from '@rhinestone/sdk/actions/smart-sessions'
+
+await rhinestoneAccount.sendTransaction({
+  chain: base,
+  calls: [experimental_enable()],
+})
+```
+
+</Step>
+
+<Step title="Generate a session key">
+
+Create an ephemeral key pair that your app will use to sign on the user's behalf. In production, store this key securely — in the browser via `localStorage` for client-side sessions, or in a KMS/secrets manager for server-side automation.
+
+```ts
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+
+const sessionPrivateKey = generatePrivateKey()
+const sessionOwnerAccount = privateKeyToAccount(sessionPrivateKey)
+```
+
+</Step>
+
+<Step title="Define the session">
+
+Specify what the session key is allowed to do. Here we restrict it to USDC transfers only, with a 100 USDC spending limit:
+
+```ts
+import { type Session, toFunctionSelector, getAbiItem, erc20Abi } from '@rhinestone/sdk'
+import { parseUnits } from 'viem'
+
+const usdcAddress = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // USDC on Base
+
+const session: Session = {
+  owners: {
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
+  },
+  actions: [
+    {
+      target: usdcAddress,
+      selector: toFunctionSelector(
+        getAbiItem({ abi: erc20Abi, name: 'transfer' }),
+      ),
+      policies: [
+        {
+          type: 'spending-limit',
+          limit: parseUnits('100', 6), // 100 USDC
+        },
+      ],
+    },
+  ],
+}
+```
+
+<Note>
+  By default, a session with no actions allows **any** transaction. Always restrict sessions to the minimum necessary permissions.
+</Note>
+
+</Step>
+
+<Step title="Enable the session">
+
+The account owner signs to approve the session. This is the one-time approval the user sees:
+
+```ts
+import { experimental_enableSession } from '@rhinestone/sdk/actions/smart-sessions'
+
+const sessions = [session]
+const sessionDetails = await rhinestoneAccount.experimental_getSessionDetails(sessions)
+const enableSignature = await rhinestoneAccount.experimental_signEnableSession(sessionDetails)
+const sessionIndex = 0
+
+await rhinestoneAccount.sendTransaction({
+  chain: base,
+  calls: [
+    experimental_enableSession(
+      session,
+      enableSignature,
+      sessionDetails.hashesAndChainIds,
+      sessionIndex,
+    ),
+  ],
+})
+```
+
+</Step>
+
+<Step title="Execute transactions with the session key">
+
+Now your app can execute USDC transfers without prompting the user — the session key signs instead of the owner:
+
+```ts
+import { encodeFunctionData, erc20Abi } from 'viem'
+
+const recipient = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+const amount = parseUnits('10', 6) // 10 USDC
+
+const result = await rhinestoneAccount.sendTransaction({
+  chain: base,
+  calls: [
+    {
+      to: usdcAddress,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [recipient, amount],
+      }),
+    },
+  ],
+  signers: {
+    type: 'experimental_session',
+    session,
+  },
+})
+
+const status = await rhinestoneAccount.waitForExecution(result)
+console.log('Executed without user prompt:', status)
+```
+
+The user's MetaMask (or other wallet) is never involved. Your app signed with the session key — within the spending limit the user approved.
+
+</Step>
+
+</Steps>
+
+## What you built
+
+- A smart account with Smart Sessions installed
+- A scoped session key — USDC transfers only, 100 USDC limit
+- One-time user approval flow
+- App-signed transactions with no user prompts
+
+## Security checklist
+
+Before shipping session keys to production:
+
+- **Store the session key securely.** Use `localStorage` for browser-side sessions, a KMS or secrets manager for server-side automation.
+- **Apply the principle of least privilege.** Only request the actions your app actually needs.
+- **Set a timeframe policy.** Add an expiry so sessions don't live forever.
+- **Set spending limits.** Cap ERC20 transfers to a sensible amount.
+
+## Next steps
+
+<CardGroup cols={3}>
+  <Card title="Smart Sessions reference" icon="book-open" href="../smart-sessions/overview">
+    Full details on owners, actions, policies, and multi-session signatures.
+  </Card>
+
+  <Card title="Policies" icon="shield" href="../smart-sessions/policies/spending-limit">
+    Explore all available policies — timeframe, usage limit, call restrictions.
+  </Card>
+
+  <Card title="Sponsor fees" icon="fuel" href="./sponsor-fees">
+    Combine session keys with fee sponsorship for a fully frictionless UX.
+  </Card>
+</CardGroup>

@@ -3,13 +3,13 @@
   "theme": "mint",
   "name": "Rhinestone",
   "colors": {
-    "primary": "#1F178D",
-    "light": "#7369E9",
-    "dark": "#2D1FC6"
+    "primary": "#4f41ef",
+    "light": "#8479ff",
+    "dark": "#3428d1"
   },
   "background": {
     "color": {
-      "dark": "#0D0926"
+      "dark": "#0C0C0C"
     }
   },
   "icons": {
@@ -39,8 +39,31 @@
             "group": "Introduction",
             "pages": [
               "home/introduction/welcome-to-rhinestone",
-              "home/introduction/what-is-rhinestone",
-              "home/introduction/rhinestone-intents"
+              "home/introduction/what-is-rhinestone"
+            ]
+          },
+          {
+            "group": "Get Started",
+            "pages": [
+              "home/get-started/create-dev-account",
+              "home/get-started/configure-dev-dashboard"
+            ]
+          },
+          {
+            "group": "Solutions",
+            "pages": [
+              "home/solutions/wallets-and-fintechs",
+              "home/solutions/multichain-apps",
+              "home/solutions/ai-agents"
+            ]
+          },
+          {
+            "group": "Use Cases",
+            "pages": [
+              "home/use-cases/onboarding-and-deposits",
+              "home/use-cases/crosschain-intents",
+              "home/use-cases/swaps",
+              "home/use-cases/automation"
             ]
           },
           {
@@ -48,8 +71,7 @@
             "pages": [
               "home/concepts/intents-and-erc4337",
               "home/concepts/smart-accounts",
-              "home/concepts/session-keys",
-              "home/concepts/smart-eoas-eip-7702"
+              "home/concepts/session-keys"
             ]
           },
           {
@@ -66,53 +88,58 @@
         ]
       },
       {
-        "tab": "Smart Wallet SDK",
+        "tab": "Wallet",
         "pages": [
+          "smart-wallet/overview",
           "smart-wallet/quickstart",
+          "smart-wallet/advanced/security",
           {
-            "group": "Core",
+            "group": "Tutorials",
+            "pages": [
+              "smart-wallet/tutorials/sponsor-fees",
+              "smart-wallet/tutorials/session-keys"
+            ]
+          },
+          {
+            "group": "Smart account setup",
             "pages": [
               "smart-wallet/core/create-account",
-              "smart-wallet/core/signers/external-wallet-signer",
+              "smart-wallet/core/setup-signer",
               {
-                "group": "Embedded Wallet Signer",
+                "group": "Native signers",
                 "pages": [
-                  "smart-wallet/core/signers/dynamic",
+                  "smart-wallet/core/ecdsa-signer",
+                  "smart-wallet/core/passkeys",
+                  "smart-wallet/advanced/multi-factor-authentication"
+                ]
+              },
+              {
+                "group": "Embedded wallet signers",
+                "pages": [
                   "smart-wallet/core/signers/privy",
+                  "smart-wallet/core/signers/dynamic",
                   "smart-wallet/core/signers/para",
                   "smart-wallet/core/signers/magic",
                   "smart-wallet/core/signers/turnkey",
                   "smart-wallet/core/signers/openfort"
                 ]
               },
-              "smart-wallet/core/eip-7702",
-              "smart-wallet/core/eoa",
+              {
+                "group": "External wallet signers",
+                "pages": [
+                  "smart-wallet/core/signers/external-wallet-signer"
+                ]
+              },
               "smart-wallet/core/create-first-transaction",
-              "smart-wallet/core/passkeys",
-              "smart-wallet/core/ecdsa-signer",
-              "smart-wallet/core/multisig"
+              "smart-wallet/advanced/batch-transactions"
             ]
           },
           {
-            "group": "Gas Sponsorship",
+            "group": "Gas & Fee Sponsorship",
             "pages": [
               "smart-wallet/gas-sponsorship/overview",
               "smart-wallet/gas-sponsorship/set-up-sponsorship",
               "smart-wallet/gas-sponsorship/pay-gas-with-erc20"
-            ]
-          },
-          {
-            "group": "Chain Abstraction",
-            "pages": [
-              "smart-wallet/chain-abstraction/single-chain-intent",
-              "smart-wallet/chain-abstraction/multi-chain-intent",
-              "smart-wallet/chain-abstraction/swaps",
-              "smart-wallet/chain-abstraction/unified-balance",
-              "smart-wallet/chain-abstraction/source-token-amount",
-              "smart-wallet/chain-abstraction/custom-recipient",
-              "smart-wallet/chain-abstraction/account-deployment",
-              "smart-wallet/chain-abstraction/error-handling",
-              "smart-wallet/chain-abstraction/local-orchestrator-docker"
             ]
           },
           {
@@ -121,11 +148,11 @@
               "smart-wallet/smart-sessions/overview",
               "smart-wallet/smart-sessions/multi-session-signature",
               {
-                "group": "Signature Validators",
+                "group": "Signature validators",
                 "pages": [
                   "smart-wallet/smart-sessions/signature-validators/ecdsa",
-                  "smart-wallet/smart-sessions/signature-validators/multisig",
-                  "smart-wallet/smart-sessions/signature-validators/passkey"
+                  "smart-wallet/smart-sessions/signature-validators/passkey",
+                  "smart-wallet/smart-sessions/signature-validators/multisig"
                 ]
               },
               {
@@ -134,6 +161,8 @@
                   "smart-wallet/smart-sessions/policies/sudo",
                   "smart-wallet/smart-sessions/policies/call",
                   "smart-wallet/smart-sessions/policies/spending-limit",
+                  "smart-wallet/smart-sessions/policies/rate-limit",
+                  "smart-wallet/smart-sessions/policies/gas-limit",
                   "smart-wallet/smart-sessions/policies/timeframe",
                   "smart-wallet/smart-sessions/policies/usage-limit"
                 ]
@@ -141,17 +170,22 @@
             ]
           },
           {
-            "group": "Advanced",
+            "group": "More features",
             "pages": [
-              "smart-wallet/advanced/batch-transactions",
-              "smart-wallet/advanced/multi-factor-authentication",
               "smart-wallet/advanced/recovery",
               "smart-wallet/advanced/custom-modules",
               "smart-wallet/advanced/message-signing",
-              "smart-wallet/advanced/custom-signing",
-              "smart-wallet/advanced/use-erc-4337",
+              "smart-wallet/advanced/custom-signing"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "smart-wallet/customize/bring-your-own-account",
+              "smart-wallet/customize/smart-account-providers",
+              "smart-wallet/customize/json-rpc-providers",
               "smart-wallet/advanced/migration-guide",
-              "smart-wallet/advanced/security"
+              "smart-wallet/advanced/erc4337"
             ]
           },
           {
@@ -160,47 +194,54 @@
               "smart-wallet/module-sdk",
               "smart-wallet/modulekit"
             ]
-          },
-          {
-            "group": "Customize",
-            "pages": [
-              "smart-wallet/customize/bring-your-own-account",
-              {
-                "group": "Smart Account Providers",
-                "pages": [
-                  "smart-wallet/customize/smart-account-providers/nexus",
-                  "smart-wallet/customize/smart-account-providers/safe",
-                  "smart-wallet/customize/smart-account-providers/kernel",
-                  "smart-wallet/customize/smart-account-providers/startale",
-                  "smart-wallet/customize/smart-account-providers/prime"
-                ]
-              },
-              "smart-wallet/customize/json-rpc-providers",
-              "smart-wallet/customize/erc4337-infra"
-            ]
           }
         ]
       },
       {
-        "tab": "Intents API",
+        "tab": "Intents",
         "pages": [
-          "intents/overview",
+          "home/introduction/rhinestone-intents",
           {
-            "group": "Use Cases",
+            "group": "Tutorial",
             "pages": [
-              "intents/use-cases/automated-zaps",
-              "intents/use-cases/chain-abstracted-swaps",
-              "intents/use-cases/multi-input-bridge",
-              "intents/use-cases/vault-deposit"
+              "intents/tutorial/end-to-end-intent-flow"
             ]
           },
           {
-            "group": "Guides",
+            "group": "Features",
             "pages": [
+              "smart-wallet/chain-abstraction/single-chain-intent",
+              "smart-wallet/chain-abstraction/unified-balance",
+              "smart-wallet/chain-abstraction/multi-chain-intent",
+              "smart-wallet/chain-abstraction/swaps",
+              "intents/features/execute-crosschain-calls",
+              "smart-wallet/chain-abstraction/source-token-amount",
+              "smart-wallet/chain-abstraction/custom-recipient",
+              "smart-wallet/chain-abstraction/account-deployment"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "intents/use-cases/automated-zaps",
+              "intents/use-cases/multi-input-bridge",
+              "intents/use-cases/vault-deposit",
+              "smart-wallet/chain-abstraction/local-orchestrator-docker"
+            ]
+          },
+          {
+            "group": "API Guides",
+            "pages": [
+              "intents/guides/using-the-api",
+              "intents/guides/set-account-type",
               "intents/guides/getting-a-quote",
               "intents/guides/token-requirements",
               "intents/guides/signing",
               "intents/guides/submitting-the-intent",
+              "intents/guides/installing-intent-executor",
+              "intents/guides/setting-up-approvals",
+              "intents/guides/portfolio-endpoint",
+              "intents/guides/tracking-intents",
               "intents/guides/error-handling"
             ]
           }
@@ -225,7 +266,9 @@
     ]
   },
   "contextual": {
-    "options": ["copy"]
+    "options": [
+      "copy"
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",

@@ -1,121 +1,64 @@
 ---
-title: "Create Account"
-description: "Learn how to create Rhinestone smart accounts with different signer types for various use cases."
+title: "Create a smart account"
+description: "Create a Rhinestone smart account and configure its owners."
 ---
 
-When creating an account, you can specify the signers that will be used to authorize the transactions.
+A Rhinestone smart account is a smart contract wallet. It doesn't hold keys — instead, you configure one or more signers that are authorised to control it. The account is deployed on the first transaction, not at creation time.
 
-The SDK will install and set up the corresponding validator modules to authorize the signers of your choice. The account will use the same configuration across all chains.
+## Create an account
 
-## Signers
+Pass the owner signer when calling `createAccount`. Here's an example using an external wallet (MetaMask) via Viem:
 
-At its core, Rhinestone accounts support two validation modules: ECDSA (for EOAs) and WebAuthn (for passkeys). You can then mix and match those validators to tailor them to your use case.
+```ts
+import { RhinestoneSDK, walletClientToAccount } from '@rhinestone/sdk'
+import { createWalletClient, custom } from 'viem'
+import { sepolia } from 'viem/chains'
 
-* **EOAs**: you can use embedded wallets (Privy, Dynamic), external wallets (MetaMask, Coinbase), and server-side (agent) wallets. See below for an example of using an external wallet as the account owner.
-* **Passkey**: use device biometrics to authorize transactions. [Learn more](./passkeys) about using passkeys.
-* **Multisig**: use multiple signers of the same type to validate transactions. [Learn more](./multisig) about using multisigs.
-* **MFA**: use passkeys _and_ EOAs at the same time. [Learn more](../advanced/multi-factor-authentication) about using MFAs.
-
-## Example
-
-Here, we create an account owned by an external wallet like MetaMask and send our first transaction.
-
-<Steps>
-  <Step title="Install dependencies">
-    Install `viem` and `@rhinestone/sdk`:
-
-    <CodeGroup>
-      ```bash npm
-      npm install viem @rhinestone/sdk
-      ```
-      ```bash pnpm
-      pnpm add viem @rhinestone/sdk
-      ```
-      ```bash bun
-      bun install viem @rhinestone/sdk
-      ```
-    </CodeGroup>
-  </Step>
-  <Step title="Initialize Viem">
-    Initialize Viem client for the browser wallet:
-
-    ```ts
-    const chain = sepolia;
-
-    const accountClient = createWalletClient({
-      chain,
-      transport: custom(window.ethereum!),
-      account: eoaAddress,
-    });
-    ```
-  </Step>
-  <Step title="Initialize Rhinestone account">
-    Create an account using the external wallet as the sole owner:
-
-    ```ts
-    const rhinestone = new RhinestoneSDK({
-  apiKey: process.env.RHINESTONE_API_KEY,
+const walletClient = createWalletClient({
+  chain: sepolia,
+  transport: custom(window.ethereum!),
 })
 
-    const account = walletClientToAccount(accountClient);
-    console.log(account);
+const rhinestone = new RhinestoneSDK({
+  apiKey: process.env.RHINESTONE_API_KEY as string,
+})
 
-    const rhinestoneAccount = await rhinestone.createAccount({
-      owners: {
-        type: "ecdsa",
-        accounts: [account],
-      },
-    });
-    console.log(rhinestoneAccount);
+const signer = walletClientToAccount(walletClient)
 
-    const accountAddress = rhinestoneAccount.getAddress();
-    console.log(accountAddress);
-    ```
-  </Step>
-  <Step title="Make a transaction">
-    Make your first transaction with the smart account:
+const account = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [signer],
+  },
+})
 
-    ```ts
-    const transactionResult = await rhinestoneAccount.sendTransaction({
-      chain,
-      calls: [
-        {
-          to: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-          data: "0x",
-        },
-      ],
-    });
-    console.log(transactionResult);
-    ```
+const accountAddress = account.getAddress()
+```
 
-    This will prompt a signature request from the browser wallet and create and submit the transaction from the smart account. 
-  </Step>
-</Steps>
+The SDK derives a deterministic account address from the owner configuration. The same owners always produce the same address — no deployment transaction required upfront.
 
-## Custom Nonce
+## Custom nonce
 
-By default, the SDK uses a nonce of `0` to derive the account address. You can provide a custom nonce to derive a different address for the same set of owners. This is useful when you need multiple accounts per signer.
+By default, the SDK uses a nonce of `0` to derive the account address. Pass a custom nonce to get a different address for the same set of owners — useful when you need multiple accounts per signer.
 
-```ts {3-6}
-const rhinestoneAccount = await rhinestone.createAccount({
-  owners: { type: 'ecdsa', accounts: [account] },
+```ts
+const account = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [signer],
+  },
   account: {
-    type: 'safe',
     nonce: 1n,
   },
 })
 ```
 
-<Note>
-  Using a different nonce will result in a different account address, even if the owners are the same.
-</Note>
+<Note>Different nonce = different account address, even with identical owners.</Note>
 
-<Columns cols={2}>
-  <Card title="External Wallets" icon="globe" href="./signers/external-wallet-signer">
-    Learn how to use Rhinestone accounts with WalletConnect.
-  </Card>
+## Choose a signer type
 
-  <Card title="Embedded Wallets" icon="wallet-cards" href="./signers/privy">
-    Use providers like Privy and Dynamic as account owners.
-  </Card>
-</Columns>
+The example above uses an ECDSA signer (external wallet). Rhinestone supports several signer types — passkeys, embedded wallets, external wallets, and multi-factor combinations.
+
+<Card title="Signer types →" icon="key" href="./setup-signer">
+  Choose the right signer for your use case — native keys, embedded wallets, or external wallets.
+</Card>
