@@ -95,7 +95,7 @@
           {
             "group": "Tutorials",
             "pages": [
-              "smart-wallet/tutorials/sponsor-gas",
+              "smart-wallet/tutorials/sponsor-fees",
               "smart-wallet/tutorials/session-keys"
             ]
           },
