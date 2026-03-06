@@ -133,7 +133,7 @@
             ]
           },
           {
-            "group": "Gas Sponsorship",
+            "group": "Gas & Fee Sponsorship",
             "pages": [
               "smart-wallet/gas-sponsorship/overview",
               "smart-wallet/gas-sponsorship/set-up-sponsorship",
