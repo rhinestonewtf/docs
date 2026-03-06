@@ -92,6 +92,7 @@
         "pages": [
           "smart-wallet/overview",
           "smart-wallet/quickstart",
+          "smart-wallet/advanced/security",
           {
             "group": "Tutorials",
             "pages": [
@@ -129,7 +130,8 @@
                   "smart-wallet/core/signers/external-wallet-signer"
                 ]
               },
-              "smart-wallet/core/create-first-transaction"
+              "smart-wallet/core/create-first-transaction",
+              "smart-wallet/advanced/batch-transactions"
             ]
           },
           {
@@ -168,25 +170,23 @@
             ]
           },
           {
-            "group": "Advanced",
+            "group": "More features",
             "pages": [
-              "smart-wallet/advanced/batch-transactions",
               "smart-wallet/advanced/recovery",
               "smart-wallet/advanced/custom-modules",
               "smart-wallet/advanced/message-signing",
-              "smart-wallet/advanced/custom-signing",
-              "smart-wallet/advanced/use-erc-4337",
-              "smart-wallet/advanced/migration-guide",
-              "smart-wallet/advanced/security"
+              "smart-wallet/advanced/custom-signing"
             ]
           },
           {
-            "group": "Customize",
+            "group": "Configuration",
             "pages": [
               "smart-wallet/customize/bring-your-own-account",
               "smart-wallet/customize/smart-account-providers",
               "smart-wallet/customize/json-rpc-providers",
-              "smart-wallet/customize/erc4337-infra"
+              "smart-wallet/customize/erc4337-infra",
+              "smart-wallet/advanced/use-erc-4337",
+              "smart-wallet/advanced/migration-guide"
             ]
           },
           {
