@@ -78,7 +78,7 @@ console.log(`Smart account address: ${address}`)
 
 <Step title="Fund the Account">
 
-We will send some ETH from the funding account to the created smart account. The Orchestrator will use some of that ETH to deploy the account on the target chain, as well as to convert it to USDC for a transfer transaction.
+Send ETH to the smart account. The Orchestrator handles deployment and token conversion on the destination chain.
 
 ```ts
 const publicClient = createPublicClient({

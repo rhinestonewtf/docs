@@ -23,7 +23,7 @@ Key example use cases include:
 
 ## How it works
 
-[Smart Sessions](https://github.com/erc7579/smartsessions) separates **owners**, **policies**, and **actions** to increase composability and component reuse, which improves developer efficiency and costs.
+[Smart Sessions](https://github.com/erc7579/smartsessions) is built around three concepts: **owners** (who can sign), **actions** (what they can do), and **policies** (under what conditions).
 
 ## Owners
 
@@ -38,8 +38,6 @@ You can also use custom validators to validate sessions, as long as they are [ER
 ## Actions
 
 Actions define what transactions (calls) you can make within a session. An action is defined by the _target address_ and the _function selector_.
-
-An example of an action would be token transfer, where `target` would be the address of the ERC20 token and `selector` would be `0xa9059cbb` (the transfer function selector).
 
 When defining multiple actions within a session, a transaction that matches **any** specified action is considered valid. If no actions are specified, **any** transaction will pass.
 
