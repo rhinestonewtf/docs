@@ -35,7 +35,7 @@ console.log('Result', result)
 
 ## Send a cross-chain transaction
 
-Swap `chain` for `sourceChains` + `targetChain`. The SDK handles bridging and routing — no separate bridge interaction required:
+Swap `chain` for `sourceChains` + `targetChain`. The SDK handles bridging and routing with no separate bridge interaction required:
 
 ```ts
 import { baseSepolia, arbitrumSepolia } from 'viem/chains'
@@ -67,7 +67,7 @@ const result = await rhinestoneAccount.waitForExecution(transaction)
 
 ## Use the granular API
 
-Use `prepareTransaction` → `signTransaction` → `submitTransaction` when you need to separate fetching from signing — for example, to show the user transaction details before they approve, or to fetch intent data on a backend and sign on a mobile frontend:
+Use `prepareTransaction` → `signTransaction` → `submitTransaction` when you need to separate fetching from signing. For example, to show the user transaction details before they approve, or to fetch intent data on a backend and sign on a mobile frontend:
 
 ```ts
 // Fetch intent data (can be done server-side)
@@ -76,7 +76,7 @@ const transactionData = await rhinestoneAccount.prepareTransaction({
   calls: [...],
 })
 
-// Sign — prompts account owners
+// Sign: prompts account owners
 const signedData = await rhinestoneAccount.signTransaction(transactionData)
 
 // Submit
@@ -89,7 +89,7 @@ const transaction = await rhinestoneAccount.submitTransaction(signedData)
 
 <CardGroup cols={3}>
   <Card title="Crosschain" icon="arrow-right-left" href="../chain-abstraction/multi-chain-intent">
-    Send funds across chains with a single signature — no bridging required.
+    Send funds across chains with a single signature. No bridging required.
   </Card>
 
   <Card title="Unified balance" icon="wallet" href="../chain-abstraction/unified-balance">

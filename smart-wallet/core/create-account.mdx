@@ -3,7 +3,7 @@ title: "Create a smart account"
 description: "Create a Rhinestone smart account and configure its owners."
 ---
 
-A Rhinestone smart account is a smart contract wallet. It doesn't hold keys — instead, you configure one or more signers that are authorised to control it. The account is deployed on the first transaction, not at creation time.
+A Rhinestone smart account is a smart contract wallet. It doesn't hold keys. Instead, you configure one or more signers that are authorised to control it. The account is deployed on the first transaction, not at creation time.
 
 ## Create an account
 
@@ -35,11 +35,11 @@ const account = await rhinestone.createAccount({
 const accountAddress = account.getAddress()
 ```
 
-The SDK derives a deterministic account address from the owner configuration. The same owners always produce the same address — no deployment transaction required upfront.
+The SDK derives a deterministic account address from the owner configuration. The same owners always produce the same address, with no deployment transaction required upfront.
 
 ## Custom nonce
 
-By default, the SDK uses a nonce of `0` to derive the account address. Pass a custom nonce to get a different address for the same set of owners — useful when you need multiple accounts per signer.
+By default, the SDK uses a nonce of `0` to derive the account address. Pass a custom nonce to get a different address for the same set of owners. This is useful when you need multiple accounts per signer.
 
 ```ts
 const account = await rhinestone.createAccount({
@@ -57,8 +57,8 @@ const account = await rhinestone.createAccount({
 
 ## Choose a signer type
 
-The example above uses an ECDSA signer (external wallet). Rhinestone supports several signer types — passkeys, embedded wallets, external wallets, and multi-factor combinations.
+The example above uses an ECDSA signer (external wallet). Rhinestone supports several signer types: passkeys, embedded wallets, external wallets, and multi-factor combinations.
 
 <Card title="Signer types →" icon="key" href="./setup-signer">
-  Choose the right signer for your use case — native keys, embedded wallets, or external wallets.
+  Choose the right signer for your use case: native keys, embedded wallets, or external wallets.
 </Card>

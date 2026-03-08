@@ -1,6 +1,6 @@
 ---
 title: "ECDSA Signer"
-description: "Use an EOA as the owner of a smart account — single key or n/m multisig."
+description: "Use an EOA as the owner of a smart account. Supports single key or n/m multisig."
 ---
 
 The ECDSA signer uses the Ownable Validator module to authorise transactions with standard Ethereum key pairs. It supports both single-owner and multisig (n/m threshold) configurations on the same account.
@@ -29,7 +29,7 @@ const account = await rhinestone.createAccount({
 
 ## Multisig
 
-The Ownable Validator supports n/m multisig — multiple owners with a configurable signature threshold. This is useful for shared accounts, treasury management, or any scenario where unilateral control is a risk.
+The Ownable Validator supports n/m multisig with multiple owners and a configurable signature threshold. This is useful for shared accounts, treasury management, or any scenario where unilateral control is a risk.
 
 ### Setup
 
@@ -45,7 +45,7 @@ const account = await rhinestone.createAccount({
 })
 ```
 
-By default, `threshold` is `1` — any single owner can sign.
+By default, `threshold` is `1`, meaning any single owner can sign.
 
 ### Signing with a subset of owners
 

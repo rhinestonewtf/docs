@@ -9,10 +9,10 @@ The Rhinestone SDK is a TypeScript library that gives wallet developers a unifie
 
 In one integration, you get:
 
-- **Smart account deployment and management** — create, configure, and interact with ERC-7579 smart accounts (or EIP-7702 upgraded EOAs)
-- **Crosschain transaction routing** — send intents that move funds and execute calls across any supported chain, without bridging
-- **Fee sponsorship** — sponsor gas, bridging, and swap fees for your users across any supported chain
-- **Modular wallet features** — add passkeys, session keys, multisig, social recovery, and more via onchain modules
+- **Smart account deployment and management**: create, configure, and interact with ERC-7579 smart accounts (or EIP-7702 upgraded EOAs)
+- **Crosschain transaction routing**: send intents that move funds and execute calls across any supported chain, without bridging
+- **Fee sponsorship**: sponsor gas, bridging, and swap fees for your users across any supported chain
+- **Modular wallet features**: add passkeys, session keys, multisig, social recovery, and more via onchain modules
 
 The SDK is built on [viem](https://viem.sh), the lightweight TypeScript Ethereum library. If your stack already uses viem, the Rhinestone SDK slots in naturally.
 
@@ -20,21 +20,21 @@ The SDK is built on [viem](https://viem.sh), the lightweight TypeScript Ethereum
 
 ### Smart Accounts
 
-Rhinestone smart accounts are [ERC-7579](https://erc7579.com) modular smart accounts. ERC-7579 defines a standard interface for pluggable modules — validators, executors, hooks, and fallbacks — so you can extend account behaviour without being locked into one implementation. Rhinestone's core modules include passkeys, session keys, multisig, and social recovery.
+Rhinestone smart accounts are [ERC-7579](https://erc7579.com) modular smart accounts. ERC-7579 defines a standard interface for pluggable modules (validators, executors, hooks, and fallbacks), so you can extend account behaviour without being locked into one implementation. Rhinestone's core modules include passkeys, session keys, multisig, and social recovery.
 
-Rhinestone also supports [EIP-7702](https://eips.ethereum.org/EIPS/eip-7702), which lets you upgrade an existing EOA into a smart account without migrating assets — useful for onboarding users who already have a wallet.
+Rhinestone also supports [EIP-7702](https://eips.ethereum.org/EIPS/eip-7702), which lets you upgrade an existing EOA into a smart account without migrating assets. This is useful for onboarding users who already have a wallet.
 
 When you create an account, the SDK installs the appropriate modules onchain and derives a deterministic address. The same address is used across all supported chains.
 
 ### Rhinestone Intents (Warp)
 
-Warp is Rhinestone's intent routing and execution engine. Instead of sending raw transactions, your users sign _intents_ — declarations of what they want to happen (e.g. "move 100 USDC from Optimism and call contract X on Base"). Rhinestone's infrastructure handles the rest.
+Warp is Rhinestone's intent routing and execution engine. Instead of sending raw transactions, your users sign _intents_: declarations of what they want to happen (e.g. "move 100 USDC from Optimism and call contract X on Base"). Rhinestone's infrastructure handles the rest.
 
 **How it works:**
 
 <Steps>
   <Step title="Get a quote">
-    Your app calls the SDK to get a quote for the intent — fees, routes, estimated time.
+    Your app calls the SDK to get a quote for the intent, including fees, routes, and estimated time.
   </Step>
 
   <Step title="Sign">
@@ -42,7 +42,7 @@ Warp is Rhinestone's intent routing and execution engine. Instead of sending raw
   </Step>
 
   <Step title="Submit">
-    The signed intent is submitted to the Orchestrator — Rhinestone's offchain routing service.
+    The signed intent is submitted to the Orchestrator, Rhinestone's offchain routing service.
   </Step>
 
   <Step title="Execute">
@@ -52,14 +52,14 @@ Warp is Rhinestone's intent routing and execution engine. Instead of sending raw
 
 **Key capabilities:**
 
-- **Single- and multi-chain transactions** — send from one chain, execute on another, or sweep across many chains in a single signed intent
-- **Crosschain swaps** — solver-based swaps with zero slippage and MEV protection, or inject your own DEX aggregator
-- **Universal gas sponsorship** — deposit USDC on Base and sponsor gas, bridging, and swap fees on any supported chain for your users
-- **Multi-input intents** — aggregate tokens from multiple source chains in a single UX interaction
+- **Single- and multi-chain transactions**: send from one chain, execute on another, or sweep across many chains in a single signed intent
+- **Crosschain swaps**: solver-based swaps with zero slippage and MEV protection, or inject your own DEX aggregator
+- **Universal gas sponsorship**: deposit USDC on Base and sponsor gas, bridging, and swap fees on any supported chain for your users
+- **Multi-input intents**: aggregate tokens from multiple source chains in a single UX interaction
 
 ### How the SDK, Smart Accounts, and Intents Fit Together
 
-The smart account is the **identity and authorization layer** — it owns the assets and validates that transactions were properly signed by the user's signer. Warp is the **execution layer** — it routes and settles transactions across chains as efficiently as possible.
+The smart account is the **identity and authorization layer**. It owns the assets and validates that transactions were properly signed by the user's signer. Warp is the **execution layer** that routes and settles transactions across chains as efficiently as possible.
 
 When a user transacts, the SDK:
 1. Encodes the intent against their smart account
@@ -68,7 +68,7 @@ When a user transacts, the SDK:
 
 ### Wallet/Signer Integration
 
-The SDK is signer-agnostic. Your wallet just needs to produce a valid signature — the SDK handles account configuration, intent construction, and submission.
+The SDK is signer-agnostic. Your wallet just needs to produce a valid signature. The SDK handles account configuration, intent construction, and submission.
 
 | Signer Type | Examples |
 |---|---|

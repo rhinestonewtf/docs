@@ -3,7 +3,7 @@ title: "Add session keys"
 description: "Enable one-click UX by letting users grant scoped permissions to your app."
 ---
 
-By default, every transaction requires the user to sign. Session keys let your app hold a scoped key that can sign on the user's behalf — within limits you define. The user approves once; your app executes freely until the session expires or limits are hit.
+By default, every transaction requires the user to sign. Session keys let your app hold a scoped key that can sign on the user's behalf, within limits you define. The user approves once and your app executes freely until the session expires or limits are hit.
 
 This tutorial walks through a one-click trading scenario: the user grants your app permission to execute USDC transfers up to a spending limit, without prompting for every trade.
 
@@ -57,7 +57,7 @@ await rhinestoneAccount.sendTransaction({
 
 <Step title="Generate a session key">
 
-Create an ephemeral key pair that your app will use to sign on the user's behalf. In production, store this key securely — in the browser via `localStorage` for client-side sessions, or in a KMS/secrets manager for server-side automation.
+Create an ephemeral key pair that your app will use to sign on the user's behalf. In production, store this key securely. Use `localStorage` for client-side sessions, or a KMS/secrets manager for server-side automation.
 
 ```ts
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
@@ -135,7 +135,7 @@ await rhinestoneAccount.sendTransaction({
 
 <Step title="Execute transactions with the session key">
 
-Now your app can execute USDC transfers without prompting the user — the session key signs instead of the owner:
+Now your app can execute USDC transfers without prompting the user. The session key signs instead of the owner:
 
 ```ts
 import { encodeFunctionData, erc20Abi } from 'viem'
@@ -165,7 +165,7 @@ const status = await rhinestoneAccount.waitForExecution(result)
 console.log('Executed without user prompt:', status)
 ```
 
-The user's MetaMask (or other wallet) is never involved. Your app signed with the session key — within the spending limit the user approved.
+The user's MetaMask (or other wallet) is never involved. Your app signed with the session key, within the spending limit the user approved.
 
 </Step>
 
@@ -174,7 +174,7 @@ The user's MetaMask (or other wallet) is never involved. Your app signed with th
 ## What you built
 
 - A smart account with Smart Sessions installed
-- A scoped session key — USDC transfers only, 100 USDC limit
+- A scoped session key (USDC transfers only, 100 USDC limit)
 - One-time user approval flow
 - App-signed transactions with no user prompts
 
@@ -195,7 +195,7 @@ Before shipping session keys to production:
   </Card>
 
   <Card title="Policies" icon="shield" href="../smart-sessions/policies/spending-limit">
-    Explore all available policies — timeframe, usage limit, call restrictions.
+    Explore all available policies: timeframe, usage limit, call restrictions.
   </Card>
 
   <Card title="Sponsor fees" icon="fuel" href="./sponsor-fees">

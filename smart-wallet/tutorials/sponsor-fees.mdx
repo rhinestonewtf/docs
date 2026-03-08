@@ -3,7 +3,7 @@ title: "Sponsor fees for your users"
 description: "Cover gas, bridging, and swap fees for your users with a single deposit."
 ---
 
-Transaction fees are one of the biggest UX barriers in crypto. With Rhinestone's fee sponsorship, you deposit USDC once and the SDK covers gas, bridging, and swap fees for your users across any supported chain — no per-chain setup required.
+Transaction fees are one of the biggest UX barriers in crypto. With Rhinestone's fee sponsorship, you deposit USDC once and the SDK covers gas, bridging, and swap fees for your users across any supported chain. No per-chain setup required.
 
 This tutorial builds on the [Quickstart](../quickstart). You'll need a working smart account setup before continuing.
 
@@ -48,7 +48,7 @@ This tutorial builds on the [Quickstart](../quickstart). You'll need a working s
     console.log('Transaction settled:', status)
     ```
 
-    Your user signs once. The Rhinestone orchestrator deducts the fees from your sponsorship balance — the user pays nothing.
+    Your user signs once. The Rhinestone orchestrator deducts the fees from your sponsorship balance and the user pays nothing.
 
   </Step>
 
@@ -69,7 +69,7 @@ This tutorial builds on the [Quickstart](../quickstart). You'll need a working s
     })
     ```
 
-    Or apply sponsorship conditionally on your backend — for example, only sponsor transactions that interact with your app's contract:
+    Or apply sponsorship conditionally on your backend. For example, only sponsor transactions that interact with your app's contract:
 
     ```ts
     function shouldSponsor(calls: { to: string }[]): boolean {
@@ -98,7 +98,7 @@ This tutorial builds on the [Quickstart](../quickstart). You'll need a working s
   </Card>
 
   <Card title="Signer types" icon="wallet" href="../core/setup-signer">
-    Customise your signer — passkeys, embedded wallets, multi-factor auth.
+    Customise your signer: passkeys, embedded wallets, multi-factor auth.
   </Card>
 
   <Card title="Add session keys" icon="key" href="./session-keys">

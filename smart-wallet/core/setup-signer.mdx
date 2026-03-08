@@ -7,7 +7,7 @@ Your choice of signer determines how users authenticate. The right one depends o
 
 ## Native signers
 
-Cryptographic primitives built into the SDK — no third-party provider required.
+Cryptographic primitives built into the SDK. No third-party provider required.
 
 <CardGroup cols={3}>
   <Card title="ECDSA" icon="key" href="./ecdsa-signer">
@@ -17,13 +17,13 @@ Cryptographic primitives built into the SDK — no third-party provider required
     Device biometrics via WebAuthn (Face ID, Touch ID). No seed phrases. Supports single-owner and multisig. Best for consumer apps.
   </Card>
   <Card title="Multi-factor" icon="shield-check" href="../advanced/multi-factor-authentication">
-    Combine multiple validators — e.g. require both an ECDSA key and a passkey. Best for high-security accounts.
+    Combine multiple validators, e.g. require both an ECDSA key and a passkey. Best for high-security accounts.
   </Card>
 </CardGroup>
 
 ## Embedded wallet signers
 
-Keys managed inside your app via secure enclave. Users authenticate with social login or email — no browser extension or seed phrase needed. Use these when onboarding users who don't already have a crypto wallet.
+Keys managed inside your app via secure enclave. Users authenticate with social login or email, with no browser extension or seed phrase needed. Use these when onboarding users who don't already have a crypto wallet.
 
 <CardGroup cols={3}>
   <Card title="Privy" href="./signers/privy">
@@ -48,7 +48,7 @@ Keys managed inside your app via secure enclave. Users authenticate with social 
 
 ## External wallet signers
 
-Browser extensions and mobile wallets users already own — MetaMask, Coinbase Wallet, and any WalletConnect-compatible wallet. Use these for dApps serving existing Web3 users.
+Browser extensions and mobile wallets users already own, such as MetaMask, Coinbase Wallet, and any WalletConnect-compatible wallet. Use these for dApps serving existing Web3 users.
 
 <Card title="External wallets" icon="wallet" href="./signers/external-wallet-signer">
   Connect MetaMask, Coinbase Wallet, and WalletConnect-compatible wallets via Reown AppKit.
