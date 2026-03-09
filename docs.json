@@ -200,6 +200,7 @@
         "tab": "Intents",
         "pages": [
           "intents/overview",
+          "intents/quickstart",
           {
             "group": "Tutorial",
             "pages": [
