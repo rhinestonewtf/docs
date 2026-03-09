@@ -188,8 +188,8 @@
             "group": "Sending intents",
             "pages": [
               "smart-wallet/chain-abstraction/single-chain-intent",
-              "smart-wallet/chain-abstraction/unified-balance",
               "smart-wallet/chain-abstraction/multi-chain-intent",
+              "smart-wallet/chain-abstraction/unified-balance",
               "smart-wallet/chain-abstraction/swaps",
               "intents/features/execute-crosschain-calls",
               "smart-wallet/chain-abstraction/source-token-amount",
