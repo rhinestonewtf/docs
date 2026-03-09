@@ -46,7 +46,7 @@ Last updated: 2026-03-09
 - Gas fee sponsorship (core) → `smart-wallet/core/gas-fee-sponsorship.mdx`
 
 ### Smart Sessions
-- Overview + `experimental_isSessionEnabled` → `smart-wallet/smart-sessions/overview.mdx`
+- Overview + `experimental_isSessionEnabled` (content exists) → `smart-wallet/smart-sessions/overview.mdx`
 - Multi-session signature → `smart-wallet/smart-sessions/multi-session-signature.mdx`
 - **Policies:** Call, Gas Limit, Spending Limit, Sudo, Timeframe, Usage Limit → `smart-wallet/smart-sessions/policies/`
 - **Signature validators:** ECDSA, Multisig, Passkey → `smart-wallet/smart-sessions/signature-validators/`
@@ -125,7 +125,7 @@ Last updated: 2026-03-09
 
 | Page | Status | Notes |
 |---|---|---|
-| `intents/guides/tracking-intents.mdx` | Coming soon | Status values are documented in `submitting-the-intent.mdx` — needs dedicated page |
+| `intents/guides/tracking-intents.mdx` | Coming soon | Should contain full intent status lifecycle. Status values currently documented in `submitting-the-intent.mdx`. Nav position: after "Submitting the intent" |
 | `intents/tutorial/end-to-end-intent-flow.mdx` | Coming soon | Full E2E walkthrough |
 | `intents/guides/using-the-api.mdx` | Stub | API guide overview |
 | `home/get-started/create-dev-account.mdx` | Stub | RHI-3311 |
