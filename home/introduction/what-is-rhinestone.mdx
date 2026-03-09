@@ -4,9 +4,9 @@ description: "Learn more about Rhinestone"
 mode: "wide"
 ---
 
-Rhinestone combines smart wallet infrastructure with an intent-based transaction system to offer the ultimate abstraction layer for teams building muilti-chain applications.
+Rhinestone is a smart wallet SDK and crosschain intent API. It combines a modular smart account toolkit with an intent-based transaction engine, giving teams a single integration for deploying wallets and routing transactions across any supported chain.
 
-## Tech Stack Visualization
+## Tech Stack
 
 <img
   className="block dark:hidden rounded-2xl"
@@ -18,59 +18,62 @@ Rhinestone combines smart wallet infrastructure with an intent-based transaction
   src="/images/rhinestone_tech_stack_dark.png"
 />
 
-Rhinestone offers three core services: 
-- Modular **Smart Account** toolkit, compatible with all major [embedded wallet signers](../../smart-wallet/core/signers/dynamic)
-- An **Intent Engine** for single- and multi-chain transaction and swap routing
+Rhinestone offers three core services:
+
+- Modular **Smart Account** toolkit, compatible with all major embedded wallet signers
+- An **Intent Engine** (Warp) for single- and multi-chain transaction and swap routing
 - A **Relayer Market** that aggregates solver liquidity for intent execution
 
 ## Smart Accounts
 
-Rhinestone develops the onchain infrastructure for smart wallets, including the smart account and modules that extend the wallet with specific features. Rhinestone’s core modules include:
+Rhinestone provides the onchain infrastructure for smart wallets, including the smart account and modules that extend the wallet with specific features. Core modules include:
 
-- **Passkeys** for secure and user-friendly self-custodial key management 
-- **Session keys** for transaction automation
-- **Multi-sig** for high value accounts
-- **Social login** (through an embedded wallet integration)
-- **Recovery** for a heightened security
+- **Passkeys** for secure, user-friendly self-custodial key management
+- **Session keys** for transaction automation and 1-click UX
+- **Multi-sig** for high-value accounts
+- **Social login** via embedded wallet integrations
+- **Recovery** for heightened account security
 
-Use these onchain components via the Rhinestone SDK to deploy, configure, and manage smart accounts for your users.
+Use these via the Rhinestone SDK to deploy, configure, and manage smart accounts for your users.
 
-## Intent Engine
+## Intent Engine (Warp)
 
-Rhinestone offers an intent-based transaction service, called Warp, that aggregates existing crosschain settlement layers through a single solver market (the Relayer Market). It utilizes resource locks for fast crosschain execution (sub 2 seconds) and a backend service for routing, transaction encoding, and crosschain orchestration.
+Warp is Rhinestone's intent-based transaction service. It aggregates existing crosschain settlement layers through a single solver market, and uses resource locks for fast crosschain execution (sub-2-second fills).
 
-Key Features:
-- **Crosschain transactions**: Eliminate chains and bridges to make a multi-chain experience feel like a single chain.
-- **Swaps**: Use Rhinestone’s relayers for solver-based swaps with zero-slippage and MEV protection, or inject a swap via a DEX aggregator.  
-- **Universal gas sponsorship**: Deposit USDC on your developer account on Base and sponsor gas, bridging, and swap fees on any chain. 
-- **Multi-input intents**: Rhinestone intents can include any number of input chains and input tokens, whilst maintaining the signal-signature UX.
-- **Atomic and deterministic**: Unlike bridges, Rhinestone intents are atomic and have a known output token with zero slippage (deterministic).
-- **Human-readable signatures**: An EIP-712 signature envelope guarantees a legible payload to be signed by the user, no matter the complexity of the intent.
+Key capabilities:
 
-More on [Warp](./rhinestone-intents), Rhinestone's intent system.
+- **Crosschain transactions**: transact on any chain using funds from any other chain, with no manual bridging
+- **Swaps**: solver-based swaps with zero slippage and MEV protection, or inject your own DEX aggregator
+- **Universal gas sponsorship**: deposit USDC on Base and sponsor gas, bridging, and swap fees on any supported chain
+- **Multi-input intents**: combine any number of input chains and tokens in a single signed intent
+- **Atomic and deterministic**: known output token, zero slippage, guaranteed execution or rollback
+- **Human-readable signatures**: EIP-712 signing ensures a legible payload regardless of intent complexity
+
+More on [Warp](./rhinestone-intents).
 
 ## Relayer Market
 
-Warp aggregates settlement layers (like Across, Relay, and Eco) for crosschain execution through a unified Relayer Market. This enables extreme flexibility when it comes to solving user intents. Instead of aggregating bridge APIs, the user intent is propagated to a chosen solver in the Relayer Market, and this solver supplies liquidity, can perform swaps, and interacts directly with onchain protocols for crosschain settlement.   
+Warp routes intents through a unified Relayer Market that aggregates settlement layers like Across, Relay, and Eco. Solvers in the market supply liquidity, perform swaps, and settle directly onchain — the user intent is routed to the best-placed solver for price and speed.
 
 More on the [Relayer Market](./rhinestone-intents#relayer-market).
 
-## Rhinestone is Composable
+## Composability
 
-Rhinestone’s modular tech stack allows us to meet clients where they are:
-- **Compatible with all signers**: Use passkeys, any external wallet, or embedded wallet (such as Turnkey, Dynamic, Magic, Privy, etc) to sign intents.
-- **Account Implementation-agnostic**: Rhinestone works with all major smart account implementations that follow the ERC-7579 spec or utilise ERC-7821 for batched execution.
-- **Modular Smart Account**: Customize your smart wallet with modules or build custom components to extend the wallet functionality. 
-- **Quote API Only**: Our intent routes can be consumed via the quote API for crosschain intents and swap quotes - without the integration of Rhinestone smart wallets.
+Rhinestone is designed to meet teams where they are:
+
+- **Signer-agnostic**: works with passkeys, external wallets, and any embedded wallet provider (Turnkey, Dynamic, Magic, Privy, and more)
+- **Account implementation-agnostic**: compatible with all major ERC-7579 smart account implementations and accounts using ERC-7821 for batched execution
+- **Modular**: extend your smart wallet with custom modules or use existing ones from the ecosystem
+- **API-first**: use Warp's intent routing via the REST API without integrating the smart account SDK
 
 ## Next Steps
 
-<Columns cols={2}>
-  <Card title="Quickstart" icon="circle-chevron-right" href="../../smart-wallet/quickstart">
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="bolt" href="../../smart-wallet/quickstart">
     Get started with the SDK
   </Card>
 
-  <Card title="Rhinestone Intents (aka Warp)" icon="workflow" href="./rhinestone-intents">
-    Learn more about our modular intent engine.
+  <Card title="Rhinestone Intents" icon="workflow" href="./rhinestone-intents">
+    Deep dive into Warp and how the intent engine works
   </Card>
-</Columns>
+</CardGroup>
