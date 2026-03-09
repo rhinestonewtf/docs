@@ -32,16 +32,6 @@ table th {
   background-color: #0d182f;
 }
 
-/* Compress sidebar nav item spacing */
-a[class*="rounded-xl"][class*="py-1"] {
-  padding-top: 5px !important;
-  padding-bottom: 5px !important;
-}
-
-li[class*="scroll-m"] a {
-  padding-top: 5px !important;
-  padding-bottom: 5px !important;
-}
 
 /* Sidebar active/selected item */
 .dark [data-active="true"],
