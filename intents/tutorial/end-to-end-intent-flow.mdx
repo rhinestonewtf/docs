@@ -1,6 +1,241 @@
 ---
-title: "End-to-end intent flow"
-description: ""
+title: "Execute a crosschain swap (new)"
+sidebarTitle: "Execute a crosschain swap (new)"
+description: "Bridge and swap tokens across chains in a single intent using the Rhinestone API."
 ---
 
-Coming soon.
+In this tutorial you will swap USDC on Base for ETH on Arbitrum in a single intent. Warp handles the bridge and swap automatically — one signature, one operation, one confirmation.
+
+By the end you will have a working end-to-end implementation you can adapt for any crosschain swap.
+
+## Prerequisites
+
+- A Rhinestone API key ([request one here](https://tally.so/r/wg22x4))
+- An EOA with USDC on Base (or another [supported chain and token](/home/resources/supported-chains))
+- A viem `WalletClient` configured for signing
+
+## Setup
+
+```ts
+import { createWalletClient, http, erc20Abi, maxUint256 } from "viem";
+import { base } from "viem/chains";
+import { privateKeyToAccount } from "viem/accounts";
+
+const BASE_URL = "https://v1.orchestrator.rhinestone.dev";
+const API_KEY = "YOUR_RHINESTONE_API_KEY";
+
+const account = privateKeyToAccount("0xYOUR_PRIVATE_KEY");
+
+const walletClient = createWalletClient({
+  account,
+  chain: base,
+  transport: http(),
+});
+
+const EOA_ADDRESS = account.address;
+```
+
+## Steps
+
+<Steps>
+
+<Step title="Get a quote">
+
+Request a quote for swapping USDC on Base into ETH on Arbitrum. Specify the destination chain, the token you want, and the amount:
+
+```ts
+const USDC_BASE = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const ETH_ARBITRUM = "0x0000000000000000000000000000000000000000"; // native ETH
+const ETH_AMOUNT = "10000000000000000"; // 0.01 ETH (18 decimals)
+
+const quoteRes = await fetch(`${BASE_URL}/intents/route`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": API_KEY,
+  },
+  body: JSON.stringify({
+    account: {
+      address: EOA_ADDRESS,
+      accountType: "EOA",
+    },
+    destinationChainId: 42161, // Arbitrum
+    tokenRequests: [
+      {
+        tokenAddress: ETH_ARBITRUM,
+        amount: ETH_AMOUNT,
+      },
+    ],
+  }),
+});
+
+const { intentOp, intentCost, tokenRequirements } = await quoteRes.json();
+```
+
+Because the source token (USDC on Base) differs from the destination token (ETH on Arbitrum), `intentCost.tokensSpent` and `intentCost.tokensReceived` will show different tokens. This is how you know Warp is routing through a swap.
+
+```ts
+// Log what will be spent vs received
+console.log("Spending:", intentCost.tokensSpent);
+console.log("Receiving:", intentCost.tokensReceived);
+```
+
+</Step>
+
+<Step title="Approve token spending">
+
+Check `tokenRequirements` for any approvals needed. For a USDC source, you will typically need a Permit2 approval:
+
+```ts
+if (tokenRequirements) {
+  for (const [chainId, tokens] of Object.entries(tokenRequirements)) {
+    for (const [tokenAddress, requirement] of Object.entries(tokens as Record<string, any>)) {
+      if (requirement.type === "approval") {
+        console.log(`Approving ${tokenAddress} on chain ${chainId}...`);
+
+        const { request } = await walletClient.simulateContract({
+          address: tokenAddress as `0x${string}`,
+          abi: erc20Abi,
+          functionName: "approve",
+          args: [requirement.spender, maxUint256],
+        });
+
+        const hash = await walletClient.writeContract(request);
+        console.log("Approval tx:", hash);
+      }
+    }
+  }
+}
+```
+
+<Info>
+  This approves to the [Permit2](https://github.com/Uniswap/permit2) contract. Once approved, future intents spending the same token on the same chain will not need another approval.
+</Info>
+
+</Step>
+
+<Step title="Sign the intent">
+
+Refresh the quote to ensure fresh pricing, then sign each element using EIP-712. One signature per origin chain — the last signature doubles as the destination signature.
+
+```ts
+// Refresh quote immediately before signing
+const refreshRes = await fetch(`${BASE_URL}/intents/route`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": API_KEY,
+  },
+  body: JSON.stringify({
+    account: { address: EOA_ADDRESS, accountType: "EOA" },
+    destinationChainId: 42161,
+    tokenRequests: [{ tokenAddress: ETH_ARBITRUM, amount: ETH_AMOUNT }],
+  }),
+});
+
+const { intentOp: freshIntentOp } = await refreshRes.json();
+
+const signatures: string[] = [];
+
+for (const element of freshIntentOp.elements) {
+  const typedData = getTypedData(
+    element,
+    BigInt(freshIntentOp.nonce),
+    BigInt(freshIntentOp.expires),
+  );
+
+  const signature = await walletClient.signTypedData(typedData);
+  signatures.push(signature);
+}
+
+const originSignatures = signatures;
+const destinationSignature = signatures.at(-1)!;
+```
+
+<Card title="Signing guide" icon="signature" href="../guides/signing">
+  Full `getTypedData` implementation and type definitions.
+</Card>
+
+</Step>
+
+<Step title="Submit the intent">
+
+Post the signed intent to `/intent-operations`:
+
+```ts
+const submitRes = await fetch(`${BASE_URL}/intent-operations`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": API_KEY,
+  },
+  body: JSON.stringify(
+    {
+      signedIntentOp: {
+        ...freshIntentOp,
+        originSignatures,
+        destinationSignature,
+      },
+    },
+    (_, value) => (typeof value === "bigint" ? value.toString() : value),
+  ),
+});
+
+const { bundleResults } = await submitRes.json();
+const operationId = bundleResults[0].bundleId;
+
+console.log("Intent submitted. Operation ID:", operationId);
+```
+
+</Step>
+
+<Step title="Poll for completion">
+
+Track the intent status until it reaches a final state:
+
+```ts
+async function pollUntilComplete(operationId: string) {
+  const FINAL_STATUSES = ["COMPLETED", "FILLED", "FAILED", "EXPIRED"];
+
+  while (true) {
+    const res = await fetch(`${BASE_URL}/intent-operation/${operationId}`, {
+      headers: { "x-api-key": API_KEY },
+    });
+
+    const data = await res.json();
+    console.log("Status:", data.status);
+
+    if (FINAL_STATUSES.includes(data.status)) {
+      if (data.status === "COMPLETED" || data.status === "FILLED") {
+        console.log("Swap complete!");
+        console.log("Fill tx:", data.fillTransactionHash);
+      } else {
+        console.error("Intent failed with status:", data.status);
+      }
+      return data.status;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+}
+
+await pollUntilComplete(operationId);
+```
+
+Typical execution time is under 2 seconds. `FILLED` means the relayer has delivered funds on the destination. `COMPLETED` means the claim has settled on the origin chain too.
+
+</Step>
+
+</Steps>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Sponsor fees" icon="circle-dollar-sign" href="../guides/getting-a-quote">
+    Cover bridge and swap fees for your users using `sponsorSettings`.
+  </Card>
+
+  <Card title="Execute crosschain calls" icon="arrow-right-arrow-left" href="../features/execute-crosschain-calls">
+    Add destination chain executions to your intent — deposit into a vault, buy an NFT, and more.
+  </Card>
+</CardGroup>
