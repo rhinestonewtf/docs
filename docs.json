@@ -43,34 +43,11 @@
             ]
           },
           {
-            "group": "Get Started",
-            "pages": [
-              "home/get-started/create-dev-account",
-              "home/get-started/configure-dev-dashboard"
-            ]
-          },
-          {
-            "group": "Solutions",
-            "pages": [
-              "home/solutions/wallets-and-fintechs",
-              "home/solutions/multichain-apps",
-              "home/solutions/ai-agents"
-            ]
-          },
-          {
-            "group": "Use Cases",
-            "pages": [
-              "home/use-cases/onboarding-and-deposits",
-              "home/use-cases/crosschain-intents",
-              "home/use-cases/swaps",
-              "home/use-cases/automation"
-            ]
-          },
-          {
             "group": "Concepts",
             "pages": [
-              "home/concepts/intents-and-erc4337",
               "home/concepts/smart-accounts",
+              "home/introduction/rhinestone-intents",
+              "home/concepts/intents-and-erc4337",
               "home/concepts/session-keys"
             ]
           },
