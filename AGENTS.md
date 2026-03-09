@@ -44,6 +44,7 @@ There are 4 tabs: Home, Smart Wallet SDK, Intents API, API Reference. Navigation
 - **Code-first.** Show code examples early. Prose explains around them, not instead of them.
 - **Link, don't duplicate.** If content exists in another guide (token requirements, error handling, status polling), link to it. Never duplicate status lists, error tables, or step-by-step flows that live elsewhere.
 - **Naming:** Name guides by what differentiates them — the action ("Vault Deposit") or the pattern ("Automated Zaps"). Don't prefix titles with "Crosschain" when the page is already in the Intents API section (it's implied).
+- **Sentence case headings.** All page titles, nav labels, and section headings use sentence case. Capitalise only the first word and proper nouns (e.g., Warp, ERC-7579, TypeScript). Wrong: "Getting A Quote". Right: "Getting a quote".
 
 ## MDX Components
 

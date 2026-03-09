@@ -111,7 +111,7 @@
             ]
           },
           {
-            "group": "Gas & Fee Sponsorship",
+            "group": "Gas & fee sponsorship",
             "pages": [
               "smart-wallet/gas-sponsorship/overview",
               "smart-wallet/gas-sponsorship/set-up-sponsorship",
@@ -119,7 +119,7 @@
             ]
           },
           {
-            "group": "Smart Sessions",
+            "group": "Smart sessions",
             "pages": [
               "smart-wallet/smart-sessions/overview",
               "smart-wallet/smart-sessions/multi-session-signature",
@@ -165,7 +165,7 @@
             ]
           },
           {
-            "group": "Module Development",
+            "group": "Module development",
             "pages": [
               "smart-wallet/module-sdk",
               "smart-wallet/modulekit"
@@ -214,10 +214,10 @@
               "intents/guides/token-requirements",
               "intents/guides/signing",
               "intents/guides/submitting-the-intent",
+              "intents/guides/tracking-intents",
               "intents/guides/installing-intent-executor",
               "intents/guides/setting-up-approvals",
               "intents/guides/portfolio-endpoint",
-              "intents/guides/tracking-intents",
               "intents/guides/error-handling"
             ]
           },
