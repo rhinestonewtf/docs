@@ -26,6 +26,10 @@ description: "Warp is Rhinestone's intent routing and execution engine for cross
 
 Warp is accessible via the Rhinestone SDK (TypeScript) or directly via the REST API.
 
+**Use the SDK if** you are building a new wallet or app in TypeScript — it handles account creation, intent construction, signing, and submission for you. Smart accounts, session keys, and gas sponsorship are all built in.
+
+**Use the API directly if** you are integrating Warp into an existing backend, working in a non-JS environment, or adding crosschain support to an app that already manages EOA users. The API gives you full control over each step of the intent flow.
+
 <CardGroup cols={2}>
   <Card title="SDK users" icon="bolt" href="../smart-wallet/quickstart">
     Already using the Rhinestone SDK? Your wallet quickstart covers intents. Start there.
