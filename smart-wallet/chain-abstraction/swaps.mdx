@@ -1,18 +1,18 @@
 ---
 title: "Swaps"
-description: "Bridge and swap in a single transaction using solver or injected DEX liquidity."
+description: "Bridge and swap in a single transaction. Use Warp's built-in swaps or supply your own swap calldata."
 ---
 
 Rhinestone supports two swap modes:
 
-- **Solver-based**: the relayer market handles the swap using solver liquidity. Simpler to integrate, best for common tokens.
-- **Injected**: you supply the swap data from a DEX aggregator (1inch, 0x, etc.). More setup, but full token coverage and best-price routing.
+- **Swaps**: Warp handles the swap using solver liquidity. Simpler to integrate, best for common tokens.
+- **Injected swaps**: you supply the calldata for a swap from an external API (1inch, 0x, etc.). More setup, but full token coverage and best-price routing.
 
 <Tabs>
 
 <Tab title="SDK">
 
-## Solver-based swaps
+## Swaps
 
 Specify the token you want on the destination chain. If it differs from what the user holds, Warp handles the bridge and swap automatically.
 
@@ -117,7 +117,7 @@ This bridges from Arbitrum to get 0.1 WETH on Base, then executes the 1inch swap
 
 <Tab title="API">
 
-## Solver-based swaps
+## Swaps
 
 Specify the token you want on the destination chain in `tokenRequests`. If the user's source token differs, Warp finds the optimal path automatically — bridging, swapping, or both.
 
