@@ -208,7 +208,6 @@
           {
             "group": "API guides",
             "pages": [
-              "intents/guides/swaps",
               "intents/guides/using-the-api",
               "intents/guides/set-account-type",
               "intents/guides/getting-a-quote",
