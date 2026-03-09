@@ -8,10 +8,6 @@ Rhinestone supports two swap modes:
 - **Swaps**: Warp handles the swap using solver liquidity. Simpler to integrate, best for common tokens.
 - **Injected swaps**: you supply the calldata for a swap from an external API (1inch, 0x, etc.). More setup, but full token coverage and best-price routing.
 
-<Tabs>
-
-<Tab title="SDK">
-
 ## Swaps
 
 Specify the token you want on the destination chain. If it differs from what the user holds, Warp handles the bridge and swap automatically.
@@ -112,46 +108,3 @@ const transaction = await rhinestoneAccount.sendTransaction({
 ```
 
 This bridges from Arbitrum to get 0.1 WETH on Base, then executes the 1inch swap to cbBTC.
-
-</Tab>
-
-<Tab title="API">
-
-## Swaps
-
-Specify the token you want on the destination chain in `tokenRequests`. If the user's source token differs, Warp finds the optimal path automatically — bridging, swapping, or both.
-
-When a swap is involved, the quote response will show a different source token from the requested destination token:
-
-```json
-{
-  "intentCost": {
-    "tokensReceived": [
-      {
-        "tokenAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
-        "hasFulfilled": true,
-        "amountSpent": "81032981",
-        "destinationAmount": "81029468",
-        "fee": "3513"
-      }
-    ],
-    "tokensSpent": {
-      "8453": {
-        "0x4200000000000000000000000000000000000006": {
-          "locked": "0",
-          "unlocked": "22291303013436002",
-          "version": 0
-        }
-      }
-    }
-  }
-}
-```
-
-Here the user is spending WETH on Base (chain 8453) to receive USDC on Optimism. The fee is deducted from the received amount.
-
-For the full quote and submission flow, see the [API Quickstart](../../intents/quickstart).
-
-</Tab>
-
-</Tabs>
