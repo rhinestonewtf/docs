@@ -125,7 +125,7 @@ Last updated: 2026-03-09
 
 | Page | Status | Notes |
 |---|---|---|
-| `intents/guides/tracking-intents.mdx` | Coming soon | Should contain full intent status lifecycle. Status values currently documented in `submitting-the-intent.mdx`. Nav position: after "Submitting the intent" |
+| `intents/guides/tracking-intents.mdx` | ✅ Written | Full status lifecycle, polling example, SDK shorthand. Nav position: after "Submitting the intent" |
 | `intents/tutorial/end-to-end-intent-flow.mdx` | Coming soon | Full E2E walkthrough |
 | `intents/guides/using-the-api.mdx` | Stub | API guide overview |
 | `home/get-started/create-dev-account.mdx` | Stub | RHI-3311 |
