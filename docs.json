@@ -249,8 +249,8 @@
   },
   "contextual": {
     "options": [
-      "copy",
-      "claude"
+      "claude",
+      "copy"
     ]
   },
   "logo": {
