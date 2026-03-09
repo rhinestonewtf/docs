@@ -1,7 +1,7 @@
 ---
 title: "Intents and ERC-4337"
 mode: "wide"
-description: "How ERC-7683 intents compare to ERC-4337 userops, and what makes intent-based execution different."
+description: "How Rhinestone intents compare to ERC-4337 userops, and what makes intent-based execution different."
 ---
 
 ## What are intents?
@@ -15,10 +15,6 @@ ERC-4337 introduced userops: pseudo-transactions handled by bundlers that relay 
 The key difference is the relayer layer. ERC-4337 routes through a single bundler/paymaster provider. Intents route through a competitive solver market where each solver manages token inventory across chains, aggregates DEX liquidity, and optimizes route and price independently.
 
 This is what enables crosschain transactions, built-in swaps, multi-input intents, and fee sponsorship that covers bridging and swap costs — not just gas.
-
-## ERC-7683
-
-ERC-7683 defines a standard order struct and settlement interface for intents. By standardizing how intent systems describe and settle orders, it allows solvers to participate across multiple intent systems, increases liquidity competition, and makes it easier to switch providers.
 
 ## ERC-4337 Userop Flow
 
@@ -42,7 +38,7 @@ _Intents and ERC-4337 userops are not mutually exclusive. A smart account can us
 
 ## Feature comparison
 
-| Feature | ERC-4337 (userops) | ERC-7683 (Intents) |
+| Feature | ERC-4337 (userops) | Rhinestone Intents |
 | :--- | :--- | :--- |
 | Gas sponsorship | Yes | Yes |
 | Fee sponsorship (bridge + swap fees) | No | Yes |
@@ -56,5 +52,3 @@ _Intents and ERC-4337 userops are not mutually exclusive. A smart account can us
 ERC-4337 userops today are almost universally sent to a single private provider despite the open mempool standard. Intent systems face the same pattern — intents are propagated to a provider, and if that provider is down, the intent isn't processed.
 
 Rhinestone's Orchestrator is trustless from the user's perspective. It can only interact with a smart account via the onchain execution paths defined by the Intent Router and Intent Executor. It poses no liveness or censorship risk. An onchain escape hatch can be activated without any dependency on Rhinestone.
-
-As ERC-7683 adoption grows, switching providers becomes simpler and solver competition increases.
