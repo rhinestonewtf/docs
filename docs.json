@@ -249,7 +249,8 @@
   },
   "contextual": {
     "options": [
-      "copy"
+      "copy",
+      "claude"
     ]
   },
   "logo": {
