@@ -92,7 +92,6 @@
         "pages": [
           "smart-wallet/overview",
           "smart-wallet/quickstart",
-          "smart-wallet/advanced/security",
           {
             "group": "Tutorials",
             "pages": [
@@ -184,7 +183,8 @@
               "smart-wallet/customize/smart-account-providers",
               "smart-wallet/customize/json-rpc-providers",
               "smart-wallet/advanced/migration-guide",
-              "smart-wallet/advanced/erc4337"
+              "smart-wallet/advanced/erc4337",
+              "smart-wallet/advanced/security"
             ]
           },
           {
