@@ -161,7 +161,6 @@
                   "smart-wallet/smart-sessions/policies/sudo",
                   "smart-wallet/smart-sessions/policies/call",
                   "smart-wallet/smart-sessions/policies/spending-limit",
-                  "smart-wallet/smart-sessions/policies/rate-limit",
                   "smart-wallet/smart-sessions/policies/gas-limit",
                   "smart-wallet/smart-sessions/policies/timeframe",
                   "smart-wallet/smart-sessions/policies/usage-limit"
