@@ -207,7 +207,7 @@
             ]
           },
           {
-            "group": "Features",
+            "group": "Sending intents",
             "pages": [
               "smart-wallet/chain-abstraction/single-chain-intent",
               "smart-wallet/chain-abstraction/unified-balance",
@@ -220,16 +220,15 @@
             ]
           },
           {
-            "group": "Advanced",
+            "group": "Use cases",
             "pages": [
               "intents/use-cases/automated-zaps",
               "intents/use-cases/multi-input-bridge",
-              "intents/use-cases/vault-deposit",
-              "smart-wallet/chain-abstraction/local-orchestrator-docker"
+              "intents/use-cases/vault-deposit"
             ]
           },
           {
-            "group": "API Guides",
+            "group": "API reference",
             "pages": [
               "intents/guides/using-the-api",
               "intents/guides/set-account-type",
@@ -242,6 +241,12 @@
               "intents/guides/portfolio-endpoint",
               "intents/guides/tracking-intents",
               "intents/guides/error-handling"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "smart-wallet/chain-abstraction/local-orchestrator-docker"
             ]
           }
         ]

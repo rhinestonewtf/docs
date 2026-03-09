@@ -40,14 +40,6 @@ const transferTransaction = await rhinestoneAccount.sendTransaction({
 })
 ```
 
-Under the hood, this will:
-
-1) Get a quote from the Rhinestone backend
-2) Sign the intent using the account owner(s)
-3) Submit the intent
-4) Execute the _claim_ transaction on Arbitrum
-5) Execute the _fill_ transaction on Base
-
 ## Source Chain
 
 Providing the source chain deploys the account on that chain, as well as uses the funds on that chain to fulfill the intent.
