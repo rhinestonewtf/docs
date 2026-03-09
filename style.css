@@ -34,13 +34,13 @@ table th {
 
 /* Compress sidebar nav item spacing */
 a[class*="rounded-xl"][class*="py-1"] {
-  padding-top: 4px !important;
-  padding-bottom: 4px !important;
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
 }
 
 li[class*="scroll-m"] a {
-  padding-top: 4px !important;
-  padding-bottom: 4px !important;
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
 }
 
 /* Sidebar active/selected item */
