@@ -119,7 +119,7 @@
             ]
           },
           {
-            "group": "Smart sessions",
+            "group": "Smart Sessions",
             "pages": [
               "smart-wallet/smart-sessions/overview",
               "smart-wallet/smart-sessions/multi-session-signature",
