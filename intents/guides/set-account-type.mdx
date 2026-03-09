@@ -5,11 +5,9 @@ description: "Configure which account type to use with Rhinestone intents: smart
 
 Rhinestone supports three account types. All of them use the same `sendTransaction` API — the orchestrator abstracts the differences at the transport layer.
 
-| Account type | Address | Modules | Session keys | Gas sponsorship |
-|---|---|---|---|---|
-| Smart account | Counterfactual | ✅ | ✅ | ✅ |
-| EOA | EOA address | ❌ | ❌ | ❌ |
-| EIP-7702 | EOA address | ✅ | ✅ | ✅ |
+- **Smart account** — new users, full feature set (modules, session keys, gas sponsorship)
+- **EOA** — existing EOA users, no migration required, basic intent support
+- **EIP-7702** — existing EOA users who want smart account capabilities without a new address
 
 ## Smart Account
 
