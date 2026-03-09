@@ -1,6 +1,88 @@
 ---
-title: "Installing the Intent Executor"
-description: ""
+title: "Installing the Intent Executor (new)"
+sidebarTitle: "Installing the intent executor (new)"
+description: "Install the Intent Executor module on your ERC-7579 smart account to use Rhinestone Warp."
 ---
 
-Coming soon.
+The Intent Executor is an ERC-7579 executor module that must be installed on your smart account before you can use Rhinestone's Warp infrastructure. It is the onchain component that allows the Rhinestone Orchestrator and its relayers to execute crosschain intents on behalf of your account.
+
+Without it, the Orchestrator has no permission to execute transactions through your smart account — even if you have signed a valid intent offchain.
+
+## Contract address
+
+```
+0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF
+```
+
+Deployed on all chains supported by Rhinestone.
+
+## Installation
+
+The Intent Executor is a standard ERC-7579 executor module (module type `2`). Install it using your account's `installModule` function.
+
+<Tabs>
+
+<Tab title="viem">
+
+```ts
+import { encodeFunctionData } from 'viem'
+
+const installCalldata = encodeFunctionData({
+  abi: [{
+    name: 'installModule',
+    type: 'function',
+    inputs: [
+      { name: 'moduleTypeId', type: 'uint256' },
+      { name: 'module', type: 'address' },
+      { name: 'initData', type: 'bytes' },
+    ],
+  }],
+  functionName: 'installModule',
+  args: [
+    2n,
+    '0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF',
+    '0x',
+  ],
+})
+```
+
+</Tab>
+
+<Tab title="Solidity">
+
+```solidity
+// module type: 2 (executor)
+// module address: 0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF
+// init data: empty
+account.installModule(2, 0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF, "");
+```
+
+</Tab>
+
+</Tabs>
+
+<Note>
+  Install the module on every chain where you want to use Rhinestone intents.
+</Note>
+
+## Verifying installation
+
+Call `isInitialized` on the Intent Executor contract with your smart account address:
+
+```solidity
+IntentExecutor(0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF).isInitialized(accountAddress)
+```
+
+Returns `true` once `onInstall` has been called by the account.
+
+## Uninstalling
+
+```solidity
+account.uninstallModule(2, 0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF, "");
+```
+
+## Next steps
+
+<Card title="API Quickstart" icon="bolt" href="../quickstart">
+  Start sending intents with the Rhinestone API once the module is installed.
+</Card>
