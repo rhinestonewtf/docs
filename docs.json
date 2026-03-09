@@ -199,7 +199,7 @@
       {
         "tab": "Intents",
         "pages": [
-          "home/introduction/rhinestone-intents",
+          "intents/overview",
           {
             "group": "Tutorial",
             "pages": [

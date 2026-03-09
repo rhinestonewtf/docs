@@ -1,12 +1,47 @@
 ---
 title: "Overview"
-description: "Getting started with Rhinestone API"
+description: "Warp is Rhinestone's intent routing and execution engine for crosschain transactions."
 ---
 
-Intents API offers the transaction execution services for EOAs and smart accounts.
+<video src="/images/omni-account-chain-abstraction.mp4" muted autoPlay loop className='rounded-2xl' />
 
-It utilises [intents](../home/introduction/rhinestone-intents) to execute same-chain and cross-chain transactions.
+**Warp (Rhinestone Intents)** is an intent routing and execution engine. With a single signature, your users can move funds and execute calls across any supported chain in under 2 seconds.
 
-You will need [an API key](https://tally.so/r/wg22x4) to get started. Note that using testnets doesn't require you to provide an API key.
+## Capabilities
 
+- **Crosschain transactions**: execute calls on any destination chain using funds from any source chain, in a single signature
+- **Gas abstraction**: sponsor gas, bridging, and swap fees for your users, or let them pay in any supported token — no ETH required
+- **Inbuilt swaps**: bridge and swap in one intent using solver liquidity, or inject your own DEX aggregator
+- **Unified balance**: aggregate a user's funds across all supported chains to fund any transaction automatically
+- **Non-custodial**: assets stay in the user's account until the moment of execution
 
+## What you can build
+
+- **Chain-abstracted wallets**: let users transact anywhere from a single account, regardless of where their funds sit
+- **Crosschain DeFi**: deposit into vaults, provide liquidity, or execute trades on any chain without manual bridging
+- **Automated portfolio management**: use session keys and intents together to execute strategies on behalf of users without per-transaction prompts
+- **AI agents**: give agents a crosschain account with scoped permissions to execute onchain tasks across any supported chain
+
+## SDK or API?
+
+Warp is accessible via the Rhinestone SDK (TypeScript) or directly via the REST API.
+
+<CardGroup cols={2}>
+  <Card title="SDK Quickstart" icon="bolt" href="./quickstart">
+    Send your first crosschain intent using the SDK in a few lines of code.
+  </Card>
+
+  <Card title="Getting a Quote" icon="route" href="./guides/getting-a-quote">
+    Start with the REST API to get a quote and build the intent flow step by step.
+  </Card>
+
+  <Card title="How Warp works" icon="book-open" href="../home/introduction/rhinestone-intents">
+    Architecture deep dive: Orchestrator, Relayer Market, resource locks, and more.
+  </Card>
+
+  <Card title="Supported chains" icon="link" href="../home/resources/supported-chains">
+    See all chains and tokens supported by Warp.
+  </Card>
+</CardGroup>
+
+<Note>You'll need a Rhinestone API key for mainnet usage. [Request one here](https://tally.so/r/wg22x4). Testnets work without a key.</Note>
