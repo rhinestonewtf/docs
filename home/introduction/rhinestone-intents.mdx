@@ -7,21 +7,7 @@ mode: "wide"
 
 **Warp** is Rhinestone's intent routing and execution engine. It aggregates crosschain settlement layers through a unified solver market and executes intents with sub-2-second confirmation times.
 
-```mermaid
-flowchart LR
-    User["User\n(smart account or EOA)"]
-    SDK["Rhinestone SDK / API"]
-    Orch["Orchestrator\n(offchain)"]
-    RM["Relayer Market\n(solvers)"]
-    Dest["Destination chain\n(fill)"]
-    Origin["Origin chain(s)\n(claim)"]
-
-    User -->|"Signs intent"| SDK
-    SDK -->|"Submits intent"| Orch
-    Orch -->|"Routes + encodes"| RM
-    RM -->|"Fills tokens + calls"| Dest
-    RM -->|"Claims funds"| Origin
-```
+{/* TODO: high-level Warp flow diagram */}
 
 ## How it works
 
@@ -50,23 +36,7 @@ Origin chain settlement happens asynchronously after the destination fill. The u
 
 ## Components
 
-```mermaid
-flowchart TD
-    Orch["Orchestrator\nRoute + encode intent operations"]
-    IR["Intent Router\nOnchain dispatch to settlement adapters"]
-    RM["Relayer Market\nSolvers compete to execute"]
-
-    Across["Across adapter"]
-    Relay["Relay adapter"]
-    Eco["Eco adapter"]
-
-    Orch --> RM
-    Orch --> IR
-    RM --> IR
-    IR --> Across
-    IR --> Relay
-    IR --> Eco
-```
+{/* TODO: Warp architecture diagram */}
 
 ### Orchestrator
 
