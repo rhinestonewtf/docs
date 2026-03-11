@@ -1,0 +1,107 @@
+---
+title: "Sponsor fees for your users"
+description: "Cover gas, bridging, and swap fees for your users with a single deposit."
+---
+
+Transaction fees are one of the biggest UX barriers in crypto. With Rhinestone's fee sponsorship, you deposit USDC once and the SDK covers gas, bridging, and swap fees for your users across any supported chain. No per-chain setup required.
+
+This tutorial builds on the [Quickstart](../quickstart). You'll need a working smart account setup before continuing.
+
+## Prerequisites
+
+- Completed the [Quickstart](../quickstart)
+- A [Rhinestone dashboard](https://dashboard.rhinestone.dev) account with an API key
+- USDC on Base (testnet USDC from [Circle Faucet](https://faucet.circle.com/) for testing)
+
+## Steps
+
+<Steps>
+  <Step title="Top up your sponsorship balance">
+
+    Open the [Rhinestone dashboard](https://dashboard.rhinestone.dev) and go to the **Sponsorship** tab.
+
+    Press **Deposit**, enter an amount of USDC, and confirm the transaction in your wallet. Your balance updates automatically once the transaction is confirmed.
+
+    <Note>On testnets, sponsorship works out of the box with no deposit required. For production, [reach out](https://t.me/kurt_larsen) to get your deposit address set up.</Note>
+
+  </Step>
+
+  <Step title="Send a sponsored transaction">
+
+    Add `sponsored: true` to your `sendTransaction` call:
+
+    ```ts
+    const result = await account.sendTransaction({
+      sourceChains: [arbitrum],
+      targetChain: base,
+      calls: [
+        {
+          to: recipientAddress,
+          value: 0n,
+          data: '0x',
+        },
+      ],
+      sponsored: true,
+    })
+
+    const status = await account.waitForExecution(result)
+    console.log('Transaction settled:', status)
+    ```
+
+    Your user signs once. The Rhinestone orchestrator deducts the fees from your sponsorship balance and the user pays nothing.
+
+  </Step>
+
+  <Step title="Sponsor selectively (optional)">
+
+    You can choose which fee types to cover:
+
+    ```ts
+    const result = await account.sendTransaction({
+      sourceChains: [arbitrum],
+      targetChain: base,
+      calls: [...],
+      sponsored: {
+        gas: true,
+        bridging: true,
+        swaps: false,
+      },
+    })
+    ```
+
+    Or apply sponsorship conditionally on your backend. For example, only sponsor transactions that interact with your app's contract:
+
+    ```ts
+    function shouldSponsor(calls: { to: string }[]): boolean {
+      const appContract = '0xYourContractAddress'
+      return calls.some((call) => call.to.toLowerCase() === appContract.toLowerCase())
+    }
+
+    const calls = [{ to: '0xYourContractAddress', value: 0n, data: encodedCalldata }]
+
+    const result = await account.sendTransaction({
+      sourceChains: [arbitrum],
+      targetChain: base,
+      calls,
+      sponsored: shouldSponsor(calls),
+    })
+    ```
+
+  </Step>
+</Steps>
+
+## Next steps
+
+<CardGroup cols={3}>
+  <Card title="Gas & Fee Sponsorship reference" icon="book-open" href="../gas-sponsorship/overview">
+    Full details on fee types, policies, and how sponsorship is calculated.
+  </Card>
+
+  <Card title="Signer types" icon="wallet" href="../core/setup-signer">
+    Customise your signer: passkeys, embedded wallets, multi-factor auth.
+  </Card>
+
+  <Card title="Add session keys" icon="key" href="./session-keys">
+    Give users one-click UX with scoped session keys and onchain permissions.
+  </Card>
+</CardGroup>

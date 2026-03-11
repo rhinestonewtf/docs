@@ -1,17 +1,26 @@
 ---
-title: "Signing the Intent"
-description: "Sign the intent payload"
+title: "Signing the intent"
+sidebarTitle: "Signing the intent"
+description: "Sign each element of the intent using EIP-712."
 ---
 
 <Info>
-Before signing, it's recommended to get another [quote](./getting-a-quote) to avoid stale pricing.
+  Always fetch a fresh quote immediately before signing. Submitting signatures built from a stale quote will result in an expiry error.
 </Info>
 
-Warp uses [EIP-712](https://eips.ethereum.org/EIPS/eip-712) for human-readable signing.
+Warp uses [EIP-712](https://eips.ethereum.org/EIPS/eip-712) for typed, human-readable signing. The signature scheme depends on the settlement layer used for each bundle element.
 
-## Preparing the payload
+## Signature types
 
-First, convert the intent operation you received from the API into a typed message to sign.
+**Permit2 signatures** are used for standard crosschain intents. Each source chain element requires a unique signature. The index of the signature must correspond to the index of the element it signs.
+
+**Intent Executor signatures** are used when the bundle uses the Intent Executor settlement layer (i.e. the user has an ERC-7579 smart account with the Intent Executor installed). These use a different EIP-712 domain — not the standard Permit2 domain. The `getTypedData` function below handles this automatically based on the `settlementLayer` field in the element.
+
+## Recipient signatures
+
+If the recipient is different from the sender, the recipient is a smart account, and there are destination executions to run, the recipient must also sign. Their signature is attached as the `destinationSignature`.
+
+## Preparing the typed data
 
 ```ts
 interface TokenPermissions {
@@ -48,7 +57,7 @@ interface IntentOpElementMandate {
   minGas: string;
 }
 
-export interface IntentOpElement {
+interface IntentOpElement {
   arbiter: Address;
   chainId: string;
   idsAndAmounts: [[string, string]];
@@ -83,16 +92,16 @@ function getTypedData(
     (permissions, [id, amountIn]) => {
       const token = toToken(BigInt(id));
       const amount = BigInt(amountIn);
-      const permission: TokenPermissions = { token, amount };
-      permissions.push(permission);
+      permissions.push({ token, amount });
       return permissions;
     },
     [],
   );
+
   const spender = element.arbiter;
   const mandate = element.mandate;
 
-  const typedData = {
+  return {
     domain: {
       name: "Permit2",
       chainId: Number(element.chainId),
@@ -140,8 +149,8 @@ function getTypedData(
     primaryType: "PermitBatchWitnessTransferFrom",
     message: {
       permitted: tokenPermissions,
-      spender: spender,
-      nonce: nonce,
+      spender,
+      nonce,
       deadline: expires,
       mandate: {
         target: {
@@ -160,40 +169,33 @@ function getTypedData(
       },
     },
   } as const;
-
-  return typedData;
 }
 ```
 
-## Signing the message
+## Signing each element
 
-Once you have the typed data, ask the user to sign it with their wallet.
-
-Note that you'll need to sign every element of the intent (one signature per input chain).
+One signature per element, in order:
 
 ```ts
 const signatures: Hex[] = [];
+
 for (const element of intentOp.elements) {
   const typedData = getTypedData(
     element,
     BigInt(intentOp.nonce),
-    BigInt(intentOp.expires)
+    BigInt(intentOp.expires),
   );
-  const signature = await signTypedData(wagmiConfig, {
-    ...typedData,
-  });
+
+  const signature = await signTypedData(wagmiConfig, { ...typedData });
   signatures.push(signature);
 }
-const originSignatures = signatures; // all signatures, including the last
-const destinationSignature = signatures.at(-1); // last one reused
+
+const originSignatures = signatures;
+const destinationSignature = signatures.at(-1); // last signature doubles as destination
 ```
 
-## Next Steps
+## Next steps
 
-<Card
-  title="Submission"
-  icon="send"
-  href="./submitting-the-intent"
->
-  Learn how to submit and track the signed intent
+<Card title="Submitting the intent" icon="send" href="./submitting-the-intent">
+  Submit the signed intent to the Orchestrator.
 </Card>

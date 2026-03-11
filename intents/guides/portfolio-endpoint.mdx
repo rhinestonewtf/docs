@@ -1,0 +1,60 @@
+---
+title: "Portfolio endpoint"
+sidebarTitle: "Portfolio endpoint"
+description: "Fetch a user's aggregated token balances across all supported chains."
+---
+
+The portfolio endpoint returns a user's token balances across all chains Rhinestone supports. Use it to display a unified balance, check which tokens are available before creating an intent, or build balance-aware routing.
+
+## Fetch a portfolio
+
+Pass a user address and your API key to get aggregated balances across all chains:
+
+```ts
+const baseUrl = "https://v1.orchestrator.rhinestone.dev";
+const apiKey = "YOUR_RHINESTONE_API_KEY";
+const userAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
+
+const res = await fetch(
+  `${baseUrl}/accounts/${userAddress}/portfolio?filterEmpty=true`,
+  {
+    headers: {
+      "x-api-key": apiKey,
+      Accept: "application/json",
+    },
+  }
+);
+
+const { portfolio } = await res.json();
+```
+
+Each entry in `portfolio` represents a token aggregated across chains. Use `balance.unlocked` to determine whether the user can fund an intent — `balance.locked` reflects tokens already allocated to a pending intent.
+
+## Filter by chain or token
+
+To scope results to specific chains, pass `chainIds`:
+
+```ts
+const res = await fetch(
+  `${baseUrl}/accounts/${userAddress}/portfolio?chainIds=10,8453&filterEmpty=true`,
+  { headers: { "x-api-key": apiKey } }
+);
+```
+
+To scope to specific tokens, pass `chainId:tokenAddress` pairs via `tokens`:
+
+```ts
+const usdc10 = "10:0x0b2c639c533813f4aa9d7837caf62653d097ff85";
+const usdc8453 = "8453:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+
+const res = await fetch(
+  `${baseUrl}/accounts/${userAddress}/portfolio?tokens=${usdc10},${usdc8453}`,
+  { headers: { "x-api-key": apiKey } }
+);
+```
+
+## Next steps
+
+<Card title="Getting a quote" icon="receipt" href="./getting-a-quote">
+  Use the portfolio to determine which tokens to include in a quote request.
+</Card>

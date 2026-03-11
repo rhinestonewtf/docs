@@ -1,0 +1,45 @@
+---
+title: "Using the API"
+sidebarTitle: "Using the API"
+description: "How the Rhinestone Orchestrator API works and what to keep in mind when integrating."
+---
+
+The Rhinestone Orchestrator API follows a quote-sign-submit flow. Each step is covered in the API guides section, but there are a few key rules that apply across the entire integration.
+
+## Submit the full path response
+
+When you call `/intents/route` you receive a full `intentOp` object. This object is HMAC signed by the Orchestrator. When you submit the signed intent to `/intent-operations`, you must include the **complete, unmodified** `intentOp` alongside your signatures.
+
+Any modification or omission of fields from the original response will produce an invalid HMAC error and the submission will be rejected.
+
+```ts
+// Correct: spread the full intentOp, then add signatures
+const body = {
+  signedIntentOp: {
+    ...freshIntentOp,         // full unmodified response
+    originSignatures,         // your signatures
+    destinationSignature,
+  },
+};
+```
+
+Do not cherry-pick fields from the response or reconstruct the object manually.
+
+## Refresh before signing
+
+Quotes expire. Always fetch a fresh quote immediately before asking the user to sign. Submitting a signed intent built from a stale quote will result in an expiry error.
+
+## One signature per origin chain
+
+The `intentOp.elements` array contains one element per source chain involved. Each element requires a separate signature. The index of each signature must match the index of the element it signs.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Setting up approvals" icon="list-check" href="./token-requirements">
+    Handle token approvals and ETH wrapping before signing.
+  </Card>
+  <Card title="Signing the intent" icon="signature" href="./signing">
+    Sign each element of the intent with EIP-712.
+  </Card>
+</CardGroup>

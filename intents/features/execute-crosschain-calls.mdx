@@ -1,0 +1,116 @@
+---
+title: "Execute crosschain calls"
+sidebarTitle: "Execute crosschain calls"
+description: "Execute any onchain action on a destination chain, with or without bridging tokens."
+---
+
+Warp supports two patterns for crosschain execution:
+
+1. **Bridge and execute**: transfer tokens to a destination chain and run arbitrary calls there in the same intent.
+2. **Gas relay**: execute calls on a destination chain without bridging any tokens. The relayer fronts gas on the destination and takes repayment from the user's existing balance on the source chain.
+
+## Bridge and execute
+
+Use this when the destination calls need tokens on that chain — for example, depositing into a vault, buying an NFT, or performing a swap.
+
+Provide `tokenRequests` for the tokens needed on the destination, and `calls` for the actions to execute there. Warp bridges the tokens and executes the calls in a single intent.
+
+```ts
+import { rhinestone } from '@rhinestone/sdk'
+import { base, arbitrum } from 'viem/chains'
+import { encodeFunctionData, parseUnits } from 'viem'
+
+const usdcArbitrum = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+const usdcAmount = parseUnits('100', 6)
+
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChains: [base],
+  targetChain: arbitrum,
+  tokenRequests: [
+    {
+      address: usdcArbitrum,
+      amount: usdcAmount,
+    },
+  ],
+  calls: [
+    // Approve vault to spend USDC
+    {
+      to: usdcArbitrum,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'approve',
+        args: [VAULT_ADDRESS, usdcAmount],
+      }),
+    },
+    // Deposit into vault
+    {
+      to: VAULT_ADDRESS,
+      data: encodeFunctionData({
+        abi: vaultAbi,
+        functionName: 'deposit',
+        args: [usdcAmount, rhinestoneAccount.getAddress()],
+      }),
+    },
+  ],
+})
+```
+
+<Note>
+  The `calls` execute in the context of the user's account on the destination chain. If the vault returns receipt tokens, they are already credited to the account — no additional transfer is needed.
+</Note>
+
+## Gas relay
+
+Use this when the user wants to execute a transaction on another chain but doesn't need to bridge tokens. The user might have ETH or USDC on Base and want to call a contract on Arbitrum without holding any gas on Arbitrum.
+
+The relayer fronts gas on the destination chain and claims repayment from the user's balance on the source chain. No `tokenRequests` needed — the repayment token is chosen automatically.
+
+```ts
+import { arbitrum } from 'viem/chains'
+
+const transaction = await rhinestoneAccount.sendTransaction({
+  targetChain: arbitrum,
+  calls: [
+    {
+      to: CONTRACT_ADDRESS,
+      data: encodeFunctionData({
+        abi: contractAbi,
+        functionName: 'someFunction',
+        args: [arg1, arg2],
+      }),
+    },
+  ],
+})
+```
+
+To restrict which chain the gas repayment is taken from, provide `sourceChains`:
+
+```ts
+import { base, arbitrum } from 'viem/chains'
+
+const transaction = await rhinestoneAccount.sendTransaction({
+  sourceChains: [base],
+  targetChain: arbitrum,
+  calls: [
+    {
+      to: CONTRACT_ADDRESS,
+      data: encodeFunctionData({
+        abi: contractAbi,
+        functionName: 'someFunction',
+        args: [arg1, arg2],
+      }),
+    },
+  ],
+})
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Unified balance" icon="wallet" href="../../smart-wallet/chain-abstraction/unified-balance">
+    Let users spend their full cross-chain balance in a single intent.
+  </Card>
+  <Card title="Multi-input bridge" icon="arrow-right-left" href="../use-cases/multi-input-bridge">
+    Combine tokens from multiple chains into one destination transaction.
+  </Card>
+</CardGroup>

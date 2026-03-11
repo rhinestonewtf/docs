@@ -1,15 +1,21 @@
+/* Force dark mode background */
+:root {
+  --background: #0C0C0C;
+}
+
+/* Tables */
 table {
   border-collapse: separate;
   border-spacing: 0;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #374151;
   border-radius: 8px;
   width: fit-content !important;
 }
 
 table th,
 table td {
-  border-right: 1px solid #e5e7eb;
-  border-bottom: 1px solid #e5e7eb;
+  border-right: 1px solid #374151;
+  border-bottom: 1px solid #374151;
   padding: 12px 16px !important;
 }
 
@@ -23,31 +29,14 @@ table tr:last-child td {
 }
 
 table th {
-  background-color: #f9fafb;
-}
-
-@media (prefers-color-scheme: dark) {
-  table {
-    border-color: #374151;
-  }
-  table th,
-  table td {
-    border-right-color: #374151;
-    border-bottom-color: #374151;
-  }
-  table th {
-    background-color: #0d182f;
-  }
-}
-
-.dark table {
-  border-color: #374151;
-}
-.dark table th,
-.dark table td {
-  border-right-color: #374151;
-  border-bottom-color: #374151;
-}
-.dark table th {
   background-color: #0d182f;
+}
+
+
+/* Sidebar active/selected item */
+.dark [data-active="true"],
+.dark [aria-current="page"],
+.dark [aria-selected="true"] {
+  background-color: #141414 !important;
+  border-radius: 6px;
 }

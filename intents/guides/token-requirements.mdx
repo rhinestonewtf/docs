@@ -1,90 +1,49 @@
 ---
-title: "Fulfilling the Requirements"
-description: "Unlocking the tokens required to pay for the intent"
+title: "Setting up approvals"
+sidebarTitle: "Setting up approvals"
+description: "Handle token approvals and ETH wrapping before signing an intent."
 ---
 
-As part of the [quote](./getting-a-quote), you usually receive a list of token requirements. These requirements can span across multiple chains and tokens.
+Before signing, check whether the quote response includes a `tokenRequirements` field. This is only relevant for EOA users — smart accounts handle approvals automatically via preclaim ops.
 
-There are two types of requirements:
-* ERC-20 token approvals: used to pre-approve the tokens to the Permit2 contract
-* ETH wrapping: used to wrap the ether into WETH, to be compatible with the Permit2 contract
+## Smart accounts
 
-Here's an example of token requirements:
+No action required. The Orchestrator handles token approvals internally using preclaim ops on the smart account.
+
+## EOAs
+
+If `tokenRequirements` is present in the quote response, the user must complete these steps before signing. There are two types:
+
+- **`approval`**: approve the specified token to the Permit2 contract on the specified chain.
+- **`wrap`**: wrap native ETH into WETH on the specified chain (required when ETH is the source token).
 
 ```json
 {
   "8453": {
+    "0x0000000000000000000000000000000000000000": {
+      "type": "wrap",
+      "amount": "102656447694688542"
+    },
     "0x4200000000000000000000000000000000000006": {
       "type": "approval",
       "amount": "102656447694688542",
       "spender": "0x000000000022d473030f116ddee9f6b43ac78ba3"
-    },
-    "0x0000000000000000000000000000000000000000": {
-      "type": "wrap",
-      "amount": "102656447694688542"
     }
   }
 }
 ```
 
-In this example:
-1. ETH must be wrapped on Base.
-2. WETH (from the first step) must be approved for the [Permit2](https://github.com/Uniswap/permit2) contract on Base.
+In this example, the user must first wrap ETH on Base, then approve WETH to Permit2.
 
-## ERC-20 Approvals
+## ETH wrapping
 
-<CodeGroup dropdown>
-```ts Approve a token
-import {
-  switchChain,
-  writeContract,
-} from "@wagmi/core";
-import {
-  maxUint256,
-} from "viem";
+```ts
+import { switchChain, writeContract } from "@wagmi/core";
 
-await switchChain(wagmiConfig, { chainId: chain.id });
+await switchChain(wagmiConfig, { chainId: Number(chainId) });
 
-const hash = await writeContract(wagmiConfig, {
-  address,
-  abi: [
-    {
-      name: "approve",
-      type: "function",
-      stateMutability: "nonpayable",
-      inputs: [
-        { name: "spender", type: "address" },
-        { name: "amount", type: "uint256" },
-      ],
-      outputs: [{ name: "", type: "bool" }],
-    },
-  ],
-  functionName: "approve",
-  args: [requirement.spender, maxUint256],
-});
-```
-</CodeGroup>
-
-<Info>
-While it's possible to approve the exact amount, we suggest using infinite approvals to the Permit2 contract to streamline future UX.
-</Info>
-
-## ETH Wrapping
-
-<CodeGroup dropdown>
-```ts Wrap ETH
-import {
-  switchChain,
-  writeContract,
-} from "@wagmi/core";
-import {
-  maxUint256,
-} from "viem";
-
-await switchChain(wagmiConfig, { chainId: chain.id });
-
-const hash = await writeContract(wagmiConfig, {
-  address,
+await writeContract(wagmiConfig, {
+  address: "0x4200000000000000000000000000000000000006", // WETH on the chain
   abi: [
     {
       name: "deposit",
@@ -95,19 +54,49 @@ const hash = await writeContract(wagmiConfig, {
     },
   ],
   functionName: "deposit",
-  value: requirement.amount,
+  value: BigInt(requirement.amount),
 });
 ```
-</CodeGroup>
 
-Once you've fulfilled all the necessary requirements, you can move on to signing the intent.
+## ERC-20 approvals
 
-## Next Steps
+Approve to the Permit2 contract. We recommend using `maxUint256` to avoid repeated approval prompts on future intents:
 
-<Card
-  title="Signing"
-  icon="signature"
-  href="./signing"
->
-  Learn how to sign an intent
+```ts
+import { switchChain, writeContract } from "@wagmi/core";
+import { maxUint256, erc20Abi } from "viem";
+
+await switchChain(wagmiConfig, { chainId: Number(chainId) });
+
+await writeContract(wagmiConfig, {
+  address: tokenAddress,
+  abi: erc20Abi,
+  functionName: "approve",
+  args: [requirement.spender, maxUint256],
+});
+```
+
+<Info>
+  Approvals are always to [Permit2](https://github.com/Uniswap/permit2) — one of the most widely deployed and audited contracts in the ecosystem. Setting max approval here does not grant Rhinestone any direct access to your funds.
+</Info>
+
+If you prefer exact approvals, inspect the `tokensSpent` field in the quote response. This shows the exact amount that will be used, so approving that amount will be sufficient:
+
+```ts
+// Use tokensSpent amount instead of maxUint256 for exact approvals
+const chainSpend = intentCost.tokensSpent[chainId];
+const tokenAmount = chainSpend[tokenAddress]?.unlocked;
+
+await writeContract(wagmiConfig, {
+  address: tokenAddress,
+  abi: erc20Abi,
+  functionName: "approve",
+  args: [requirement.spender, BigInt(tokenAmount)],
+});
+```
+
+## Next steps
+
+<Card title="Signing the intent" icon="signature" href="./signing">
+  Sign each element of the intent with EIP-712.
 </Card>

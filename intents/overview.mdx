@@ -1,12 +1,53 @@
 ---
 title: "Overview"
-description: "Getting started with Rhinestone API"
+description: "Warp is Rhinestone's intent routing and execution engine for crosschain transactions."
 ---
 
-Intents API offers the transaction execution services for EOAs and smart accounts.
+<video src="/images/omni-account-chain-abstraction.mp4" muted autoPlay loop className='rounded-2xl' />
 
-It utilises [intents](../home/introduction/rhinestone-intents) to execute same-chain and cross-chain transactions.
+**Warp (Rhinestone Intents)** is an intent routing and execution engine. With a single signature, your users can move funds and execute calls across any supported chain in under 2 seconds.
 
-You will need [an API key](https://tally.so/r/wg22x4) to get started. Note that using testnets doesn't require you to provide an API key.
+## Capabilities
 
+- **Crosschain transactions**: execute calls on any destination chain using funds from any source chain, in a single signature
+- **Gas abstraction**: sponsor gas, bridging, and swap fees for your users, or let them pay in any supported token — no ETH required
+- **Inbuilt swaps**: bridge and swap in one intent using solver liquidity, or inject your own DEX aggregator
+- **Unified balance**: aggregate a user's funds across all supported chains to fund any transaction automatically
+- **Non-custodial**: assets stay in the user's account until the moment of execution
 
+## What you can build
+
+- **Chain-abstracted wallets**: let users transact anywhere from a single account, regardless of where their funds sit
+- **Crosschain DeFi**: deposit into vaults, provide liquidity, or execute trades on any chain without manual bridging
+- **Automated portfolio management**: use session keys and intents together to execute strategies on behalf of users without per-transaction prompts
+- **AI agents**: give agents a crosschain account with scoped permissions to execute onchain tasks across any supported chain
+
+## SDK or API?
+
+Warp is accessible via the Rhinestone SDK (TypeScript) or directly via the REST API.
+
+**Use the SDK if** you are building a new wallet or app in TypeScript — it handles account creation, intent construction, signing, and submission for you. Smart accounts, session keys, and gas sponsorship are all built in.
+
+**Use the API directly if** you are integrating Warp into an existing backend, working in a non-JS environment, or adding crosschain support to an app that already manages EOA users. The API gives you full control over each step of the intent flow.
+
+**Already have smart account users but not using the Rhinestone SDK?** You can still use Warp via the API. You'll need to [install the Intent Executor](/intents/guides/installing-intent-executor) on each account first, then follow the API flow with smart account signing. See the [signing guide](/intents/guides/signing) for the smart account path.
+
+<CardGroup cols={2}>
+  <Card title="SDK users" icon="bolt" href="../smart-wallet/quickstart">
+    Already using the Rhinestone SDK? Your wallet quickstart covers intents. Start there.
+  </Card>
+
+  <Card title="API Quickstart" icon="route" href="./quickstart">
+    Integrating via the REST API? Build the full intent flow for EOA users step by step.
+  </Card>
+
+  <Card title="How Warp works" icon="book-open" href="../home/introduction/rhinestone-intents">
+    Architecture deep dive: Orchestrator, Relayer Market, resource locks, and more.
+  </Card>
+
+  <Card title="Supported chains" icon="link" href="../home/resources/supported-chains">
+    See all chains and tokens supported by Warp.
+  </Card>
+</CardGroup>
+
+<Note>You'll need a Rhinestone API key for mainnet usage. [Request one here](https://tally.so/r/wg22x4). Testnets work without a key.</Note>

@@ -1,0 +1,72 @@
+---
+title: "Tracking intents"
+sidebarTitle: "Tracking intents"
+description: "Poll for intent status and understand the intent lifecycle."
+---
+
+After [submitting an intent](./submitting-the-intent), you receive an operation ID. Use it to poll the Orchestrator until the intent reaches a terminal state.
+
+## Poll for status
+
+```ts
+const baseUrl = "https://v1.orchestrator.rhinestone.dev";
+const apiKey = "YOUR_RHINESTONE_API_KEY";
+
+async function getIntentStatus(operationId: string) {
+  const res = await fetch(`${baseUrl}/intent-operation/${operationId}`, {
+    headers: {
+      "x-api-key": apiKey,
+      Accept: "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.text().catch(() => "");
+    throw new Error(
+      `Request failed: ${res.status} ${res.statusText}${errorBody ? ` - ${errorBody}` : ""}`
+    );
+  }
+
+  return res.json();
+}
+
+// Poll every 2 seconds until terminal
+async function waitForCompletion(operationId: string) {
+  const terminal = new Set(["COMPLETED", "FAILED", "EXPIRED"]);
+
+  while (true) {
+    const data = await getIntentStatus(operationId);
+    console.log("Status:", data.status);
+
+    if (terminal.has(data.status)) return data;
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+}
+```
+
+## Intent lifecycle
+
+An intent moves through the following statuses:
+
+| Status | Meaning |
+|---|---|
+| `PENDING` | Submitted and in progress |
+| `PRECONFIRMED` | Accepted by a solver, waiting for onchain execution |
+| `CLAIMED` | Source funds claimed by the solver, destination execution pending |
+| `FILLED` | Executed on the destination chain, source funds not yet claimed |
+| `COMPLETED` | Fully executed and settled onchain |
+| `FAILED` | Execution failed |
+| `EXPIRED` | Missed the execution deadline |
+
+`COMPLETED` is the only successful terminal state. `FAILED` and `EXPIRED` are error states — see [Error handling](./error-handling) for how to respond to them.
+
+## SDK shorthand
+
+If you're using the Rhinestone SDK, `sendTransaction` handles polling internally and resolves when the intent completes:
+
+```ts
+const result = await rhinestone.sendTransaction({ ... });
+// resolves only after COMPLETED
+```
+
+Use the manual polling approach above if you need visibility into intermediate states, or if you're working directly with the REST API.

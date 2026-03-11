@@ -1,27 +1,83 @@
 ---
 title: "EOA"
-description: "Use a plain EOA (without EIP-7702) with the Rhinestone SDK"
+description: "Use a plain EOA with the Rhinestone SDK to send intents without deploying a smart account"
 ---
 
-You can use a plain EOA with the Rhinestone SDK without upgrading it to a smart account via EIP-7702.
+If your users already have an EOA, you can connect it directly to the Rhinestone SDK and start sending intents straight away. No deployment, no migration, no smart account setup required.
 
-This is different from [EIP-7702 smart EOAs](./eip-7702), where the EOA is delegated to a smart account implementation. With a plain EOA, the account stays as-is — no delegation, no modules.
+The SDK handles the orchestration layer for you — you write the same `sendTransaction` call as any other account type, and the Rhinestone Orchestrator takes care of routing, bridging, and settlement. The result is significantly better DX than calling the raw API yourself.
+
+This is the right choice when:
+- Your users have existing EOAs with assets they want to keep at their current address
+- You want intent support without requiring users to migrate to a smart account
+- You need the simplest possible integration path
+
+<Note>
+Plain EOAs do not support modules, session keys, gas sponsorship, or multisig. If you need those features, use [EIP-7702](./eip-7702) to add smart account capabilities to an existing EOA, or [create a new smart account](./create-account).
+</Note>
 
 ## Setup
 
-```ts {3}
-const rhinestoneAccount = await rhinestone.createAccount({
-  account: {
-    type: 'eoa',
-  },
-  eoa: accountOwner,
+Pass `type: 'eoa'` in the account config and provide the EOA as the signer. The EOA address is used directly — no separate smart account address is derived.
+
+```ts
+import { RhinestoneSDK } from '@rhinestone/sdk'
+import { privateKeyToAccount } from 'viem/accounts'
+import { arbitrum, base } from 'viem/chains'
+import { encodeFunctionData, erc20Abi, parseUnits } from 'viem'
+
+const eoaAccount = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`)
+
+const rhinestone = new RhinestoneSDK({
+  apiKey: process.env.RHINESTONE_API_KEY as string,
+})
+
+const account = await rhinestone.createAccount({
+  account: { type: 'eoa' },
+  eoa: eoaAccount,
 })
 ```
 
-The EOA itself is the signer, so you don't need to specify `owners`.
+## Send an intent
 
-Once created, the transaction API is identical to smart accounts — see [Create First Transaction](./create-first-transaction) and [Chain Abstraction](../chain-abstraction/single-chain-intent) for usage.
+Once the account is created, the transaction API is identical to any other account type.
 
-## Limitations
+```ts
+const recipientAddress = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 
-Plain EOAs do not support modules, session keys, recovery, or multisig. If you need these features, consider using [EIP-7702](./eip-7702) or [creating a new smart account](./create-account).
+const result = await account.sendTransaction({
+  sourceChains: [arbitrum],
+  targetChain: base,
+  calls: [
+    {
+      to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [recipientAddress, parseUnits('10', 6)],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      amount: parseUnits('10', 6),
+    },
+  ],
+})
+
+const status = await account.waitForExecution(result)
+```
+
+The Orchestrator handles token sourcing, bridging, and gas — your code stays the same regardless of which chain the user's funds are on.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="EIP-7702" icon="zap" href="./eip-7702">
+    Add smart account features to an existing EOA without changing its address.
+  </Card>
+  <Card title="Create a smart account" icon="wallet" href="./create-account">
+    Start fresh with a full smart account: modules, session keys, gas sponsorship.
+  </Card>
+</CardGroup>

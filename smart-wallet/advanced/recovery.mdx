@@ -13,13 +13,7 @@ Guardians can only update the validator configuration, they are not permitted to
 
 <Warning>Set guardians carefully! They can change the ownership of a smart account without any approval from the previous owner. There is no timelock for the recovery transaction. Prefer setting multiple trusted guardians with a higher signature threshold.</Warning>
 
-### How it works
-
-Once installed, the Social Recovery module gives the selected guardians access to change the configuration of the validator modules.
-
-In other words, the guardian (or guardians) is allowed to make any transaction to any installed validator module, usually to add an owner, remove an owner, or update the signature threshold.
-
-<Note>Making recovery transactions requires setting up [the ERC-4337 infrastructure](../advanced/use-erc-4337).</Note>
+<Note>Making recovery transactions requires setting up [ERC-4337](../advanced/erc4337).</Note>
 
 <Note>Account recovery may result in multiple account calls, each of them should be done separately (batching is not supported).</Note>
 

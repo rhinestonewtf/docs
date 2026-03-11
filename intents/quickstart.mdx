@@ -1,0 +1,221 @@
+---
+title: "API quickstart"
+description: "Send your first crosschain intent via the Rhinestone REST API."
+---
+
+This guide walks through the full intent flow for **EOA users**: get a quote, fulfill token requirements, sign, and submit.
+
+<Info>
+  **Using the Rhinestone SDK?** The [wallet quickstart](/smart-wallet/quickstart) already covers crosschain intents. Come back here when you need API-specific configuration.
+
+  **Using an existing smart account (non-Rhinestone SDK)?** You'll need to [install the Intent Executor](/intents/guides/installing-intent-executor) on each account before using Warp, then follow the [smart account signing guide](/intents/guides/signing) for the signing step.
+</Info>
+
+## Prerequisites
+
+- A Rhinestone API key ([request one here](https://tally.so/r/wg22x4)) — not required for testnets
+- An EOA with funds on at least one [supported chain](/home/resources/supported-chains)
+
+## Steps
+
+<Steps>
+
+<Step title="Get a quote">
+
+Submit a meta intent to the `/intents/route` endpoint. Specify your destination chain, the token and amount you want on that chain, and your account:
+
+```ts
+const BASE_URL = "https://v1.orchestrator.rhinestone.dev";
+const API_KEY = "YOUR_RHINESTONE_API_KEY";
+const EOA_ADDRESS = "0xYourEOAAddress";
+
+const res = await fetch(`${BASE_URL}/intents/route`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": API_KEY,
+    Accept: "application/json",
+  },
+  body: JSON.stringify({
+    account: {
+      address: EOA_ADDRESS,
+      accountType: "EOA",
+    },
+    destinationChainId: 8453, // Base
+    tokenRequests: [
+      {
+        tokenAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC on Base
+        amount: "5000000", // 5 USDC (6 decimals)
+      },
+    ],
+  }),
+});
+
+const { intentOp, intentCost, tokenRequirements } = await res.json();
+```
+
+The response includes:
+- `intentOp`: the intent elements for the user to sign
+- `intentCost`: the total cost in input tokens
+- `tokenRequirements`: any approvals or wrapping the user needs to complete before signing
+
+</Step>
+
+<Step title="Fulfill token requirements">
+
+Before signing, the user must fulfill any `tokenRequirements` returned in the quote. There are two types:
+
+**ERC-20 approvals** — approve tokens to the Permit2 contract:
+
+```ts
+import { maxUint256 } from "viem";
+
+for (const [chainId, tokens] of Object.entries(tokenRequirements)) {
+  for (const [tokenAddress, requirement] of Object.entries(tokens)) {
+    if (requirement.type === "approval") {
+      await walletClient.writeContract({
+        address: tokenAddress,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [requirement.spender, maxUint256],
+      });
+    }
+  }
+}
+```
+
+**ETH wrapping** — wrap native ETH to WETH:
+
+```ts
+for (const [chainId, tokens] of Object.entries(tokenRequirements)) {
+  for (const [tokenAddress, requirement] of Object.entries(tokens)) {
+    if (requirement.type === "wrap") {
+      await walletClient.writeContract({
+        address: WETH_ADDRESS,
+        abi: wethAbi,
+        functionName: "deposit",
+        value: requirement.amount,
+      });
+    }
+  }
+}
+```
+
+<Info>
+Use max approvals to the [Permit2](https://github.com/Uniswap/permit2) contract. This is the only contract you ever approve — future intents won't need a new approval.
+</Info>
+
+</Step>
+
+<Step title="Sign the intent">
+
+Get a fresh quote (to avoid stale pricing), then sign each intent element using EIP-712. You need one signature per input chain. The last signature also doubles as the destination signature.
+
+```ts
+import { signTypedData } from "@wagmi/core";
+
+// Refresh the quote before signing
+const { intentOp: freshIntentOp } = await fetch(`${BASE_URL}/intents/route`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "x-api-key": API_KEY },
+  body: JSON.stringify({ /* same payload as before */ }),
+}).then((r) => r.json());
+
+const signatures = [];
+
+for (const element of freshIntentOp.elements) {
+  const typedData = getTypedData(
+    element,
+    BigInt(freshIntentOp.nonce),
+    BigInt(freshIntentOp.expires),
+  );
+
+  const signature = await signTypedData(wagmiConfig, typedData);
+  signatures.push(signature);
+}
+
+const originSignatures = signatures;
+const destinationSignature = signatures.at(-1);
+```
+
+<Card title="Signing guide" icon="signature" href="./guides/signing">
+  Full `getTypedData` implementation and type definitions
+</Card>
+
+</Step>
+
+<Step title="Submit the intent">
+
+Post the signed intent to `/intent-operations`:
+
+```ts
+const submitRes = await fetch(`${BASE_URL}/intent-operations`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": API_KEY,
+    Accept: "application/json",
+  },
+  body: JSON.stringify(
+    {
+      signedIntentOp: {
+        ...freshIntentOp,
+        originSignatures,
+        destinationSignature,
+      },
+    },
+    (_, value) => (typeof value === "bigint" ? value.toString() : value),
+  ),
+});
+
+const { bundleResults } = await submitRes.json();
+const operationId = bundleResults[0].bundleId;
+```
+
+</Step>
+
+<Step title="Poll for completion">
+
+Track execution status using the operation ID:
+
+```ts
+async function pollStatus(operationId: string) {
+  while (true) {
+    const res = await fetch(`${BASE_URL}/intent-operation/${operationId}`, {
+      headers: { "x-api-key": API_KEY },
+    });
+    const { status } = await res.json();
+
+    if (["COMPLETED", "FILLED", "FAILED", "EXPIRED"].includes(status)) {
+      console.log("Final status:", status);
+      return status;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+}
+
+await pollStatus(operationId);
+```
+
+Typical execution time is under 2 seconds. See [Submitting the Intent](/intents/guides/submitting-the-intent) for the full list of statuses.
+
+</Step>
+
+</Steps>
+
+## Next steps
+
+<CardGroup cols={3}>
+  <Card title="Getting a Quote" icon="route" href="./guides/getting-a-quote">
+    Advanced quote options: sponsorship, source chain filtering, destination executions.
+  </Card>
+
+  <Card title="Token Requirements" icon="list-check" href="./guides/token-requirements">
+    Full details on approvals and ETH wrapping.
+  </Card>
+
+  <Card title="Error Handling" icon="triangle-alert" href="./guides/error-handling">
+    Common Orchestrator errors and how to fix them.
+  </Card>
+</CardGroup>

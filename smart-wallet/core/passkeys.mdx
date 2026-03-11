@@ -1,43 +1,25 @@
 ---
-title: "Passkeys"
-description: "A Seamless and Secure Way to Authenticate"
+title: "Passkey"
+description: "Use device biometrics as the owner of a smart account. Supports single key or n/m multisig."
 ---
 
-## Overview
+The Passkey signer uses the WebAuthn Validator module to authorise transactions with device-native biometrics: Face ID, Touch ID, Windows Hello. No seed phrases, no browser extensions. Keys are generated and stored in the device secure enclave and can sync across devices via iCloud Keychain or Google Password Manager.
 
-[Passkeys](https://fidoalliance.org/passkeys/) are cryptographic key pairs generated and stored on your devices, offering a passwordless, user-friendly approach to authentication. Backed by industry leaders like [Apple](https://developer.apple.com/passkeys/), [Google](https://developers.google.com/identity/passkeys), and [Microsoft](https://support.microsoft.com/en-gb/windows/passkeys-overview-301c8944-5ea2-452b-9886-97e4d2ef4422), passkeys are supported across a wide range of platforms, including:
+Passkeys are supported across iOS, Android, macOS, and modern browsers (Chrome, Safari, Edge).
 
-* iPhones, iPads, and MacBooks  
-* Android smartphones and tablets  
-* Web browsers like [Chrome](https://developers.google.com/identity/passkeys), [Safari](https://developer.apple.com/passkeys/), and [Edge](https://learn.microsoft.com/en-us/microsoft-edge/security/passkeys) (on Windows, macOS, and Android)
+## Single owner
 
-For a complete list of compatible systems, check the [FIDO Alliance’s passkey support documentation](https://fidoalliance.org/passkeys/#support).
-
-When it comes to web3 wallets, passkeys revolutionize the user experience by eliminating the complexity of managing private keys. Instead of memorizing lengthy seed phrases, users can rely on their passkey-enabled devices to securely handle wallet authentication. With robust hardware security and seamless cloud backups from trusted vendors like Apple or Google, passkeys provide a safer, simpler way to interact with onchain applications.
-
-### How it works
-
-Passkeys are powered by Rhinestone’s WebAuthn Validator module. This module enables smart accounts to validate signatures generated via WebAuthn for secure, user-friendly authentication via passkeys. The module supports ERC-4337 user operations and ERC-1271 signatures. Additionally, it can facilitate a multisig setup – see [here](./multisig#passkeys) for more details regarding a multisig passkey setup.
-
-### Benefits
-
-* **User-Friendly**: Enables transaction authentication via passkeys, improving the UX of onchain actions.  
-* **Secure**: Leverages WebAuthn’s cryptographic strength and device-based security (e.g., biometrics).  
-* **Flexible**: Supports both single and multisig setups, fitting various use cases.  
-* **Standardized**: Aligns with ERC-7579, ERC-4337, and ERC-1271 for broad adoption.
-
-## Initialization
-
-To create a passkey-owned account:
-
-```ts {3-5,8-11}
+```ts
+import { RhinestoneSDK } from '@rhinestone/sdk'
 import { toWebAuthnAccount } from 'viem/account-abstraction'
 
-const passkeyAccount = toWebAuthnAccount({
-  credential,
+const passkeyAccount = toWebAuthnAccount({ credential })
+
+const rhinestone = new RhinestoneSDK({
+  apiKey: process.env.RHINESTONE_API_KEY as string,
 })
 
-const rhinestoneAccount = await rhinestone.createAccount({
+const account = await rhinestone.createAccount({
   owners: {
     type: 'passkey',
     accounts: [passkeyAccount],
@@ -45,16 +27,101 @@ const rhinestoneAccount = await rhinestone.createAccount({
 })
 ```
 
-You can also enable the passkey module in a separate transaction:
+## Multisig
+
+The WebAuthn Validator supports n/m multisig with multiple passkey owners and a configurable signature threshold.
+
+A common use case: users register a passkey per device. You set up a 1-of-n account so the user can sign from any of their devices without needing to migrate keys.
+
+### Setup
+
+```ts
+const account = await rhinestone.createAccount({
+  owners: {
+    type: 'passkey',
+    accounts: [passkeyAccountA, passkeyAccountB],
+    threshold: 2, // 2-of-2: both devices must sign
+  },
+})
+```
+
+By default, `threshold` is `1`, meaning any single passkey can sign.
+
+### Signing with a subset of owners
+
+For m-of-n setups, specify which passkeys to use when sending a transaction:
+
+```ts
+const result = await account.sendTransaction({
+  chain,
+  calls: [
+    // …
+  ],
+  signers: {
+    type: 'owner',
+    kind: 'passkey',
+    accounts: [passkeyAccountA],
+  },
+})
+```
+
+<Note>Provide at least as many signers as the threshold requires, or the transaction will fail validation.</Note>
+
+### Add a passkey (new device)
+
+```ts
+import { addOwner } from '@rhinestone/sdk/actions/passkeys'
+import { slice } from 'viem'
+
+const pubKeyX = BigInt(slice(newPasskeyAccount.publicKey, 0, 32))
+const pubKeyY = BigInt(slice(newPasskeyAccount.publicKey, 32))
+const requiresUV = false
+
+await account.sendTransaction({
+  chain,
+  calls: [addOwner(pubKeyX, pubKeyY, requiresUV)],
+})
+```
+
+### Remove a passkey
+
+```ts
+import { removeOwner } from '@rhinestone/sdk/actions/passkeys'
+
+await account.sendTransaction({
+  chain,
+  calls: [removeOwner(pubKeyX, pubKeyY)],
+})
+```
+
+### Change threshold
+
+```ts
+import { changeThreshold } from '@rhinestone/sdk/actions/passkeys'
+
+await account.sendTransaction({
+  chain,
+  calls: [changeThreshold(2)],
+})
+```
+
+### Get current owners
+
+```ts
+const owners = await account.getOwners(chain)
+// → { accounts: ['0xaaa…', '0xbbb…'], threshold: 1 }
+```
+
+## Enable in a separate transaction
+
+If you need to enable the passkey module on an existing account rather than at creation time:
 
 ```ts
 import { enable as enablePasskeys } from '@rhinestone/sdk/actions/passkeys'
 
-const enablePasskeysTransaction = await rhinestoneAccount.sendTransaction({
+await account.sendTransaction({
   chain,
-  calls: [
-    enablePasskeys(passkeyAccount.publicKey, passkeyAccount.id),
-  ],
+  calls: [enablePasskeys(passkeyAccount.publicKey, passkeyAccount.id)],
   tokenRequests: [],
 })
 ```

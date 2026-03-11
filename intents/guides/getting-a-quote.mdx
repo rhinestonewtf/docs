@@ -1,5 +1,5 @@
 ---
-title: "Getting a Quote"
+title: "Getting a quote"
 description: "Request a Quote for an Intent"
 ---
 
@@ -179,6 +179,39 @@ const payload = {
 };
 ```
 </CodeGroup>
+
+## Swaps
+
+If the destination token differs from the user's source token, Warp handles the bridge and swap automatically. No additional parameters are needed — just specify the token you want on the destination chain.
+
+In a swap quote, `tokensSpent` and `tokensReceived` will show different tokens:
+
+```json
+{
+  "intentCost": {
+    "tokensReceived": [
+      {
+        "tokenAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+        "hasFulfilled": true,
+        "amountSpent": "81032981",
+        "destinationAmount": "81029468",
+        "fee": "3513"
+      }
+    ],
+    "tokensSpent": {
+      "8453": {
+        "0x4200000000000000000000000000000000000006": {
+          "locked": "0",
+          "unlocked": "22291303013436002",
+          "version": 0
+        }
+      }
+    }
+  }
+}
+```
+
+Here the user is spending WETH on Base (chain 8453) to receive USDC on Optimism. The fee is deducted from the received amount (`amountSpent` minus `destinationAmount`).
 
 ## Next Steps
 

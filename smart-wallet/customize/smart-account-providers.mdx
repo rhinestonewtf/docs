@@ -1,0 +1,64 @@
+---
+title: "Smart account providers"
+description: "Choose which smart account implementation to use with the Rhinestone SDK."
+---
+
+By default, the Rhinestone SDK uses a Safe smart account. You can override this by passing an `account` field to `createAccount` with the `type` set to your preferred implementation.
+
+<CodeGroup>
+
+```ts Safe
+const rhinestoneAccount = await rhinestone.createAccount({
+  account: {
+    type: 'safe',
+  },
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  },
+})
+```
+
+```ts Nexus
+const rhinestoneAccount = await rhinestone.createAccount({
+  account: {
+    type: 'nexus',
+  },
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  },
+})
+```
+
+```ts Kernel
+const rhinestoneAccount = await rhinestone.createAccount({
+  account: {
+    type: 'kernel',
+  },
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  },
+})
+```
+
+```ts Startale
+const rhinestoneAccount = await rhinestone.createAccount({
+  account: {
+    type: 'startale',
+  },
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  },
+})
+```
+
+</CodeGroup>
+
+The account type determines the smart contract implementation deployed for the user. All supported types are fully compatible with Rhinestone's intent infrastructure and ERC-7579 module ecosystem.
+
+<Note>
+  Need support for a different account implementation? [Open an issue](https://github.com/rhinestonewtf/sdk/issues) and we'll take a look.
+</Note>

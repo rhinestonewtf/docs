@@ -1,0 +1,114 @@
+---
+title: "ERC-4337"
+description: "Configure and use ERC-4337 with the Rhinestone SDK."
+---
+
+Rhinestone uses its own intent infrastructure for most transactions, but some modules require ERC-4337 UserOperations: [Social Recovery](./recovery) and legacy [Smart Sessions](../smart-sessions/overview). This guide covers how to configure and use ERC-4337 with the SDK.
+
+## Configuration
+
+### Bundler
+
+Pass a `bundler` config when initialising the SDK:
+
+<Tabs>
+
+<Tab title="Pimlico">
+
+```ts
+const rhinestone = new RhinestoneSDK({
+  apiKey: rhinestoneApiKey,
+  bundler: {
+    type: 'pimlico',
+    apiKey: pimlicoApiKey,
+  },
+})
+```
+
+</Tab>
+
+<Tab title="Biconomy">
+
+```ts
+const rhinestone = new RhinestoneSDK({
+  apiKey: rhinestoneApiKey,
+  bundler: {
+    type: 'biconomy',
+    apiKey: biconomyApiKey,
+  },
+})
+```
+
+</Tab>
+
+</Tabs>
+
+### Paymaster
+
+Optionally add a `paymaster` to sponsor gas on UserOperations:
+
+<Tabs>
+
+<Tab title="Pimlico">
+
+```ts
+const rhinestone = new RhinestoneSDK({
+  apiKey: rhinestoneApiKey,
+  bundler: { type: 'pimlico', apiKey: pimlicoApiKey },
+  paymaster: { type: 'pimlico', apiKey: pimlicoApiKey },
+})
+```
+
+</Tab>
+
+<Tab title="Biconomy">
+
+```ts
+const rhinestone = new RhinestoneSDK({
+  apiKey: rhinestoneApiKey,
+  bundler: { type: 'biconomy', apiKey: biconomyApiKey },
+  paymaster: { type: 'biconomy', apiKey: biconomyApiKey },
+})
+```
+
+</Tab>
+
+</Tabs>
+
+<Note>Need support for another ERC-4337 provider? [Open an issue](https://github.com/rhinestonewtf/sdk/issues).</Note>
+
+## Usage
+
+### Send a UserOperation
+
+Once configured, `sendTransaction` automatically routes through ERC-4337 when required:
+
+```ts
+const result = await rhinestoneAccount.sendTransaction({
+  chain: base,
+  calls: [
+    {
+      to: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+      value: 0n,
+      data: '0xdeadbeef',
+    },
+  ],
+})
+
+const status = await rhinestoneAccount.waitForExecution(result)
+```
+
+### Granular API
+
+Use the lower-level API to separate preparation, signing, and submission:
+
+```ts
+const transactionData = await rhinestoneAccount.prepareUserOperation({
+  chain: base,
+  calls: [...],
+})
+
+const signedData = await rhinestoneAccount.signUserOperation(transactionData)
+const result = await rhinestoneAccount.submitUserOperation(signedData)
+const status = await rhinestoneAccount.waitForExecution(result)
+```

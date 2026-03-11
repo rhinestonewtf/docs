@@ -1,0 +1,200 @@
+---
+title: "Set account type"
+description: "Configure which account type to use with Rhinestone intents: smart account, EOA, or EIP-7702."
+---
+
+Rhinestone supports three account types. All of them use the same `sendTransaction` API — the orchestrator abstracts the differences at the transport layer.
+
+- **Smart account** — new users, full feature set (modules, session keys, gas sponsorship)
+- **EOA** — existing EOA users, no migration required, basic intent support
+- **EIP-7702** — embedded EOA users (where the app controls the key) who want smart account capabilities without a new address. Not supported for external wallets.
+
+## Smart Account
+
+The default. A new smart account address is derived from the owner signer — it is separate from the signer's EOA and is deployed on first use.
+
+```ts
+import { RhinestoneSDK } from '@rhinestone/sdk'
+import { privateKeyToAccount } from 'viem/accounts'
+import { arbitrum, base } from 'viem/chains'
+import { encodeFunctionData, erc20Abi, parseUnits } from 'viem'
+
+const signer = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`)
+
+const rhinestone = new RhinestoneSDK({
+  apiKey: process.env.RHINESTONE_API_KEY as string,
+})
+
+const account = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [signer],
+  },
+})
+
+const recipientAddress = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+
+const result = await account.sendTransaction({
+  sourceChains: [arbitrum],
+  targetChain: base,
+  calls: [
+    {
+      to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [recipientAddress, parseUnits('10', 6)],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      amount: parseUnits('10', 6),
+    },
+  ],
+})
+
+const status = await account.waitForExecution(result)
+```
+
+## EOA
+
+Use a plain EOA with Rhinestone intents without upgrading it to a smart account. The EOA is both the account address and the signer — no deployment required.
+
+This is the right choice when you have existing EOA users whose assets you don't want to migrate.
+
+```ts
+import { RhinestoneSDK } from '@rhinestone/sdk'
+import { privateKeyToAccount } from 'viem/accounts'
+import { arbitrum, base } from 'viem/chains'
+import { encodeFunctionData, erc20Abi, parseUnits } from 'viem'
+
+const eoaAccount = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`)
+
+const rhinestone = new RhinestoneSDK({
+  apiKey: process.env.RHINESTONE_API_KEY as string,
+})
+
+const account = await rhinestone.createAccount({
+  account: { type: 'eoa' },
+  eoa: eoaAccount,
+})
+
+const recipientAddress = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+
+const result = await account.sendTransaction({
+  sourceChains: [arbitrum],
+  targetChain: base,
+  calls: [
+    {
+      to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [recipientAddress, parseUnits('10', 6)],
+      }),
+    },
+  ],
+  tokenRequests: [
+    {
+      address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      amount: parseUnits('10', 6),
+    },
+  ],
+})
+
+const status = await account.waitForExecution(result)
+```
+
+<Note>
+Plain EOAs do not support modules, session keys, or gas sponsorship. If you need these features, use [EIP-7702](#eip-7702) instead.
+</Note>
+
+## EIP-7702
+
+EIP-7702 lets an existing EOA act as a smart account by delegating to a smart account implementation. The account address remains the EOA address, but it gains full smart account capabilities — modules, session keys, and gas sponsorship.
+
+Use this when your users already have an EOA with onchain history or assets they want to preserve.
+
+Sending a transaction with an EIP-7702 account requires two additional signing steps compared to a standard smart account:
+
+1. Sign the account initialisation data (once per account, valid cross-chain)
+2. Sign the EIP-7702 authorisation alongside the transaction
+
+<Steps>
+  <Step title="Create the account">
+    Pass the EOA as both the owner and the `eoa` field. The presence of `eoa` tells the SDK to use the EIP-7702 flow.
+
+    ```ts
+    import { RhinestoneSDK } from '@rhinestone/sdk'
+    import { privateKeyToAccount } from 'viem/accounts'
+    import { arbitrum, base } from 'viem/chains'
+    import { encodeFunctionData, erc20Abi, parseUnits } from 'viem'
+
+    const eoaAccount = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`)
+
+    const rhinestone = new RhinestoneSDK({
+      apiKey: process.env.RHINESTONE_API_KEY as string,
+    })
+
+    const account = await rhinestone.createAccount({
+      owners: {
+        type: 'ecdsa',
+        accounts: [eoaAccount],
+      },
+      eoa: eoaAccount,
+    })
+    ```
+  </Step>
+  <Step title="Sign the initialisation data">
+    This signature authorises the smart account setup on the EOA. It only needs to be signed once — cache it and reuse it on subsequent transactions.
+
+    ```ts
+    const eip7702InitSignature = await account.signEip7702InitData()
+    ```
+  </Step>
+  <Step title="Prepare the transaction">
+    Pass `eip7702InitSignature` when preparing. The SDK includes it in the transaction so the account can be initialised on any chain it hasn't been set up on yet.
+
+    ```ts
+    const recipientAddress = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+
+    const preparedTx = await account.prepareTransaction({
+      sourceChains: [arbitrum],
+      targetChain: base,
+      calls: [
+        {
+          to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base
+          data: encodeFunctionData({
+            abi: erc20Abi,
+            functionName: 'transfer',
+            args: [recipientAddress, parseUnits('10', 6)],
+          }),
+        },
+      ],
+      tokenRequests: [
+        {
+          address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+          amount: parseUnits('10', 6),
+        },
+      ],
+      eip7702InitSignature,
+    })
+    ```
+  </Step>
+  <Step title="Sign the transaction and authorisation">
+    Sign both the transaction payload and the EIP-7702 authorisation.
+
+    ```ts
+    const signedTx = await account.signTransaction(preparedTx)
+    const authorizations = await account.signAuthorizations(preparedTx)
+    ```
+  </Step>
+  <Step title="Submit and wait">
+    ```ts
+    const result = await account.submitTransaction(signedTx, authorizations)
+    const status = await account.waitForExecution(result)
+    ```
+  </Step>
+</Steps>
