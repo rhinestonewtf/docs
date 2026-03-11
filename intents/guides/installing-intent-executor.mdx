@@ -18,48 +18,21 @@ Deployed on all chains supported by Rhinestone.
 
 ## Installation
 
-The Intent Executor is a standard ERC-7579 executor module (module type `2`). Install it using your account's `installModule` function.
-
-<Tabs>
-
-<Tab title="viem">
+The Intent Executor is a standard ERC-7579 executor module (module type `2`). Install it using the SDK's `installModule` action:
 
 ```ts
-import { encodeFunctionData } from 'viem'
+import { installModule } from '@rhinestone/sdk/actions'
 
-const installCalldata = encodeFunctionData({
-  abi: [{
-    name: 'installModule',
-    type: 'function',
-    inputs: [
-      { name: 'moduleTypeId', type: 'uint256' },
-      { name: 'module', type: 'address' },
-      { name: 'initData', type: 'bytes' },
-    ],
-  }],
-  functionName: 'installModule',
-  args: [
-    2n,
-    '0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF',
-    '0x',
+const result = await rhinestoneAccount.sendTransaction({
+  targetChain: base,
+  calls: [
+    installModule({
+      address: '0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF',
+      type: 'executor',
+    }),
   ],
 })
 ```
-
-</Tab>
-
-<Tab title="Solidity">
-
-```solidity
-// module type: 2 (executor)
-// module address: 0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF
-// init data: empty
-account.installModule(2, 0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF, "");
-```
-
-</Tab>
-
-</Tabs>
 
 <Note>
   Install the module on every chain where you want to use Rhinestone intents.
@@ -67,18 +40,47 @@ account.installModule(2, 0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF, "");
 
 ## Verifying installation
 
-Call `isInitialized` on the Intent Executor contract with your smart account address:
+Read the `isInitialized` function on the Intent Executor contract to check whether it has been installed on your account:
 
-```solidity
-IntentExecutor(0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF).isInitialized(accountAddress)
+```ts
+import { createPublicClient, http } from 'viem'
+import { base } from 'viem/chains'
+
+const publicClient = createPublicClient({
+  chain: base,
+  transport: http(),
+})
+
+const isInstalled = await publicClient.readContract({
+  address: '0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF',
+  abi: [{
+    name: 'isInitialized',
+    type: 'function',
+    inputs: [{ name: 'smartAccount', type: 'address' }],
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
+  }],
+  functionName: 'isInitialized',
+  args: [accountAddress],
+})
 ```
 
-Returns `true` once `onInstall` has been called by the account.
+Returns `true` once the module has been installed on the account.
 
 ## Uninstalling
 
-```solidity
-account.uninstallModule(2, 0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF, "");
+```ts
+import { uninstallModule } from '@rhinestone/sdk/actions'
+
+const result = await rhinestoneAccount.sendTransaction({
+  targetChain: base,
+  calls: [
+    uninstallModule({
+      address: '0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF',
+      type: 'executor',
+    }),
+  ],
+})
 ```
 
 ## Next steps
