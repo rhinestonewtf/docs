@@ -1,26 +1,14 @@
 ---
-title: "Portfolio endpoint (new)"
-sidebarTitle: "Portfolio endpoint (new)"
+title: "Portfolio endpoint"
+sidebarTitle: "Portfolio endpoint"
 description: "Fetch a user's aggregated token balances across all supported chains."
 ---
 
-The portfolio endpoint returns a user's token balances across all chains Rhinestone supports. Use it to display a unified balance in your UI, determine which tokens are available for an intent, or build balance-aware routing logic.
+The portfolio endpoint returns a user's token balances across all chains Rhinestone supports. Use it to display a unified balance, check which tokens are available before creating an intent, or build balance-aware routing.
 
-## Endpoint
+## Fetch a portfolio
 
-```
-GET /accounts/{userAddress}/portfolio
-```
-
-| Parameter | Location | Required | Description |
-|:---|:---|:---|:---|
-| `userAddress` | path | Yes | Ethereum address of the user account |
-| `x-api-key` | header | Yes | Your Rhinestone API key |
-| `chainIds` | query | No | Comma-separated chain IDs to filter by (e.g. `1,10,8453`) |
-| `tokens` | query | No | Comma-separated `chainId:tokenAddress` pairs to filter by |
-| `filterEmpty` | query | No | Set to `true` to exclude tokens with zero balance (default: `false`) |
-
-## Fetching a portfolio
+Pass a user address and your API key to get aggregated balances across all chains:
 
 ```ts
 const baseUrl = "https://v1.orchestrator.rhinestone.dev";
@@ -40,50 +28,11 @@ const res = await fetch(
 const { portfolio } = await res.json();
 ```
 
-## Response
+Each entry in `portfolio` represents a token aggregated across chains. Use `balance.unlocked` to determine whether the user can fund an intent — `balance.locked` reflects tokens already allocated to a pending intent.
 
-```json
-{
-  "portfolio": [
-    {
-      "tokenName": "USDC",
-      "tokenDecimals": 6,
-      "balance": {
-        "locked": "1000000",
-        "unlocked": "5000000"
-      },
-      "tokenChainBalance": [
-        {
-          "chainId": 10,
-          "tokenAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
-          "balance": {
-            "locked": "1000000",
-            "unlocked": "2000000"
-          }
-        },
-        {
-          "chainId": 8453,
-          "tokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "balance": {
-            "locked": "0",
-            "unlocked": "3000000"
-          }
-        }
-      ]
-    }
-  ]
-}
-```
+## Filter by chain or token
 
-Each entry in `portfolio` represents a token aggregated across all chains:
-
-- **`balance.unlocked`**: tokens available to spend. Use this to determine whether the user can fund an intent.
-- **`balance.locked`**: tokens currently allocated to a pending intent that has not yet settled. These are not double-counted when the Orchestrator calculates available funds.
-- **`tokenChainBalance`**: per-chain breakdown of the same token, including the contract address on each chain.
-
-## Filtering by chain or token
-
-To fetch balances only on specific chains:
+To scope results to specific chains, pass `chainIds`:
 
 ```ts
 const res = await fetch(
@@ -92,7 +41,7 @@ const res = await fetch(
 );
 ```
 
-To fetch balances for specific tokens on specific chains:
+To scope to specific tokens, pass `chainId:tokenAddress` pairs via `tokens`:
 
 ```ts
 const usdc10 = "10:0x0b2c639c533813f4aa9d7837caf62653d097ff85";
