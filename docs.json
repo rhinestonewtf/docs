@@ -223,7 +223,6 @@
               "intents/guides/submitting-the-intent",
               "intents/guides/tracking-intents",
               "intents/guides/installing-intent-executor",
-              "intents/guides/setting-up-approvals",
               "intents/guides/portfolio-endpoint",
               "intents/guides/error-handling"
             ]
