@@ -150,7 +150,8 @@
               "smart-wallet/advanced/recovery",
               "smart-wallet/advanced/custom-modules",
               "smart-wallet/advanced/message-signing",
-              "smart-wallet/advanced/custom-signing"
+              "smart-wallet/advanced/custom-signing",
+              "smart-wallet/chain-abstraction/error-handling"
             ]
           },
           {
