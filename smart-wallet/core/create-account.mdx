@@ -59,6 +59,11 @@ const account = await rhinestone.createAccount({
 
 The example above uses an ECDSA signer (external wallet). Rhinestone supports several signer types: passkeys, embedded wallets, external wallets, and multi-factor combinations.
 
-<Card title="Signer types →" icon="key" href="./setup-signer">
-  Choose the right signer for your use case: native keys, embedded wallets, or external wallets.
-</Card>
+<CardGroup cols={2}>
+  <Card title="Signer types" icon="key" href="./setup-signer">
+    Choose the right signer for your use case: native keys, embedded wallets, or external wallets.
+  </Card>
+  <Card title="EIP-7702" icon="wand-magic-sparkles" href="./eip-7702">
+    Add smart account features to an existing EOA without changing its address.
+  </Card>
+</CardGroup>

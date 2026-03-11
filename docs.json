@@ -156,6 +156,13 @@
           {
             "group": "Configuration",
             "pages": [
+              {
+                "group": "Set account type",
+                "pages": [
+                  "smart-wallet/core/eoa",
+                  "smart-wallet/core/eip-7702"
+                ]
+              },
               "smart-wallet/customize/bring-your-own-account",
               "smart-wallet/customize/smart-account-providers",
               "smart-wallet/customize/json-rpc-providers",
@@ -209,7 +216,6 @@
             "group": "API guides",
             "pages": [
               "intents/guides/using-the-api",
-              "intents/guides/set-account-type",
               "intents/guides/getting-a-quote",
               "intents/guides/token-requirements",
               "intents/guides/signing",

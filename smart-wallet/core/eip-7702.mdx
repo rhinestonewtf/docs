@@ -1,108 +1,122 @@
 ---
-title: "Use EIP-7702"
+title: "EIP-7702"
+description: "Add smart account capabilities to an existing EOA without changing its address"
 ---
 
-EIP-7702 lets you use smart account features with an EOA.
+EIP-7702 lets an existing EOA act as a smart account. It works by delegating the EOA to a smart account implementation, giving it full smart account capabilities while keeping the same address and onchain history.
 
-It works by attaching the bytecode to an existing EOA and initializing the account with the selected configuration, virtually turning it into a smart account.
+Use this when your users already have an EOA with assets or history they want to preserve, and you want to unlock modules, session keys, and gas sponsorship without migrating to a new address.
 
-See [our EIP-7702 guide](../../home/concepts/smart-eoas-eip-7702) to learn more.
+<Note>
+EIP-7702 requires your app to control the delegation target. It is not supported for external wallets (MetaMask, Coinbase, etc.) since those wallets do not allow delegating to an arbitrary contract. For external wallet users, use a [plain EOA](./eoa) or [create a separate smart account](./create-account).
+</Note>
 
-## Features
+See [What is EIP-7702?](../../home/concepts/smart-eoas-eip-7702) for a conceptual overview.
 
-Key advantages of EIP-7702 include:
+## When to use EIP-7702
 
-- **Portable accounts**: use existing accounts, redelegate if needed. No need to migrate users' assets.
-- **Cheap deployments**: deploying a smart EOA is cheap compared to an ERC-4337 account.
-- **Infrastructure agnostic**: can use intents, userops, or normal transactions.
+- Your users have an embedded wallet (Privy, Dynamic, etc.) with existing assets
+- You want smart account features — session keys, gas sponsorship, modules — without migrating funds
+- You need the account address to stay the same as the EOA
 
-However, be aware of the following limitations:
+## Limitations
 
-- **No key rotation**: there is no way to properly rotate account owners, as the EOA is always the root owner of the account. If the EOA is lost or compromised, the account is wrecked.
-- **No multisig**: the EOA acts as a root key that can override any other owner. A proper multi-signature account is not possible with EOAs.
+- **No key rotation**: the EOA is always the root owner. If it's lost or compromised, the account is unrecoverable.
+- **No multisig**: the EOA acts as a root key that overrides any other owner.
+- **Embedded wallets only**: not supported for external wallets.
 
-### When to use EIP-7702?
+## Send an intent
 
-EIP-7702 is great when you need to reuse an existing wallet instead of creating a new one. With a smart EOA, you don't need to migrate users' assets into another wallet, and the onchain history is preserved.
+Sending a transaction with an EIP-7702 account requires two additional signing steps compared to a standard smart account.
 
-EIP-7702 is a good option if you can choose which contract to delegate to for your users. For example, many embedded wallet providers let you choose a delegation target. If you are working on a wallet app, you have full control over what delegation contract to use.
+<Steps>
+  <Step title="Create the account">
+    Pass the EOA as both the owner and the `eoa` field. The presence of `eoa` tells the SDK to use the EIP-7702 flow.
 
-EIP-7702 is a good choice when you need to add account owner (e.g., passkeys) or enable session keys for an existing EOA.
+    ```ts
+    import { RhinestoneSDK } from '@rhinestone/sdk'
+    import { privateKeyToAccount } from 'viem/accounts'
+    import { arbitrum, base } from 'viem/chains'
+    import { encodeFunctionData, erc20Abi, parseUnits } from 'viem'
 
-### External Wallet Restrictions
+    const eoaAccount = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`)
 
-Most external wallets like MetaMask and Coinbase do not allow delegating to an arbitrary contract address. Instead, they provide a default implementation for all their users.
+    const rhinestone = new RhinestoneSDK({
+      apiKey: process.env.RHINESTONE_API_KEY as string,
+    })
 
-What this means for you is that you can't expect the external wallet user to delegate to your smart account (or to delegate at all). You should assume that each wallet provides its own delegation contract, and this is not something you can control.
+    const account = await rhinestone.createAccount({
+      owners: {
+        type: 'ecdsa',
+        accounts: [eoaAccount],
+      },
+      eoa: eoaAccount,
+    })
+    ```
+  </Step>
+  <Step title="Sign the initialisation data">
+    This signature authorises the smart account setup on the EOA. It only needs to be signed once — cache it and reuse it on subsequent transactions.
 
-Consider using embedded wallets or creating a separate, standalone smart account for your users, with the owner being the external wallet.
+    ```ts
+    const eip7702InitSignature = await account.signEip7702InitData()
+    ```
 
-## Usage
+    <Info>
+    The init signature is valid cross-chain, so you can cache it and reuse it. Always provide it when preparing a transaction — the account may need to be initialised on any of the source or target chains.
+    </Info>
+  </Step>
+  <Step title="Prepare the transaction">
+    Pass `eip7702InitSignature` when preparing. The SDK includes it in the transaction so the account is initialised on any chain it hasn't been set up on yet.
 
-Rhinestone SDK supports smart EOAs (EIP-7702 accounts) out of the box.
+    ```ts
+    const recipientAddress = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 
-You can use any compatible account provider for batched transactions, gas sponsorship, custom validators, session keys, and chain abstraction.
+    const preparedTx = await account.prepareTransaction({
+      sourceChains: [arbitrum],
+      targetChain: base,
+      calls: [
+        {
+          to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base
+          data: encodeFunctionData({
+            abi: erc20Abi,
+            functionName: 'transfer',
+            args: [recipientAddress, parseUnits('10', 6)],
+          }),
+        },
+      ],
+      tokenRequests: [
+        {
+          address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+          amount: parseUnits('10', 6),
+        },
+      ],
+      eip7702InitSignature,
+    })
+    ```
+  </Step>
+  <Step title="Sign the transaction and authorisation">
+    Sign both the transaction payload and the EIP-7702 authorisation.
 
-<Warning>Not all smart accounts are compatible with EIP-7702. We recommend starting with [Nexus](../customize/smart-account-providers/nexus).</Warning>
+    ```ts
+    const signedTx = await account.signTransaction(preparedTx)
+    const authorizations = await account.signAuthorizations(preparedTx)
+    ```
+  </Step>
+  <Step title="Submit and wait">
+    ```ts
+    const result = await account.submitTransaction(signedTx, authorizations)
+    const status = await account.waitForExecution(result)
+    ```
+  </Step>
+</Steps>
 
-To turn an EOA into a smart account:
+## Next steps
 
-```ts {6}
-const rhinestoneAccount = await rhinestone.createAccount({
-  owners: {
-    type: 'ecdsa',
-    accounts: [eoaAccount],
-  },
-  eoa: eoaAccount,
-})
-```
-
-Before making your first transaction, you will need to sign the account initialization calldata and then the EIP-7702 authorization.
-
-### Signing the account initialization data
-
-Before making a transaction preparation, you will need to sign the EIP-7702 data with the user's EOA. This signature is valid cross-chain, so you can cache it.
-
-```ts {1,19}
-const eip7702InitSignature = await rhinestoneAccount.signEip7702InitData()
-
-const transactionData = await rhinestoneAccount.prepareTransaction({
-  sourceChains: [sourceChain],
-  targetChain,
-  calls: [
-    {
-      to: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-      value: 0n,
-      data: '0xdeadbeef',
-    },
-  ],
-  tokenRequests: [
-    {
-      address: 'ETH',
-      amount: ethAmount,
-    },
-  ],
-  eip7702InitSignature,
-})
-```
-
-<Info>
-The init signature is unique to the account address and only needs to be signed once. Always provide it when preparing a transaction, as the account may need to be deployed on any of the source or target chains.
-</Info>
-
-### Signing the authorization
-
-When sending the transaction, you will need to sign the EIP-7702 authorization:
-
-```ts {4-5}
-const signedTansactionData =
-  await rhinestoneAccount.signTransaction(transactionData)
-
-const authorizations =
-  await rhinestoneAccount.signAuthorizations(signedTansactionData)
-
-const result = await rhinestoneAccount.submitTransaction(
-  signedTansactionData,
-  authorizations,
-)
-```
+<CardGroup cols={2}>
+  <Card title="EOA (plain)" icon="user" href="./eoa">
+    Use a plain EOA with intents, no delegation required.
+  </Card>
+  <Card title="Create a smart account" icon="wallet" href="./create-account">
+    Start fresh with a full smart account: modules, session keys, gas sponsorship.
+  </Card>
+</CardGroup>
