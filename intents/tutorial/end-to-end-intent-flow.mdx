@@ -66,11 +66,23 @@ const quoteRes = await fetch(`${BASE_URL}/intents/route`, {
         amount: ETH_AMOUNT,
       },
     ],
+    accountAccessList: [
+      {
+        chainId: 8453, // Base
+        tokenAddress: USDC_BASE,
+      },
+    ],
   }),
 });
 
 const { intentOp, intentCost, tokenRequirements } = await quoteRes.json();
 ```
+
+<Info>
+  `accountAccessList` constrains which tokens on which chains the router can spend.
+  Without it, the API may route through multiple chains and tokens (including wrapped ETH),
+  which can lead to unexpected gas requirements. Specify the exact source token(s) you want to use.
+</Info>
 
 Because the source token (USDC on Base) differs from the destination token (ETH on Arbitrum), `intentCost.tokensSpent` and `intentCost.tokensReceived` will show different tokens. This is how you know Warp is routing through a swap.
 
@@ -130,6 +142,7 @@ const refreshRes = await fetch(`${BASE_URL}/intents/route`, {
     account: { address: EOA_ADDRESS, accountType: "EOA" },
     destinationChainId: 42161,
     tokenRequests: [{ tokenAddress: ETH_ARBITRUM, amount: ETH_AMOUNT }],
+    accountAccessList: [{ chainId: 8453, tokenAddress: USDC_BASE }],
   }),
 });
 
@@ -181,8 +194,8 @@ const submitRes = await fetch(`${BASE_URL}/intent-operations`, {
   ),
 });
 
-const { bundleResults } = await submitRes.json();
-const operationId = bundleResults[0].bundleId;
+const { result } = await submitRes.json();
+const operationId = result.id;
 
 console.log("Intent submitted. Operation ID:", operationId);
 ```
