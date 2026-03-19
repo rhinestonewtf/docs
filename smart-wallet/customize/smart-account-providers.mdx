@@ -51,10 +51,7 @@ const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
     accounts: [account],
-    // Optional: use the K1 validator instead of the default ownable validator.
-    // K1 enables ERC-7739/EIP-1271 signing support but only works with a single
-    // owner and produces a different account address than the default setup.
-    // module: '0x00000072f286204bb934ed49d8969e86f7dec7b1',
+    module: '0x00000072f286204bb934ed49d8969e86f7dec7b1',
   },
 })
 ```
