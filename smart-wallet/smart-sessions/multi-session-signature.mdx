@@ -99,7 +99,7 @@ const data = await rhinestoneAccount.prepareTransaction({
     enableData: {
       userSignature: enableSignature,
       hashesAndChainIds: sessionDetails.hashesAndChainIds,
-      sessionIndex,
+      sessionToEnableIndex: sessionIndex,
     },
   },
 })
@@ -137,10 +137,9 @@ const rhinestoneAccount = await rhinestone.createAccount({
     type: 'ecdsa',
     accounts: [ownerAccount],
   },
-  sessions: [],
 })
 
-// Define the sessions
+// Define the sessions, one per chain
 const sessions: Session[] = [
   {
     chain: baseSepolia,
@@ -164,50 +163,46 @@ const sessionDetails =
 const enableSignature =
   await rhinestoneAccount.experimental_signEnableSession(sessionDetails)
 
-// Enable and use the session on Base
-const sessionIndexBase = 0
-const dataBase = await rhinestoneAccount.prepareTransaction({
-  chain: baseSepolia,
-  calls: [
-    {
-      to: zeroAddress,
-      data: '0xdeadbeef',
+// Build the per-chain sessions map with enable data
+// The SDK resolves the right session and enable data automatically per chain
+const signers = {
+  type: 'experimental_session' as const,
+  sessions: {
+    [baseSepolia.id]: {
+      session: sessions[0],
+      enableData: {
+        userSignature: enableSignature,
+        hashesAndChainIds: sessionDetails.hashesAndChainIds,
+        sessionToEnableIndex: 0,
+      },
     },
-  ],
-  tokenRequests: [],
-  signers: {
-    type: 'experimental_session',
-    session: sessions[sessionIndexBase],
-    enableData: {
-      userSignature: enableSignature,
-      hashesAndChainIds: sessionDetails.hashesAndChainIds,
-      sessionIndex: sessionIndexBase,
+    [optimismSepolia.id]: {
+      session: sessions[1],
+      enableData: {
+        userSignature: enableSignature,
+        hashesAndChainIds: sessionDetails.hashesAndChainIds,
+        sessionToEnableIndex: 1,
+      },
     },
   },
+}
+
+// Submit on Base
+const dataBase = await rhinestoneAccount.prepareTransaction({
+  chain: baseSepolia,
+  calls: [{ to: zeroAddress, data: '0xdeadbeef' }],
+  tokenRequests: [],
+  signers,
 })
 const signedDataBase = await rhinestoneAccount.signTransaction(dataBase)
 await rhinestoneAccount.submitTransaction(signedDataBase)
 
-// Enable and use the session on Optimism (reusing the same signature)
-const sessionIndexOptimism = 1
+// Submit on Optimism (reusing the same signature and signers map)
 const dataOptimism = await rhinestoneAccount.prepareTransaction({
   chain: optimismSepolia,
-  calls: [
-    {
-      to: zeroAddress,
-      data: '0xdeadbeef',
-    },
-  ],
+  calls: [{ to: zeroAddress, data: '0xdeadbeef' }],
   tokenRequests: [],
-  signers: {
-    type: 'experimental_session',
-    session: sessions[sessionIndexOptimism],
-    enableData: {
-      userSignature: enableSignature,
-      hashesAndChainIds: sessionDetails.hashesAndChainIds,
-      sessionIndex: sessionIndexOptimism,
-    },
-  },
+  signers,
 })
 const signedDataOptimism = await rhinestoneAccount.signTransaction(dataOptimism)
 await rhinestoneAccount.submitTransaction(signedDataOptimism)
