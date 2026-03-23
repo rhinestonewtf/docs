@@ -22,35 +22,39 @@ Warp supports arbitrary input and output tokens. You don't need to configure any
 
 Specify any token as the destination token. If it isn't a settlement token, the swap is handled automatically.
 
-The example below sends an arbitrary ERC-20 from Base to an arbitrary ERC-20 on Optimism.
+The example below sends DEGEN (Base) and receives OP (Optimism) — neither is a settlement token.
 
 ```ts
-import { baseSepolia, optimismSepolia } from 'viem/chains'
+import { base, optimism } from 'viem/chains'
+import { parseUnits } from 'viem'
 
-// Any token the user holds on the source chain
-const inputToken = '0xYOUR_INPUT_TOKEN_ADDRESS'
-const inputAmount = parseUnits('10', 18)
+// DEGEN on Base
+const degenBase = '0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed'
+const degenAmount = parseUnits('1000', 18)
 
-// Any token to receive on the destination chain
-const outputToken = '0xYOUR_OUTPUT_TOKEN_ADDRESS'
+// OP token on Optimism
+const opOptimism = '0x4200000000000000000000000000000000000042'
+const opAmount = parseUnits('10', 18)
+
+const receiver = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 
 const transaction = await rhinestoneAccount.sendTransaction({
-  sourceChains: [baseSepolia],
-  targetChain: optimismSepolia,
+  sourceChains: [base],
+  targetChain: optimism,
   calls: [
     {
-      to: receiver,
+      to: opOptimism,
       data: encodeFunctionData({
         abi: erc20Abi,
         functionName: 'transfer',
-        args: [receiver, outputAmount],
+        args: [receiver, opAmount],
       }),
     },
   ],
   tokenRequests: [
     {
-      address: outputToken,
-      amount: outputAmount,
+      address: opOptimism,
+      amount: opAmount,
     },
   ],
 })
