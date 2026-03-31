@@ -1,0 +1,74 @@
+# Rhinestone Developer Docs
+
+> Rhinestone builds infrastructure for modular smart accounts and crosschain intents. The SDK handles smart account creation, session keys, and intent-based crosschain transactions. The API provides direct REST access to the Orchestrator for any language or environment.
+
+## Home
+
+- /home/introduction/welcome-to-rhinestone: Landing page with links to quickstarts and key concepts
+- /home/introduction/what-is-rhinestone: High-level overview of Rhinestone's products (SDK, Intents, Modules)
+- /home/concepts/smart-accounts: ERC-7579 modular smart accounts explained (Safe, Kernel, Nexus, Startale)
+- /home/introduction/rhinestone-intents: Architecture deep dive into the Orchestrator, Relayer Market, and intent execution
+- /home/concepts/intents-and-erc4337: Comparison of Warp intents vs ERC-4337 userops with decision table
+- /home/concepts/session-keys: Smart Sessions for delegated signing with scoped permissions
+- /home/resources/address-book: Deployed contract addresses across all supported chains
+- /home/resources/supported-chains: List of supported chains and tokens for intents
+- /home/resources/audit-reports: Security audit reports
+- /home/resources/fees: Fee structure for intents (bridging, swaps, gas sponsorship)
+- /home/resources/erc-7579: ERC-7579 modular account standard reference
+- /home/resources/modules: Available modules (validators, executors, hooks, fallbacks)
+
+## Wallet SDK
+
+- /smart-wallet/overview: SDK overview and capabilities
+- /smart-wallet/quickstart: Install SDK, create account, send first crosschain transaction
+- /smart-wallet/tutorials/sponsor-fees: Tutorial for sponsoring gas and bridging fees
+- /smart-wallet/tutorials/session-keys: Tutorial for creating and using session keys
+- /smart-wallet/core/create-account: Create a smart account (Safe, Kernel, Nexus, Startale)
+- /smart-wallet/core/setup-signer: Configure signing (ECDSA, passkeys, embedded wallets)
+- /smart-wallet/core/create-first-transaction: Send your first transaction via the SDK
+- /smart-wallet/advanced/batch-transactions: Batch multiple calls in a single transaction
+- /smart-wallet/gas-sponsorship/overview: Gas and fee sponsorship overview
+- /smart-wallet/gas-sponsorship/set-up-sponsorship: Configure sponsorship via the dashboard
+- /smart-wallet/gas-sponsorship/pay-gas-with-erc20: Let users pay gas in ERC-20 tokens
+- /smart-wallet/smart-sessions/overview: Smart Sessions overview (delegated signing)
+- /smart-wallet/smart-sessions/multi-session-signature: Sign a session once, use across chains
+- /smart-wallet/smart-sessions/policies/sudo: Unrestricted session policy
+- /smart-wallet/smart-sessions/policies/call: Restrict session to specific contract calls
+- /smart-wallet/smart-sessions/policies/spending-limit: Cap ERC-20 token spend per session
+- /smart-wallet/smart-sessions/policies/gas-limit: Limit total gas consumption per session
+- /smart-wallet/smart-sessions/policies/timeframe: Time-bound session validity
+- /smart-wallet/smart-sessions/policies/usage-limit: Limit number of session uses
+- /smart-wallet/core/eoa: Use the SDK with a plain EOA
+- /smart-wallet/core/eip-7702: Use EIP-7702 Smart EOAs
+- /smart-wallet/advanced/recovery: Social recovery for smart accounts
+- /smart-wallet/advanced/custom-modules: Build and install custom ERC-7579 modules
+- /smart-wallet/chain-abstraction/error-handling: Error handling for crosschain transactions
+
+## Intents (Warp)
+
+- /intents/overview: Warp overview with SDK vs API decision table
+- /intents/quickstart: API quickstart for EOA users (step-by-step intent flow)
+- /intents/tutorial/end-to-end-intent-flow: Full tutorial building an intent from scratch
+- /smart-wallet/chain-abstraction/single-chain-intent: Send a single-chain intent
+- /smart-wallet/chain-abstraction/multi-chain-intent: Send a crosschain intent
+- /smart-wallet/chain-abstraction/unified-balance: Aggregate funds across chains
+- /smart-wallet/chain-abstraction/swaps: Built-in swaps within intents
+- /intents/features/execute-crosschain-calls: Execute arbitrary calls on destination chains
+- /smart-wallet/chain-abstraction/source-token-amount: Specify exact source token amount
+- /smart-wallet/chain-abstraction/custom-recipient: Send to a different recipient address
+- /smart-wallet/chain-abstraction/account-deployment: Deploy account as part of an intent
+- /intents/guides/using-the-api: API integration overview
+- /intents/guides/getting-a-quote: Get a quote from the Orchestrator
+- /intents/guides/token-requirements: Understand token requirements in quotes
+- /intents/guides/signing: Sign intents (EOA and smart account paths)
+- /intents/guides/submitting-the-intent: Submit signed intents to the Orchestrator
+- /intents/guides/tracking-intents: Track intent status and completion
+- /intents/guides/installing-intent-executor: Install the Intent Executor module on a smart account
+- /intents/guides/portfolio-endpoint: Fetch user portfolio across chains
+- /intents/guides/error-handling: API error codes and troubleshooting
+
+## API Reference
+
+- OpenAPI spec: https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/orchestrator.json
+- Base URL: https://orchestrator.rhinestone.wtf (mainnet), https://orchestrator-staging.rhinestone.wtf (testnet)
+- Authentication: x-api-key header (request key at https://tally.so/r/wg22x4)

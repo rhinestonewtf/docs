@@ -26,11 +26,14 @@ description: "Warp is Rhinestone's intent routing and execution engine for cross
 
 Warp is accessible via the Rhinestone SDK (TypeScript) or directly via the REST API.
 
-**Use the SDK if** you are building a new wallet or app in TypeScript — it handles account creation, intent construction, signing, and submission for you. Smart accounts, session keys, and gas sponsorship are all built in.
-
-**Use the API directly if** you are integrating Warp into an existing backend, working in a non-JS environment, or adding crosschain support to an app that already manages EOA users. The API gives you full control over each step of the intent flow.
-
-**Already have smart account users but not using the Rhinestone SDK?** You can still use Warp via the API. You'll need to [install the Intent Executor](/intents/guides/installing-intent-executor) on each account first, then follow the API flow with smart account signing. See the [signing guide](/intents/guides/signing) for the smart account path.
+| Scenario | Use | Why |
+|---|---|---|
+| Building a new wallet or dapp in TypeScript | [SDK](/smart-wallet/quickstart) | Handles account creation, signing, and submission out of the box |
+| Server-side automation or AI agent | [API](/intents/quickstart) | Full control, no browser dependency, any language |
+| EOA users, no smart account | [API](/intents/quickstart) | API handles EOA signing natively |
+| Existing smart account users (not on Rhinestone SDK) | [API](/intents/quickstart) | Install [Intent Executor](/intents/guides/installing-intent-executor) first, then use API with smart account signing |
+| Fastest integration from zero | [SDK](/smart-wallet/quickstart) | One package, batteries included |
+| Non-JS environment (Python, Rust, Go) | [API](/intents/quickstart) | REST API works with any HTTP client |
 
 <CardGroup cols={2}>
   <Card title="SDK users" icon="bolt" href="../smart-wallet/quickstart">
