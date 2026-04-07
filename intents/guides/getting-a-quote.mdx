@@ -52,10 +52,70 @@ console.log("Quote:", data);
 ```
 </CodeGroup>
 
-The API response includes:
-* `intentOp`: the list of intent elements for the user to sign, along with intent metadata such as token prices
-* `intentCost`: the cost of the intent in input tokens
-* `tokenRequirements`: the list of [token requirements](./token-requirements) to fulfill
+The API response includes three top-level fields:
+
+* `intentOp`: the full intent operation the user must sign (see below)
+* `intentCost`: the cost breakdown including tokens spent, tokens received, and fees
+* `tokenRequirements`: the list of [token requirements](./token-requirements) to fulfill before signing
+
+## Understanding the response
+
+### intentOp
+
+The `intentOp` object contains everything needed to build signatures and submit the intent. Key fields:
+
+| Field | Description |
+|---|---|
+| `elements` | One entry per source chain involved. Each element describes what tokens are pulled from that chain and what the user receives on the destination. |
+| `nonce` | A unique nonce for Permit2 signing. |
+| `expires` | Unix timestamp when the quote expires. Fetch a fresh quote if this has passed. |
+| `signedMetadata` | Orchestrator-signed metadata including token prices. Do not modify this. |
+
+### Token IDs
+
+Token amounts in `elements` use a packed uint256 encoding called a **token ID**. The token ID encodes the ERC-20 address in its lower 160 bits. To extract the address:
+
+```ts
+function toToken(id: bigint): `0x${string}` {
+  return `0x${(id & ((1n << 160n) - 1n)).toString(16).padStart(40, "0")}`;
+}
+
+// Example: extract the token address from an element
+const element = intentOp.elements[0];
+const [tokenId, amount] = element.idsAndAmounts[0];
+const tokenAddress = toToken(BigInt(tokenId));
+// tokenAddress = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" (USDC on Base)
+```
+
+The same encoding applies to:
+- `element.idsAndAmounts`: tokens pulled from the source chain (what the user spends)
+- `element.spendTokens`: tokens the solver must lock
+- `element.mandate.tokenOut`: tokens delivered on the destination chain
+
+### Element fields
+
+Each element in `intentOp.elements` describes one source chain:
+
+| Field | Description |
+|---|---|
+| `chainId` | The source chain ID (e.g. `"8453"` for Base). |
+| `arbiter` | The arbiter contract that validates the fill. |
+| `idsAndAmounts` | Array of `[tokenId, amount]` pairs: tokens pulled from the user on this chain. |
+| `mandate.recipient` | Address that receives tokens on the destination. |
+| `mandate.tokenOut` | Array of `[tokenId, amount]` pairs: tokens delivered to the recipient. |
+| `mandate.destinationChainId` | The destination chain ID. |
+| `mandate.fillDeadline` | Unix timestamp by which the solver must fill. |
+| `mandate.destinationOps` | Calls to execute on the destination chain after fill. |
+
+### intentCost
+
+The `intentCost` object breaks down what the user pays:
+
+| Field | Description |
+|---|---|
+| `tokensSpent` | Map of `chainId -> tokenAddress -> { locked, unlocked, version }`. Shows exactly what leaves the user's wallet per chain. |
+| `tokensReceived` | Array of objects showing what arrives on the destination, including `amountSpent`, `destinationAmount`, and `fee`. |
+| `feeBreakdownUSD` | USD breakdown of swap, bridge, gas, and settlement fees (when available). |
 
 ## Executions (calls)
 
