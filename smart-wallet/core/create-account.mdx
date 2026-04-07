@@ -37,6 +37,10 @@ const accountAddress = account.getAddress()
 
 The SDK derives a deterministic account address from the owner configuration. The same owners always produce the same address, with no deployment transaction required upfront.
 
+<Note>Creating an account only computes a counterfactual address. The smart contract is not deployed until you send the first outbound transaction on a given chain. Receiving tokens (funding the address) does not trigger deployment.</Note>
+
+<Warning>The smart account address is not the same as the signer address. If you look up your signer (EOA) on a block explorer, it will appear as a regular account. The smart account is a separate contract address derived from the owner configuration.</Warning>
+
 ## Custom nonce
 
 By default, the SDK uses a nonce of `0` to derive the account address. Pass a custom nonce to get a different address for the same set of owners. This is useful when you need multiple accounts per signer.
@@ -54,6 +58,22 @@ const account = await rhinestone.createAccount({
 ```
 
 <Note>Different nonce = different account address, even with identical owners.</Note>
+
+## Restore an existing account
+
+There is no `importAccount` method. The SDK derives the account address deterministically from the owner configuration, so calling `createAccount` with the same owners (and nonce) always returns the same account. To restore an account in a new session or on a different device, just call `createAccount` again with the original signer:
+
+```ts
+// Same signer + same nonce = same account address, every time
+const account = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [signer],
+  },
+})
+```
+
+No state is lost. The account's onchain history, balances, and modules are all tied to the deterministic address, not to the SDK instance.
 
 ## Choose a signer type
 
