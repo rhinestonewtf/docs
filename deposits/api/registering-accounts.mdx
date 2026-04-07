@@ -1,0 +1,18 @@
+---
+title: "Registering accounts"
+description: "Create and register smart accounts with the Deposit API for cross-chain deposit processing."
+---
+
+Each user that receives deposits needs a registered smart account. The deposit service uses this account to detect incoming transfers and execute bridging intents on the user's behalf.
+
+## Registration flow
+
+Account registration involves creating a Rhinestone smart account, configuring session authorization (so the service can sign bridging transactions), and submitting the registration to the `/register` endpoint with the target chain and token.
+
+## Managed accounts
+
+For server-side flows where you control the accounts directly, use `/register-managed` to create accounts owned by the service. These are deterministically derived from a salt you provide, and don't require user-side session setup.
+
+## Adding chains
+
+After initial registration, you can enable additional source chains for an existing account by adding new session details. This lets the service detect and bridge deposits from chains that weren't included in the original registration.

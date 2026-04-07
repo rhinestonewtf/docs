@@ -1,0 +1,37 @@
+---
+title: "Quickstart"
+description: "Add the Deposit Widget to your React app and accept cross-chain deposits in minutes."
+---
+
+This guide walks through installing the widget, rendering the deposit modal, and handling a completed deposit.
+
+{/* TODO: embedded demo */}
+
+## Prerequisites
+
+- A React app (Next.js, Vite, or similar)
+- The `@rhinestone/deposit-modal` package
+
+## Steps
+
+<Steps>
+
+<Step title="Install the package">
+
+Install the deposit widget and its peer dependencies.
+
+</Step>
+
+<Step title="Render the modal">
+
+Import `DepositModal` and render it with your target chain and token. The modal handles wallet connection, chain selection, and deposit execution.
+
+</Step>
+
+<Step title="Handle completion">
+
+Use the `onDepositComplete` callback to react when tokens arrive on the target chain — update your UI, unlock features, or trigger downstream logic.
+
+</Step>
+
+</Steps>

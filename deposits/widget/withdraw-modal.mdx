@@ -1,0 +1,14 @@
+---
+title: "Withdraw modal"
+description: "Let users withdraw tokens from a Safe to any supported chain using the withdraw modal."
+---
+
+The `WithdrawModal` component handles outbound token transfers from a 1/1 Safe. It presents a UI for selecting a destination chain and token, then constructs and signs the withdrawal transaction using EIP-712 typed data.
+
+## When to use
+
+Use the withdraw modal when your users hold funds in a Safe and need to move them to another chain or token. The modal handles the signing flow and bridges the withdrawal to the destination.
+
+## Props
+
+The withdraw modal requires the Safe address, source chain, and source token. It shares the same theming, branding, and callback props as the deposit modal.

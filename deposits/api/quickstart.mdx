@@ -1,0 +1,42 @@
+---
+title: "Quickstart"
+description: "Set up the Deposit API and process your first cross-chain deposit."
+---
+
+This guide walks through the full Deposit API integration: configure your client, register a smart account, and process an incoming deposit via webhooks.
+
+## Prerequisites
+
+- A Rhinestone API key ([request one here](https://tally.so/r/wg22x4))
+- A webhook endpoint to receive deposit notifications
+- The `@rhinestone/sdk` package installed
+
+## Steps
+
+<Steps>
+
+<Step title="Configure your client">
+
+Set up your webhook URL, gas sponsorship rules, and deposit token whitelist via the `/setup` endpoint. This is a one-time configuration step.
+
+</Step>
+
+<Step title="Register an account">
+
+Create a smart account for your user and register it with the deposit service. The account is configured with a target chain, target token, and session authorization so the service can bridge deposits on the user's behalf.
+
+</Step>
+
+<Step title="Fund the account">
+
+The user transfers tokens to their smart account on any supported source chain. The deposit service detects the transfer automatically via webhooks from the chain indexer.
+
+</Step>
+
+<Step title="Receive the webhook">
+
+Once the deposit is bridged to the target chain, your webhook endpoint receives a notification with the deposit details, transaction hash, and final status.
+
+</Step>
+
+</Steps>

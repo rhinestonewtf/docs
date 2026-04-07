@@ -1,0 +1,29 @@
+---
+title: "Overview"
+description: "Accept deposits from any chain into your app with Rhinestone's cross-chain deposit infrastructure."
+---
+
+Rhinestone Deposits lets you accept tokens from users on any supported chain and deliver them to a target chain and token — automatically handling bridging, swaps, and gas. Users deposit into a smart account, and the infrastructure takes care of the rest.
+
+## Two ways to integrate
+
+**Deposit API** — a headless backend service for programmatic deposit handling. You register accounts, configure webhooks, and process deposits entirely server-side. Best for apps that need full control over the deposit flow, custom UI, or automated pipelines.
+
+**Deposit Widget** — a drop-in React modal that handles wallet connection, chain selection, and deposit execution out of the box. Less flexible, but significantly less work to integrate. Best for apps that want a polished deposit experience with minimal frontend effort.
+
+## How it works
+
+1. A smart account is created for each user on supported source chains
+2. The user transfers tokens to their smart account (via your UI, the widget, or a direct transfer)
+3. The deposit infrastructure detects the transfer, bridges the tokens to the target chain, and optionally executes post-bridge actions
+4. Your app receives a webhook notification (API) or a callback (widget) when the deposit is complete
+
+## Which should you use?
+
+| | Deposit API | Deposit Widget |
+|---|---|---|
+| Integration effort | Moderate — backend + webhook handler | Low — drop in a React component |
+| UI control | Full — build your own | Themed modal with customization options |
+| Deposit triggers | Any transfer to the smart account | User-initiated via the modal |
+| Withdrawal support | Manual | Built-in withdraw modal |
+| Best for | Backends, bots, custom flows | Frontends, onboarding flows |

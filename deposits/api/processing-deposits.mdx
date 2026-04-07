@@ -1,0 +1,16 @@
+---
+title: "Processing deposits"
+description: "How the Deposit API detects, bridges, and settles cross-chain deposits."
+---
+
+Once an account is registered, the deposit service handles the full lifecycle of incoming deposits — from detection to bridging to settlement on the target chain.
+
+## Deposit lifecycle
+
+1. **Detection** — the service monitors registered accounts via chain indexer webhooks. When a token transfer is detected, it's matched against your deposit whitelist and validated.
+2. **Bridging** — if the deposit is on a different chain or token than the target, the service creates a bridging intent via the Rhinestone Orchestrator. Same-chain, same-token deposits skip this step.
+3. **Settlement** — tokens arrive on the target chain in the registered target token. Your webhook endpoint receives a completion notification.
+
+## Retry logic
+
+If a bridging intent fails (due to liquidity, slippage, or transient errors), the service retries automatically. You can also manually trigger retries via the `/deposits/retry` endpoint for deposits stuck in a failed state.

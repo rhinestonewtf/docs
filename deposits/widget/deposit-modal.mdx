@@ -1,0 +1,18 @@
+---
+title: "Deposit modal"
+description: "Configure the deposit modal for different wallet connection modes and deposit flows."
+---
+
+The `DepositModal` component is the primary integration point for the deposit widget. It handles the full deposit flow: wallet connection, source chain/token selection, amount input, and bridging.
+
+## Integration modes
+
+The modal supports three wallet connection modes depending on your app's architecture:
+
+- **Dapp signer** — your app provides a wallet client directly. The modal uses it to sign transactions without showing its own wallet connection UI. Best when your app already manages wallet state.
+- **External wallet** — the modal shows a wallet connection flow via Reown (WalletConnect). Users connect their own wallet. Requires a Reown app ID.
+- **QR deposit** — the modal displays a QR code and deposit address. Users send funds manually from any wallet. No wallet connection required.
+
+## Props
+
+Reference for the `DepositModal` props: target chain, target token, wallet client configuration, callbacks, and UI options. Each mode requires a different combination of props.

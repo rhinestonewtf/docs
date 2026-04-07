@@ -1,0 +1,21 @@
+---
+title: "Webhooks"
+description: "Receive real-time notifications about deposit events from the Deposit API."
+---
+
+The deposit service sends webhook notifications to your configured endpoint as deposits move through the processing pipeline. Use these to update your UI, trigger downstream logic, or reconcile deposit state.
+
+## Event types
+
+- **deposit-received** — a token transfer was detected on a registered account
+- **bridge-started** — a bridging intent was created and submitted to the Orchestrator
+- **bridge-complete** — tokens have arrived on the target chain
+- **bridge-failed** — the bridging intent failed after retries
+
+## Payload format
+
+Each webhook payload includes the deposit details: source chain, source token, amount, target chain, target token, transaction hashes, and the current status.
+
+## Signature verification
+
+If you provided a webhook secret during setup, each request includes an HMAC-SHA256 signature in the headers. Verify this signature against the raw request body to ensure the payload hasn't been tampered with.

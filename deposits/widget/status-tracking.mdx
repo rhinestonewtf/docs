@@ -1,0 +1,19 @@
+---
+title: "Status tracking"
+description: "Track deposit progress and react to state changes using widget callbacks."
+---
+
+The deposit widget exposes callbacks at each stage of the deposit lifecycle. Use these to keep your app in sync with what's happening inside the modal — update UI state, show progress indicators, trigger backend processes, or log analytics.
+
+## Callbacks
+
+- **onReady** — the modal is initialized and ready for interaction
+- **onConnected** — a smart account has been created for the deposit, returns the account address
+- **onDepositSubmitted** — the user signed and submitted a deposit transaction, returns the source chain and transaction hash
+- **onDepositComplete** — tokens have arrived on the target chain, returns destination transaction details
+- **onDepositFailed** — the bridge failed after the deposit was submitted
+- **onError** — an error occurred at any stage
+
+## Analytics events
+
+The `onEvent` callback fires on granular user interactions (modal opened, chain selected, amount entered, etc.) for integration with your analytics pipeline.

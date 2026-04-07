@@ -1,0 +1,18 @@
+---
+title: "Setup"
+description: "Configure your Deposit API client with webhooks, sponsorship rules, and deposit whitelists."
+---
+
+Before processing deposits, you need to configure your client with the deposit service. This is a one-time step that sets up how you receive notifications, which fees you sponsor, and which tokens you accept.
+
+## Webhook configuration
+
+Register a webhook URL where the deposit service sends notifications about deposit events. You can optionally provide a secret for HMAC-SHA256 signature verification on incoming webhook payloads.
+
+## Gas and fee sponsorship
+
+Control which costs you cover for your users on a per-chain basis. You can sponsor gas fees, bridging fees, swap fees, or any combination. Unsponsored fees are deducted from the deposit amount.
+
+## Deposit whitelist
+
+Restrict which source chains and tokens the service accepts deposits from. You can also set minimum and maximum deposit amounts per token. Deposits outside the whitelist are ignored.
