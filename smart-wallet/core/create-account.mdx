@@ -37,6 +37,8 @@ const accountAddress = account.getAddress()
 
 The SDK derives a deterministic account address from the owner configuration. The same owners always produce the same address, with no deployment transaction required upfront.
 
+<Note>Creating an account only computes a counterfactual address. The smart contract is not deployed until you send the first outbound transaction on a given chain. Receiving tokens (funding the address) does not trigger deployment.</Note>
+
 ## Custom nonce
 
 By default, the SDK uses a nonce of `0` to derive the account address. Pass a custom nonce to get a different address for the same set of owners. This is useful when you need multiple accounts per signer.
