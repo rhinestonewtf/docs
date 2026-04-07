@@ -60,7 +60,7 @@ The API response includes three top-level fields:
 
 ## Understanding the response
 
-### intentOp
+### `intentOp`
 
 The `intentOp` object contains everything needed to build signatures and submit the intent. Key fields:
 
@@ -71,7 +71,22 @@ The `intentOp` object contains everything needed to build signatures and submit 
 | `expires` | Unix timestamp when the quote expires. Fetch a fresh quote if this has passed. |
 | `signedMetadata` | Orchestrator-signed metadata including token prices. Do not modify this. |
 
-### Token IDs
+#### Element fields
+
+Each element in `intentOp.elements` describes one source chain:
+
+| Field | Description |
+|---|---|
+| `chainId` | The source chain ID (e.g. `"8453"` for Base). |
+| `arbiter` | The arbiter contract that validates the fill. |
+| `idsAndAmounts` | Array of `[tokenId, amount]` pairs: tokens pulled from the user on this chain. |
+| `mandate.recipient` | Address that receives tokens on the destination. |
+| `mandate.tokenOut` | Array of `[tokenId, amount]` pairs: tokens delivered to the recipient. |
+| `mandate.destinationChainId` | The destination chain ID. |
+| `mandate.fillDeadline` | Unix timestamp by which the solver must fill. |
+| `mandate.destinationOps` | Calls to execute on the destination chain after fill. |
+
+#### Token IDs
 
 Token amounts in `elements` use a packed uint256 encoding called a **token ID**. The token ID encodes the ERC-20 address in its lower 160 bits. To extract the address:
 
@@ -92,22 +107,7 @@ The same encoding applies to:
 - `element.spendTokens`: tokens the solver must lock
 - `element.mandate.tokenOut`: tokens delivered on the destination chain
 
-### Element fields
-
-Each element in `intentOp.elements` describes one source chain:
-
-| Field | Description |
-|---|---|
-| `chainId` | The source chain ID (e.g. `"8453"` for Base). |
-| `arbiter` | The arbiter contract that validates the fill. |
-| `idsAndAmounts` | Array of `[tokenId, amount]` pairs: tokens pulled from the user on this chain. |
-| `mandate.recipient` | Address that receives tokens on the destination. |
-| `mandate.tokenOut` | Array of `[tokenId, amount]` pairs: tokens delivered to the recipient. |
-| `mandate.destinationChainId` | The destination chain ID. |
-| `mandate.fillDeadline` | Unix timestamp by which the solver must fill. |
-| `mandate.destinationOps` | Calls to execute on the destination chain after fill. |
-
-### intentCost
+### `intentCost`
 
 The `intentCost` object breaks down what the user pays:
 
