@@ -40,27 +40,31 @@ The default transaction path is **Warp** (native relay). ERC-4337 userops are op
 | Scenario | Path |
 |---|---|
 | Crosschain, built-in swap, bridging | Warp (default) |
-| Same-chain, ERC-4337 bundler needed | `erc4337: true` in SDK config |
+| Same-chain, ERC-4337 bundler needed | Use `sendUserOperation` instead of `sendTransaction` |
 
 ## Common error codes
 
 | Code | Meaning | Fix |
 |---|---|---|
 | `INSUFFICIENT_BALANCE` | User lacks sufficient funds on source chain | Check balance before quoting |
-| `NO_ROUTE` | No route found for the requested token pair | Try a different token or chain |
-| `INTENT_EXPIRED` | Intent was not submitted before expiry | Re-quote and submit within the TTL |
-| `INVALID_SIGNATURE` | Signature doesn't match the intent | Verify signing matches the quote's typed data |
-| `EXECUTOR_NOT_INSTALLED` | Smart account missing Intent Executor module | [Install the executor](/intents/guides/installing-intent-executor) first |
+| `Bundle simulation failed` | Onchain simulation of the intent execution failed | Make sure the signature and the execution calldata are valid |
+| `Authorization header with Bearer token is required` | Missing or malformed auth header | Pass your API key in the `Authorization: Bearer <key>` header |
+
+See [Error handling](/intents/guides/error-handling) for the full list.
 
 ## Intent status values
 
 | Status | Meaning |
 |---|---|
-| `PENDING` | Intent submitted, awaiting solver pickup |
-| `PROCESSING` | Solver is executing the intent |
-| `COMPLETED` | Intent fulfilled successfully |
-| `FAILED` | Intent execution failed |
-| `EXPIRED` | Intent expired before fulfillment |
+| `PENDING` | Submitted and in progress |
+| `PRECONFIRMED` | Accepted by a solver, waiting for onchain execution |
+| `CLAIMED` | Source funds claimed by the solver, destination execution pending |
+| `FILLED` | Executed on the destination chain, source funds not yet claimed |
+| `COMPLETED` | Fully executed and settled onchain |
+| `FAILED` | Execution failed |
+| `EXPIRED` | Missed the execution deadline |
+
+See [Tracking intents](/intents/guides/tracking-intents) for more details on the lifecycle.
 
 ## SDK install
 
