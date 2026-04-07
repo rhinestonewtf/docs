@@ -239,6 +239,7 @@
         "tab": "Deposits",
         "pages": [
           "deposits/overview",
+          "deposits/demo",
           {
             "group": "API",
             "pages": [
