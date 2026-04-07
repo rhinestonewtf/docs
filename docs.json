@@ -54,6 +54,7 @@
           {
             "group": "Resources",
             "pages": [
+              "home/resources/quick-reference",
               "home/resources/address-book",
               "home/resources/supported-chains",
               "home/resources/audit-reports",
