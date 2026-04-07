@@ -52,10 +52,42 @@ console.log("Quote:", data);
 ```
 </CodeGroup>
 
-The API response includes:
-* `intentOp`: the list of intent elements for the user to sign, along with intent metadata such as token prices
-* `intentCost`: the cost of the intent in input tokens
-* `tokenRequirements`: the list of [token requirements](./token-requirements) to fulfill
+## Understanding the response
+
+The API response contains three top-level fields:
+
+### `intentOp`
+
+The full intent operation object. This is the core of the response and contains everything needed to sign and submit the intent.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `elements` | `IntentOpElement[]` | One entry per source chain involved in the intent. Each element describes what tokens to spend, on which chain, and the mandate (what to deliver on the destination). You sign each element individually. |
+| `nonce` | `string` | A unique nonce for the Permit2 signature. Used exactly once. |
+| `expires` | `string` | Unix timestamp (seconds) when the quote expires. Always fetch a fresh quote before signing. |
+| `signedMetadata` | `object` | Orchestrator metadata including `tokenPrices` (a map of token addresses to USD prices) and `hmac` (the Orchestrator's integrity signature). |
+
+Each element in `elements` contains:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `arbiter` | `address` | The on-chain contract that validates the intent on this source chain. Used as the `spender` in the Permit2 signature. |
+| `chainId` | `string` | The source chain ID where tokens are spent. |
+| `idsAndAmounts` | `[string, string][]` | Pairs of `[tokenId, amount]`. The `tokenId` encodes the token address in its lower 160 bits. Use `toToken(BigInt(id))` to extract the address. |
+| `spendTokens` | `[string, string][]` | Same shape as `idsAndAmounts`. Represents the actual tokens being transferred from the user's wallet. |
+| `mandate` | `object` | Describes what must happen on the destination: the recipient, output tokens, destination chain, fill deadline, and any executions to run. |
+
+<Info>
+  The `intentOp` is HMAC-signed by the Orchestrator. You must submit it **unmodified** alongside your signatures. Any changes will produce an invalid HMAC error. See [using the API](./using-the-api) for details.
+</Info>
+
+### `intentCost`
+
+A breakdown of costs for the intent. Includes `tokensSpent` (what leaves the user's wallet, grouped by chain and token), `tokensReceived` (what arrives on the destination, including fees), and optionally `feeBreakdownUSD` with swap, bridge, gas, and settlement fees in USD.
+
+### `tokenRequirements`
+
+The list of [token requirements](./token-requirements) the user must fulfill before submitting (approvals, wrapping ETH to WETH, etc.).
 
 ## Executions (calls)
 
