@@ -1,0 +1,19 @@
+---
+title: "Fees"
+description: "Understand the fee structure for deposits processed through the Deposit API."
+---
+
+The deposit service charges fees to cover bridging costs and service operation. This page explains how fees are calculated, when they apply, and how to retrieve fee estimates before processing a deposit.
+
+## Fee types
+
+- **Bridging fee** — covers the cost of cross-chain settlement via the Rhinestone Orchestrator. Only applies when the source and target chain or token differ.
+- **Service fee** — a flat or percentage-based fee applied to each processed deposit.
+
+## Same-chain deposits
+
+Deposits where the source chain and token match the target incur no bridging fee. The service fee still applies.
+
+## Estimating fees
+
+Use the fee estimation endpoint to preview the total cost before initiating a deposit. See the [API reference](/api-reference) for details.

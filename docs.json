@@ -247,6 +247,8 @@
               "deposits/api/setup",
               "deposits/api/registering-accounts",
               "deposits/api/processing-deposits",
+              "deposits/api/fees",
+              "deposits/api/sponsorship",
               "deposits/api/webhooks"
             ]
           },
