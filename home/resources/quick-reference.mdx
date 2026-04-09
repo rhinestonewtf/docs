@@ -1,0 +1,79 @@
+---
+title: "Quick reference"
+description: "Key addresses, endpoints, chain IDs, and common error codes for quick lookup."
+---
+
+## API endpoints
+
+| Environment | Base URL |
+|---|---|
+| Mainnet | `https://orchestrator.rhinestone.wtf` |
+| Staging | `https://orchestrator-staging.rhinestone.wtf` |
+
+Authentication: pass your API key in the `x-api-key` header. [Request a key](https://tally.so/r/wg22x4).
+
+## Key endpoints
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/intents/route` | POST | Get a quote for an intent |
+| `/intents/submit` | POST | Submit a signed intent |
+| `/intents/status/{id}` | GET | Track intent status |
+| `/accounts/{address}/portfolio` | GET | Fetch user token balances across chains |
+
+## Supported chains
+
+See [Supported chains](/home/resources/supported-chains) for the full list with token addresses.
+
+## Account types
+
+| Type | Description | SDK config |
+|---|---|---|
+| Smart Account (default) | ERC-7579 modular account (Safe, Kernel, Nexus) | `accountType: 'safe'` (or `'kernel'`, `'nexus'`) |
+| Plain EOA | Standard externally owned account | `accountType: 'eoa'` |
+| Smart EOA (EIP-7702) | EOA with smart account capabilities | `accountType: 'eip7702'` |
+
+## Transaction path
+
+The default transaction path is **Warp** (native relay). ERC-4337 userops are opt-in.
+
+| Scenario | Path |
+|---|---|
+| Crosschain, built-in swap, bridging | Warp (default) |
+| Same-chain, ERC-4337 bundler needed | Use `sendUserOperation` instead of `sendTransaction` |
+
+## Common error codes
+
+| Code | Meaning | Fix |
+|---|---|---|
+| `INSUFFICIENT_BALANCE` | User lacks sufficient funds on source chain | Check balance before quoting |
+| `Bundle simulation failed` | Onchain simulation of the intent execution failed | Make sure the signature and the execution calldata are valid |
+| `Authorization header with Bearer token is required` | Missing or malformed auth header | Pass your API key in the `Authorization: Bearer <key>` header |
+
+See [Error handling](/intents/guides/error-handling) for the full list.
+
+## Intent status values
+
+| Status | Meaning |
+|---|---|
+| `PENDING` | Submitted and in progress |
+| `PRECONFIRMED` | Accepted by a solver, waiting for onchain execution |
+| `CLAIMED` | Source funds claimed by the solver, destination execution pending |
+| `FILLED` | Executed on the destination chain, source funds not yet claimed |
+| `COMPLETED` | Fully executed and settled onchain |
+| `FAILED` | Execution failed |
+| `EXPIRED` | Missed the execution deadline |
+
+See [Tracking intents](/intents/guides/tracking-intents) for more details on the lifecycle.
+
+## SDK install
+
+```bash
+npm install @rhinestone/sdk viem
+```
+
+## Useful links
+
+- [Dashboard](https://dashboard.rhinestone.dev) for API keys and sponsorship config
+- [GitHub examples](https://github.com/rhinestonewtf/e2e-examples/) for runnable code
+- [Contract addresses](/home/resources/address-book) for all deployments

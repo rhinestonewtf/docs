@@ -2,9 +2,24 @@
 title: "Account deployment"
 ---
 
-The SDK handles the account deployments for you. When transacting on a new chain for the first time, the account will be deployed as part of the intent. The Orchestrator automatically detects if the account needs to be deployed, then passes the init data to the relayer market as part of the intent, which is then exectuted by a relayer.
+The SDK handles the account deployments for you. When transacting on a new chain for the first time, the account will be deployed as part of the intent. The Orchestrator automatically detects if the account needs to be deployed, then passes the init data to the relayer market as part of the intent, which is then executed by a relayer.
 
-It's possible to make the deployment completely gasless for the user if you're using [sponsorships](../gas-sponsorship/overview).
+## How deployment works
+
+Deployment is per-chain. When you call `sendTransaction` targeting a chain where the account is not deployed yet, the Orchestrator bundles the deployment into the intent automatically. The account is only deployed on that specific chain, not on all supported chains at once.
+
+Receiving tokens at the counterfactual address does not trigger deployment. Only an outbound transaction submitted through the SDK does.
+
+## Who pays for deployment?
+
+| Scenario | Who pays | Source |
+|---|---|---|
+| Sponsorship enabled (`sponsored: true`) | You (the developer) | Your USDC sponsorship deposit on Base |
+| No sponsorship | The user | Tokens in the user's account on the target chain, or on another chain where they are already deployed |
+
+Developer sponsorship and the user's account balance are separate. Sponsorship is a developer-funded deposit that subsidises fees on behalf of users. The user's account balance is whatever tokens the user holds. See [Gas and fee sponsorship](../core/gas-fee-sponsorship) for setup details.
+
+<Note>You can make deployment completely gasless for the user with [sponsorships](../gas-sponsorship/overview).</Note>
 
 Otherwise, the user needs to have some tokens on either the chain you're deploying to, or any other [supported chain](../../home/resources/supported-chains) (provided the account is already deployed there).
 

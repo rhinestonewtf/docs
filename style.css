@@ -32,6 +32,14 @@ table th {
   background-color: #0d182f;
 }
 
+table th:first-child {
+  border-radius: 8px 0 0 0;
+}
+
+table th:last-child {
+  border-radius: 0 8px 0 0;
+}
+
 
 /* Sidebar active/selected item */
 .dark [data-active="true"],

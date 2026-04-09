@@ -47,6 +47,19 @@ _Intents and ERC-4337 userops are not mutually exclusive. A smart account can us
 | Built-in bridges | No | Yes |
 | EOA support | No | Yes |
 
+## When to use which
+
+| Scenario | Use |
+|---|---|
+| Same-chain transaction, smart account only | ERC-4337 userops |
+| Crosschain transaction (any chain to any chain) | Warp intent |
+| Built-in swap needed (bridge + swap in one step) | Warp intent |
+| Sponsoring gas only, no bridging | Either |
+| EOA user (no smart account) | Warp intent |
+| Multi-input (aggregate funds across chains) | Warp intent |
+| Need ERC-4337 bundler compatibility | ERC-4337 userops |
+| AI agent executing across chains | Warp intent |
+
 ## Trust assumptions
 
 ERC-4337 userops today are almost universally sent to a single private provider despite the open mempool standard. Intent systems face the same pattern — intents are propagated to a provider, and if that provider is down, the intent isn't processed.
