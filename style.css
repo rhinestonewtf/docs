@@ -41,6 +41,139 @@ table th:last-child {
 }
 
 
+/* Mermaid diagrams */
+
+[data-component-name="mermaid-controls-wrapper"] {
+  display: none !important;
+}
+
+/* Sequence diagram: participant boxes */
+.mermaid svg .actor {
+  fill: #17132E !important;
+  stroke: #373352 !important;
+}
+
+.mermaid svg rect.actor {
+  rx: 6;
+  ry: 6;
+}
+
+.mermaid svg text.actor > tspan {
+  fill: #D3CFF7 !important;
+}
+
+/* Sequence diagram: lifelines */
+.mermaid svg .actor-line {
+  stroke: #464359 !important;
+  stroke-width: 1 !important;
+}
+
+/* Sequence diagram: message lines */
+.mermaid svg .messageLine0,
+.mermaid svg .messageLine1 {
+  stroke: #464359 !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Arrow heads */
+.mermaid svg #arrowhead path,
+.mermaid svg [id$="-arrowhead"] path {
+  fill: #464359 !important;
+  stroke: #464359 !important;
+}
+
+.mermaid svg #crosshead path,
+.mermaid svg [id$="-crosshead"] path {
+  stroke: #464359 !important;
+}
+
+/* Sequence diagram: message text */
+.mermaid svg .messageText {
+  fill: #C7C6CC !important;
+}
+
+/* Activation boxes */
+.mermaid svg .activation0,
+.mermaid svg .activation1,
+.mermaid svg .activation2 {
+  fill: #17132E !important;
+  stroke: #373352 !important;
+}
+
+/* Notes */
+.mermaid svg .note {
+  fill: #17132E !important;
+  stroke: #373352 !important;
+}
+
+.mermaid svg .noteText,
+.mermaid svg .noteText > tspan {
+  fill: #C7C6CC !important;
+}
+
+/* Loop boxes */
+.mermaid svg .loopText,
+.mermaid svg .loopText > tspan {
+  fill: #C7C6CC !important;
+}
+
+.mermaid svg .loopLine {
+  stroke: #373352 !important;
+}
+
+.mermaid svg .labelBox {
+  fill: #17132E !important;
+  stroke: #373352 !important;
+}
+
+.mermaid svg .labelText,
+.mermaid svg .labelText > tspan {
+  fill: #C7C6CC !important;
+}
+
+/* Sequence number markers */
+.mermaid svg .sequenceNumber {
+  fill: #D3CFF7 !important;
+}
+
+/* Flowchart: nodes */
+.mermaid svg .node rect,
+.mermaid svg .node circle,
+.mermaid svg .node ellipse,
+.mermaid svg .node polygon,
+.mermaid svg .node path {
+  fill: #17132E !important;
+  stroke: #373352 !important;
+}
+
+.mermaid svg .nodeLabel,
+.mermaid svg .node .label {
+  color: #D3CFF7 !important;
+  fill: #D3CFF7 !important;
+}
+
+/* Flowchart: edges */
+.mermaid svg .flowchart-link {
+  stroke: #464359 !important;
+}
+
+.mermaid svg .edgeLabel,
+.mermaid svg .edge-label {
+  color: #C7C6CC !important;
+  fill: #C7C6CC !important;
+}
+
+.mermaid svg .edgeLabel rect {
+  fill: transparent !important;
+  stroke: none !important;
+}
+
+/* Flowchart: markers */
+.mermaid svg .marker {
+  fill: #464359 !important;
+  stroke: #464359 !important;
+}
+
 /* Sidebar active/selected item */
 .dark [data-active="true"],
 .dark [aria-current="page"],
