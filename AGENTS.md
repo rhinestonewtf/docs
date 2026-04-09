@@ -130,6 +130,17 @@ Content...
 
 Icons are Lucide names. Be aware that some Lucide icon names don't render in Mintlify — test locally before committing icon-heavy card groups. When in doubt, skip the icon prop.
 
+### Mermaid diagrams
+
+Always use `actions={false}` to disable pan/zoom controls:
+
+````mdx
+```mermaid actions={false}
+sequenceDiagram
+    User->>Server: Request
+```
+````
+
 ### Code blocks
 
 Use TypeScript for all code examples. Highlight specific lines with curly braces:
