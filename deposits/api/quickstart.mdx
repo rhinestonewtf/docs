@@ -3,40 +3,187 @@ title: "Quickstart"
 description: "Set up the Deposit API and process your first cross-chain deposit."
 ---
 
-This guide walks through the full Deposit API integration: configure your client, register a smart account, and process an incoming deposit via webhooks.
+Register a managed account, deposit USDC on one chain, and receive it on another — all through a few API calls.
 
 ## Prerequisites
 
 - A Rhinestone API key ([request one here](https://tally.so/r/wg22x4))
-- A webhook endpoint to receive deposit notifications
-- The `@rhinestone/sdk` package installed
-
-## Steps
+- A wallet with testnet USDC on Optimism Sepolia ([Circle faucet](https://faucet.circle.com/))
 
 <Steps>
 
 <Step title="Configure your client">
 
-Set up your webhook URL, gas sponsorship rules, and deposit token whitelist via the `/setup` endpoint. This is a one-time configuration step.
+Set up gas sponsorship so deposit bridging is covered. This is a one-time call per API key.
+
+```ts
+const DEPOSIT_SERVICE_URL = "https://deposits.rhinestone.dev";
+const API_KEY = "YOUR_RHINESTONE_API_KEY";
+
+const response = await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": API_KEY,
+  },
+  body: JSON.stringify({
+    params: {
+      sponsorship: {
+        "eip155:84532": { gas: "all" },    // Base Sepolia
+        "eip155:11155420": { gas: "all" },  // Optimism Sepolia
+      },
+    },
+  }),
+});
+
+console.log(`Setup: ${response.status}`);
+```
+
+You should see `Setup: 200`.
 
 </Step>
 
-<Step title="Register an account">
+<Step title="Register a managed account">
 
-Create a smart account for your user and register it with the deposit service. The account is configured with a target chain, target token, and session authorization so the service can bridge deposits on the user's behalf.
+Register a server-managed account with a target chain and token. The service creates a smart account deterministically from your API key and the salt you provide, and returns deposit addresses.
+
+```ts
+import { keccak256, toHex } from "viem";
+
+// Use any unique identifier per user (e.g., internal user ID)
+const salt = keccak256(toHex("user-123"));
+
+const RECIPIENT = "0xYOUR_RECIPIENT_ADDRESS";
+const TARGET_CHAIN = "eip155:84532"; // Base Sepolia
+const TARGET_TOKEN = "0x036CbD53842c5426634e7929541eC2318f3dCF7e"; // USDC on Base Sepolia
+
+const registerResponse = await fetch(
+  `${DEPOSIT_SERVICE_URL}/register-managed`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": API_KEY,
+    },
+    body: JSON.stringify({
+      account: {
+        salt,
+        target: {
+          chain: TARGET_CHAIN,
+          token: TARGET_TOKEN,
+          recipient: RECIPIENT,
+        },
+      },
+    }),
+  }
+);
+
+const { evmDepositAddress, solanaDepositAddress } =
+  await registerResponse.json();
+console.log(`EVM deposit address: ${evmDepositAddress}`);
+console.log(`Solana deposit address: ${solanaDepositAddress}`);
+```
+
+You should see two deposit addresses printed. The `evmDepositAddress` is where users send tokens on any supported EVM chain.
 
 </Step>
 
-<Step title="Fund the account">
+<Step title="Verify registration">
 
-The user transfers tokens to their smart account on any supported source chain. The deposit service detects the transfer automatically via webhooks from the chain indexer.
+```ts
+const check = await fetch(
+  `${DEPOSIT_SERVICE_URL}/check/${evmDepositAddress}`
+);
+const checkData = await check.json();
+console.log(checkData);
+```
+
+You should see:
+
+```json
+{
+  "isRegistered": true,
+  "targetChain": "eip155:84532",
+  "targetToken": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+  "sourceChains": ["eip155:84532", "eip155:11155420", "eip155:421614"]
+}
+```
 
 </Step>
 
-<Step title="Receive the webhook">
+<Step title="Deposit tokens">
 
-Once the deposit is bridged to the target chain, your webhook endpoint receives a notification with the deposit details, transaction hash, and final status.
+Transfer USDC to the deposit address on Optimism Sepolia. The deposit service detects it and bridges it to Base Sepolia automatically.
+
+```ts
+import {
+  createWalletClient,
+  http,
+  encodeFunctionData,
+  erc20Abi,
+  parseUnits,
+} from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { optimismSepolia } from "viem/chains";
+
+const funder = privateKeyToAccount("0xYOUR_FUNDING_KEY");
+const walletClient = createWalletClient({
+  account: funder,
+  chain: optimismSepolia,
+  transport: http(),
+});
+
+// USDC on Optimism Sepolia
+const USDC = "0x5fd84259d66Cd46123540766Be93DFE6D43130D7";
+
+const txHash = await walletClient.sendTransaction({
+  to: USDC,
+  data: encodeFunctionData({
+    abi: erc20Abi,
+    functionName: "transfer",
+    args: [evmDepositAddress, parseUnits("1", 6)],
+  }),
+});
+
+console.log(`Deposit tx: ${txHash}`);
+```
+
+</Step>
+
+<Step title="Check deposit status">
+
+Poll the deposits endpoint to track the bridging progress.
+
+```ts
+const deposits = await fetch(
+  `${DEPOSIT_SERVICE_URL}/deposits?account=${evmDepositAddress}`,
+  {
+    headers: { "x-api-key": API_KEY },
+  }
+);
+const data = await deposits.json();
+console.log(data);
+```
+
+Once bridging completes, the deposit status changes to `completed` and includes the destination transaction hash. The USDC is now at the recipient address on Base Sepolia.
 
 </Step>
 
 </Steps>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Setup" icon="settings" href="/deposits/api/setup">
+    Webhooks, sponsorship rules, and deposit whitelists.
+  </Card>
+  <Card title="Registering accounts" icon="user-plus" href="/deposits/api/registering-accounts">
+    User-owned accounts, session configuration, and output token rules.
+  </Card>
+  <Card title="Processing deposits" icon="arrow-right-left" href="/deposits/api/processing-deposits">
+    Deposit lifecycle, retries, and status tracking.
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/deposits/api/webhooks">
+    Event types, payload format, and HMAC verification.
+  </Card>
+</CardGroup>
