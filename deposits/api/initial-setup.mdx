@@ -43,13 +43,7 @@ When a `webhookSecret` is set, every webhook request includes an `X-Webhook-Sign
 
 ## Sponsor fees
 
-Control who pays for gas, bridging, and swap fees on a per-chain basis. Chains are identified by [CAIP-2](https://chainagnostic.org/CAIPs/caip-2) identifiers (e.g. `eip155:8453` for Base).
-
-| Option | Values | Description |
-|---|---|---|
-| `gas` | `"all"`, `"deployed"`, `"none"` | `"all"` sponsors gas for all accounts. `"deployed"` only sponsors already-deployed accounts (skips first-time deployment gas). Default: `"none"`. |
-| `bridging` | `"all"`, `"none"` | `"all"` covers the relayer bridging fee. Default: `"none"`. |
-| `swap` | `"all"`, `"none"` | `"all"` covers swap fees when a token conversion is needed. Default: `"none"`. |
+Cover gas, bridging, and swap fees on behalf of your users so they receive the full deposit amount. Sponsorship is configured per source chain using [CAIP-2](https://chainagnostic.org/CAIPs/caip-2) identifiers. Chains without explicit config default to no sponsorship.
 
 ```ts
 await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
@@ -67,9 +61,7 @@ await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
 });
 ```
 
-<Note>
-When a fee isn't sponsored, it's deducted from the bridged amount. The user receives slightly less than they deposited.
-</Note>
+See [sponsorship](/deposits/api/sponsorship) for the full list of fee types, available values, and how sponsorship is resolved at processing time.
 
 ## Restrict accepted deposits
 

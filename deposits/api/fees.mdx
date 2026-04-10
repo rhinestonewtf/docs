@@ -1,19 +1,30 @@
 ---
 title: "Fees"
-description: "Understand the fee structure for deposits processed through the Deposit API."
+description: "Understand the fee structure for deposits."
 ---
 
-The deposit service charges fees to cover bridging costs and service operation. This page explains how fees are calculated, when they apply, and how to retrieve fee estimates before processing a deposit.
+Every deposit processed through the Deposit API may incur fees depending on the source chain, target chain, and tokens involved. Fees are deducted from the deposit amount — the user receives the deposited amount minus any applicable fees.
 
 ## Fee types
 
-- **Bridging fee** — covers the cost of cross-chain settlement via the Rhinestone Orchestrator. Only applies when the source and target chain or token differ.
-- **Service fee** — a flat or percentage-based fee applied to each processed deposit.
+| Fee | Applies when | Covers |
+|---|---|---|
+| **Gas** | Always | On-chain execution costs on source and target chains |
+| **Bridging** | Source and target chain differ | Settlement layer fee (Across, Relay, etc.) |
+| **Swap** | Source and target token differ | DEX execution fee for token conversion |
 
-## Same-chain deposits
+A single deposit can incur multiple fee types. For example, depositing ETH on Arbitrum to receive USDC on Base incurs all three: gas for on-chain execution, a bridging fee for the cross-chain settlement, and a swap fee for the ETH → USDC conversion. Same-chain deposits skip the bridging fee, and same-token deposits skip the swap fee.
 
-Deposits where the source chain and token match the target incur no bridging fee. The service fee still applies.
+## How fees are applied
 
-## Estimating fees
+Fees are subtracted from the deposit amount during processing. The user receives the remainder on the target chain.
 
-Use the fee estimation endpoint to preview the total cost before initiating a deposit. See the [API reference](/api-reference) for details.
+For example, if a user deposits 100 USDC and total fees are 0.50 USDC, the user receives 99.50 USDC on the target chain.
+
+To cover fees on behalf of your users so they receive the full amount, see [sponsorship](/deposits/api/sponsorship).
+
+## Learn more
+
+- [Fees](/home/resources/fees) — general Rhinestone fee structure and current rates
+- [Sponsorship](/deposits/api/sponsorship) — cover fees on behalf of your users
+- [Initial setup](/deposits/api/initial-setup) — configure deposit whitelists and price deviation tolerance
