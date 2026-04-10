@@ -1,35 +1,94 @@
 ---
 title: "Quickstart"
-description: "Add the Deposit Widget to your React app and accept cross-chain deposits in minutes."
+description: "Add the deposit widget to your React app and accept cross-chain deposits in minutes."
 ---
 
-This guide walks through installing the widget, rendering the deposit modal, and handling a completed deposit.
+Install the `@rhinestone/deposit-modal` package, render the modal, and handle a completed deposit.
 
 ## Prerequisites
 
-- A React app (Next.js, Vite, or similar)
-- The `@rhinestone/deposit-modal` package
+- A React 18+ app (Next.js, Vite, or similar)
+- A [Rhinestone API key](https://tally.so/r/wg22x4)
+- A [Reown](https://cloud.reown.com/) project ID (for wallet connection)
 
-## Steps
+## Install
+
+```bash
+npm install @rhinestone/deposit-modal viem wagmi @tanstack/react-query @reown/appkit @reown/appkit-adapter-wagmi
+```
 
 <Steps>
 
-<Step title="Install the package">
+<Step title="Render the deposit modal">
 
-Install the deposit widget and its peer dependencies.
+Import the modal and its styles. Pass the target chain, token, and your Reown project ID.
 
-</Step>
+```tsx
+import { useState } from "react";
+import { DepositModal } from "@rhinestone/deposit-modal";
+import "@rhinestone/deposit-modal/styles.css";
 
-<Step title="Render the modal">
+function App() {
+  const [isOpen, setIsOpen] = useState(false);
 
-Import `DepositModal` and render it with your target chain and token. The modal handles wallet connection, chain selection, and deposit execution.
+  return (
+    <>
+      <button onClick={() => setIsOpen(true)}>Deposit</button>
+      <DepositModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        targetChain={8453}
+        targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+        recipient="0xYOUR_RECIPIENT_ADDRESS"
+        reownAppId={process.env.NEXT_PUBLIC_REOWN_PROJECT_ID!}
+      />
+    </>
+  );
+}
+```
+
+This renders a modal where the user connects their wallet, picks a source chain and token, enters an amount, and confirms the deposit. Bridging to the target chain is handled automatically.
 
 </Step>
 
 <Step title="Handle completion">
 
-Use the `onDepositComplete` callback to react when tokens arrive on the target chain — update your UI, unlock features, or trigger downstream logic.
+Add the `onDepositComplete` callback to react when tokens arrive on the target chain.
+
+```tsx {8-11}
+<DepositModal
+  isOpen={isOpen}
+  onClose={() => setIsOpen(false)}
+  targetChain={8453}
+  targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  recipient="0xYOUR_RECIPIENT_ADDRESS"
+  reownAppId={process.env.NEXT_PUBLIC_REOWN_PROJECT_ID!}
+  onDepositComplete={(data) => {
+    console.log("Deposit complete:", data.destinationTxHash);
+    setIsOpen(false);
+  }}
+/>
+```
+
+The `data` object includes the source `txHash`, the `destinationTxHash` on the target chain, the `amount`, and chain/token details. See [status tracking](/deposits/widget/status-tracking) for all available callbacks.
 
 </Step>
 
 </Steps>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Deposit modal" icon="arrow-down-to-line" href="/deposits/widget/deposit-modal">
+    Integration modes, transfer configuration, and full props reference.
+  </Card>
+  <Card title="Customization" icon="palette" href="/deposits/widget/customization">
+    Theme, branding, and UI configuration.
+  </Card>
+  <Card title="Status tracking" icon="activity" href="/deposits/widget/status-tracking">
+    Lifecycle events, callbacks, and error handling.
+  </Card>
+  <Card title="Withdraw modal" icon="arrow-up-from-line" href="/deposits/widget/withdraw-modal">
+    Withdraw tokens from a Safe to any supported chain.
+  </Card>
+</CardGroup>

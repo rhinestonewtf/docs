@@ -3,16 +3,212 @@ title: "Deposit modal"
 description: "Configure the deposit modal for different wallet connection modes and deposit flows."
 ---
 
-The `DepositModal` component is the primary integration point for the deposit widget. It handles the full deposit flow: wallet connection, source chain/token selection, amount input, and bridging.
+The `DepositModal` component handles the full deposit flow: wallet connection, source chain and token selection, amount input, and cross-chain bridging. It supports three wallet integration modes depending on how your app manages wallets.
 
 ## Integration modes
 
-The modal supports three wallet connection modes depending on your app's architecture:
+### External wallet
 
-- **Dapp signer** — your app provides a wallet client directly. The modal uses it to sign transactions without showing its own wallet connection UI. Best when your app already manages wallet state.
-- **External wallet** — the modal shows a wallet connection flow via Reown (WalletConnect). Users connect their own wallet. Requires a Reown app ID.
-- **QR deposit** — the modal displays a QR code and deposit address. Users send funds manually from any wallet. No wallet connection required.
+The user connects their own wallet via Reown (WalletConnect). The modal manages the wallet connection UI internally. Use this when your app doesn't have existing wallet infrastructure.
 
-## Props
+Pass a `reownAppId` to enable external wallet connection.
 
-Reference for the `DepositModal` props: target chain, target token, wallet client configuration, callbacks, and UI options. Each mode requires a different combination of props.
+```tsx
+import { DepositModal } from "@rhinestone/deposit-modal";
+import "@rhinestone/deposit-modal/styles.css";
+
+<DepositModal
+  isOpen={isOpen}
+  onClose={() => setIsOpen(false)}
+  targetChain={8453}
+  targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  recipient="0xYOUR_RECIPIENT_ADDRESS"
+  reownAppId="YOUR_REOWN_PROJECT_ID"
+  onDepositComplete={(data) => console.log(data)}
+/>
+```
+
+### Embedded wallet
+
+Your app manages the wallet (e.g. via Privy, Dynamic, or Turnkey) and passes the owner address to the modal. The modal skips its own wallet connection UI and uses your app's wallet context.
+
+Pass `dappAddress` with the wallet owner address, and `onRequestConnect` to trigger your app's login flow when the modal needs a connected wallet.
+
+```tsx
+import { DepositModal } from "@rhinestone/deposit-modal";
+import "@rhinestone/deposit-modal/styles.css";
+
+<DepositModal
+  isOpen={isOpen}
+  onClose={() => setIsOpen(false)}
+  targetChain={8453}
+  targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  recipient="0xYOUR_RECIPIENT_ADDRESS"
+  dappAddress={embeddedWalletAddress}
+  onRequestConnect={() => login()}
+  onDepositComplete={(data) => console.log(data)}
+/>
+```
+
+### QR code deposit
+
+The modal displays a deposit address and QR code. The user sends funds from any wallet externally — no wallet connection is required inside the modal.
+
+Pass `dappAddress` without `onRequestConnect` or `reownAppId`.
+
+```tsx
+import { DepositModal } from "@rhinestone/deposit-modal";
+import "@rhinestone/deposit-modal/styles.css";
+
+<DepositModal
+  isOpen={isOpen}
+  onClose={() => setIsOpen(false)}
+  targetChain={8453}
+  targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  recipient="0xYOUR_RECIPIENT_ADDRESS"
+  dappAddress={ownerAddress}
+  onDepositComplete={(data) => console.log(data)}
+/>
+```
+
+## Transfer configuration
+
+Control the deposit destination and optionally pre-fill source parameters.
+
+| Prop | Type | Required | Description |
+|---|---|---|---|
+| `targetChain` | `Chain \| number` | Yes | Destination chain (viem `Chain` object or chain ID) |
+| `targetToken` | `Address` | Yes | Token address on the destination chain |
+| `recipient` | `Address` | Yes | Where funds are delivered on the target chain |
+| `defaultAmount` | `string` | No | Pre-filled deposit amount |
+| `sourceChain` | `Chain \| number` | No | Pre-selected source chain |
+| `sourceToken` | `Address` | No | Pre-selected source token |
+| `allowedRoutes` | `RouteConfig` | No | Restrict available source chains and tokens |
+
+The `allowedRoutes` prop accepts `{ sourceChains?: number[], sourceTokens?: string[] }` to limit what the user can select. For supported chains and tokens, see [supported chains](/home/resources/supported-chains).
+
+## Session configuration
+
+Sessions allow the widget to execute bridging on behalf of the user's smart account. These props control session behavior.
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `sessionChainIds` | `number[]` | All supported chains | Restrict which chains get session keys |
+| `forceRegister` | `boolean` | `false` | Force session re-creation even if the account is already registered |
+| `waitForFinalTx` | `boolean` | `true` | Wait for destination chain confirmation before firing `onDepositComplete`. When `false`, resolves after the bridge is submitted. |
+
+## Post-bridge actions
+
+Execute actions on the destination chain after bridging completes. Use this for automated swaps into vault tokens or other DeFi positions.
+
+```tsx
+<DepositModal
+  // ...required props
+  postBridgeActions={[
+    {
+      type: "orderbook-swap",
+      contract: "0xSWAP_CONTRACT_ADDRESS",
+      outputToken: "0xVAULT_TOKEN_ADDRESS",
+    },
+  ]}
+/>
+```
+
+The flow becomes: deposit on source chain → bridge to target chain → swap into the output token → deliver to the recipient.
+
+## Display modes
+
+By default, the component renders as a centered modal overlay with a backdrop. Set `inline={true}` to render it without the overlay, fitting into your page layout.
+
+```tsx
+<DepositModal
+  isOpen={true}
+  onClose={() => {}}
+  inline={true}
+  // ...other props
+/>
+```
+
+Set `closeOnOverlayClick={false}` to prevent the modal from closing when the user clicks outside it.
+
+## Props reference
+
+### Required
+
+| Prop | Type | Description |
+|---|---|---|
+| `isOpen` | `boolean` | Controls modal visibility |
+| `onClose` | `() => void` | Called when the user closes the modal |
+| `targetChain` | `Chain \| number` | Destination chain (viem `Chain` object or chain ID) |
+| `targetToken` | `Address` | Token address on the destination chain |
+| `recipient` | `Address` | Where funds are delivered on the target chain |
+
+### Wallet
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `reownAppId` | `string` | — | Reown project ID. Enables external wallet connection. |
+| `dappAddress` | `Address` | — | Owner address for embedded wallet or QR code flows |
+| `dappWalletClient` | `WalletClient` | — | Host-provided viem wallet client for signing |
+| `dappPublicClient` | `PublicClient` | — | Host-provided viem public client |
+| `onRequestConnect` | `() => void` | — | Called when the modal needs the user to connect a wallet |
+| `connectButtonLabel` | `string` | — | Custom label for the connect button |
+
+### Transfer
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `defaultAmount` | `string` | — | Pre-filled deposit amount |
+| `sourceChain` | `Chain \| number` | — | Pre-selected source chain |
+| `sourceToken` | `Address` | — | Pre-selected source token |
+| `allowedRoutes` | `RouteConfig` | — | `{ sourceChains?, sourceTokens? }` to restrict selection |
+| `postBridgeActions` | `PostBridgeAction[]` | — | Actions to execute after bridging |
+
+### Session
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `sessionChainIds` | `number[]` | All supported | Chain IDs for session key creation |
+| `forceRegister` | `boolean` | `false` | Force session re-creation |
+| `waitForFinalTx` | `boolean` | `true` | Wait for destination chain confirmation |
+| `signerAddress` | `Address` | Default signer | Session signer address |
+| `rhinestoneApiKey` | `string` | — | API key for account setup |
+
+### Backend
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `backendUrl` | `string` | Rhinestone production URL | URL of your deposit-widget-backend instance |
+
+### Display
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `inline` | `boolean` | `false` | Render without modal overlay |
+| `closeOnOverlayClick` | `boolean` | `true` | Close modal on backdrop click |
+| `className` | `string` | — | CSS class for the modal container |
+| `theme` | `DepositModalTheme` | — | [Theme configuration](/deposits/widget/customization#theme) |
+| `branding` | `DepositModalBranding` | — | [Branding configuration](/deposits/widget/customization#branding) |
+| `uiConfig` | `DepositModalUIConfig` | — | [UI configuration](/deposits/widget/customization#ui-configuration) |
+| `debug` | `boolean` | `false` | Enable debug logging |
+
+### Callbacks
+
+| Prop | Type | Description |
+|---|---|---|
+| `onReady` | `() => void` | Modal initialized |
+| `onConnected` | `(data: ConnectedEventData) => void` | Smart account created |
+| `onDepositSubmitted` | `(data: DepositSubmittedEventData) => void` | Deposit transaction submitted on source chain |
+| `onDepositComplete` | `(data: DepositCompleteEventData) => void` | Tokens arrived on target chain |
+| `onDepositFailed` | `(data: DepositFailedEventData) => void` | Bridge or transfer failed |
+| `onError` | `(data: ErrorEventData) => void` | Error at any stage |
+| `onEvent` | `(event: DepositEvent) => void` | [Analytics event](/deposits/widget/status-tracking#analytics) |
+
+See [status tracking](/deposits/widget/status-tracking) for callback payload types and the deposit lifecycle.
+
+### Solana
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `enableSolana` | `boolean` | `true` | Enable Solana wallet support and QR flows |
+| `solanaRpcUrl` | `string` | Solana mainnet | Custom Solana RPC endpoint |
