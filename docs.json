@@ -245,9 +245,9 @@
             "group": "API",
             "pages": [
               "deposits/api/quickstart",
-              "deposits/api/setup",
-              "deposits/api/registering-accounts",
-              "deposits/api/processing-deposits",
+              "deposits/api/initial-setup",
+              "deposits/api/account-registration",
+              "deposits/api/deposit-processing",
               "deposits/api/fees",
               "deposits/api/sponsorship",
               "deposits/api/webhooks"

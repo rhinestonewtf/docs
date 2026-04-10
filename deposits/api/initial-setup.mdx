@@ -1,0 +1,173 @@
+---
+title: "Initial setup"
+description: "Configure webhooks, fee sponsorship, and deposit whitelists for your Deposit API client."
+---
+
+Call `POST /setup` to configure how the deposit service handles your deposits. All fields are optional — configure what you need. Each call performs a partial update; omitted fields keep their current value.
+
+## Prerequisites
+
+- A Rhinestone API key ([request one here](https://tally.so/r/wg22x4))
+- You've completed the [quickstart](/deposits/api/quickstart) or are familiar with the base URL and auth header
+
+All examples below use these shared constants:
+
+```ts
+const DEPOSIT_SERVICE_URL = "https://deposits.rhinestone.dev";
+const API_KEY = "YOUR_RHINESTONE_API_KEY";
+
+const headers = {
+  "Content-Type": "application/json",
+  "x-api-key": API_KEY,
+};
+```
+
+## Configure a webhook
+
+Register a URL to receive notifications about deposit events. Optionally provide a secret for HMAC-SHA256 signature verification.
+
+```ts
+await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    params: {
+      webhookUrl: "https://your-domain.com/notify",
+      webhookSecret: "your-secret-key",
+    },
+  }),
+});
+```
+
+When a `webhookSecret` is set, every webhook request includes an `X-Webhook-Signature` header you can verify. See [webhooks](/deposits/api/webhooks) for event types, payload format, and verification examples.
+
+## Sponsor fees
+
+Control who pays for gas, bridging, and swap fees on a per-chain basis. Chains are identified by [CAIP-2](https://chainagnostic.org/CAIPs/caip-2) identifiers (e.g. `eip155:8453` for Base).
+
+| Option | Values | Description |
+|---|---|---|
+| `gas` | `"all"`, `"deployed"`, `"none"` | `"all"` sponsors gas for all accounts. `"deployed"` only sponsors already-deployed accounts (skips first-time deployment gas). Default: `"none"`. |
+| `bridging` | `"all"`, `"none"` | `"all"` covers the relayer bridging fee. Default: `"none"`. |
+| `swap` | `"all"`, `"none"` | `"all"` covers swap fees when a token conversion is needed. Default: `"none"`. |
+
+```ts
+await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    params: {
+      sponsorship: {
+        "eip155:8453": { gas: "all", bridging: "all" },  // Base
+        "eip155:10": { gas: "all" },                      // Optimism
+        "eip155:42161": { gas: "deployed" },               // Arbitrum
+      },
+    },
+  }),
+});
+```
+
+<Note>
+When a fee isn't sponsored, it's deducted from the bridged amount. The user receives slightly less than they deposited.
+</Note>
+
+## Restrict accepted deposits
+
+Define a whitelist of accepted tokens per source chain. Deposits of unlisted tokens are silently ignored. You can also set minimum and maximum deposit amounts per token.
+
+```ts
+await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    params: {
+      depositWhitelist: {
+        "eip155:8453": [
+          {
+            token: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC on Base
+            minAmount: "1000000",    // 1 USDC minimum
+            maxAmount: "5000000000", // 5,000 USDC maximum
+          },
+        ],
+        "eip155:42161": [
+          { token: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" }, // USDC on Arbitrum, no limits
+          { token: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9", minAmount: "1000000" }, // USDT, $1 min
+        ],
+      },
+    },
+  }),
+});
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `token` | `string` | Token address (`0x`-prefixed) |
+| `minAmount` | `string` | Optional. Minimum accepted amount in raw token units (inclusive) |
+| `maxAmount` | `string` | Optional. Maximum accepted amount in raw token units (inclusive) |
+
+If no whitelist is set, all [supported tokens](/home/resources/supported-chains) are accepted with no amount restrictions.
+
+Rejected deposits trigger a `bridge-failed` webhook with error code `TOKEN-3` (token not allowed) or `BALANCE-3` (amount out of range).
+
+## Set price deviation tolerance
+
+For stablecoin-to-stablecoin bridges, set the maximum allowed price deviation in basis points. Deposits that exceed this threshold are rejected with error code `BRIDGE-5`.
+
+```ts
+await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    params: {
+      maxPriceDeviationBps: 100, // 1% max deviation
+    },
+  }),
+});
+```
+
+The default is `200` (2%) if not set. Tighten this for high-value stablecoin corridors; loosen it if you see rejections during volatile periods.
+
+## Clear a configuration field
+
+Each `/setup` call is a partial update. To explicitly clear a field, pass `null` for string fields or `{}` for object fields:
+
+| To clear | Pass |
+|---|---|
+| `webhookUrl` | `null` |
+| `webhookSecret` | `null` |
+| `sponsorship` | `{}` |
+| `depositWhitelist` | `{}` |
+| `maxPriceDeviationBps` | `null` |
+
+## Put it all together
+
+A single `/setup` call configuring everything at once:
+
+```ts
+await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    params: {
+      webhookUrl: "https://your-domain.com/notify",
+      webhookSecret: "your-secret-key",
+      sponsorship: {
+        "eip155:8453": { gas: "all", bridging: "all" },
+        "eip155:10": { gas: "all" },
+      },
+      depositWhitelist: {
+        "eip155:8453": [
+          {
+            token: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            minAmount: "1000000",
+          },
+        ],
+        "eip155:42161": [
+          { token: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" },
+        ],
+      },
+      maxPriceDeviationBps: 150,
+    },
+  }),
+});
+```
