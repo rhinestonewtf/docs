@@ -163,9 +163,9 @@ table th:last-child {
   fill: #C7C6CC !important;
 }
 
-.mermaid svg .edgeLabel rect {
-  fill: transparent !important;
-  stroke: none !important;
+.mermaid .labelBkg,
+.mermaid .labelBkg * {
+  background: transparent !important;
 }
 
 /* Flowchart: markers */
