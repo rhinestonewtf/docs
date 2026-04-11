@@ -62,7 +62,7 @@ Sending a transaction with an EIP-7702 account requires two additional signing s
     ```
 
     <Info>
-    The init signature is valid cross-chain, so you can cache it and reuse it. Always provide it when preparing a transaction — the account may need to be initialised on any of the source or target chains.
+    The init signature is valid cross-chain, so you can cache it and reuse it. Passing `eip7702InitSignature` explicitly is still recommended when you want predictable reuse across chains, but recent SDK versions can also auto-sign the init data for supported flows if you do not provide it.
     </Info>
   </Step>
   <Step title="Prepare the transaction">

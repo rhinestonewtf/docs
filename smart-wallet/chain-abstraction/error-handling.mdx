@@ -15,8 +15,7 @@ title: "Error handling"
 ## Execution errors
 
 * `SourceChainsNotAvailableForUserOpFlowError`: when using a UserOp flow (e.g., for account recovery), you need to provide a source chain.
-* `UserOperationRequiredForSmartSessionsError`: when using smart sessions, you need to use the UserOp flow.
-* `SessionChainRequiredError`: when using smart sessions, each session needs to define a chain where it is activated.
+* `SessionChainRequiredError`: when using multi-chain smart sessions, you need to specify which chain to prepare the transaction for.
 * `IntentFailedError`: the intent failed (reverted onchain). A common reason is that a swap failed due to price action.
 * `SimulationNotSupportedForUserOpFlowError`: `simulateTransaction` can only simulate intents.
 * `OrderPathRequiredForIntentsError`: when sending an intent, you need to first get the path. When using `submitTransaction`, make sure to call `prepareTransaction` first.
