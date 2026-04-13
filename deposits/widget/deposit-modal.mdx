@@ -5,6 +5,15 @@ description: "Configure the deposit modal for different wallet connection modes 
 
 The `DepositModal` component handles the full deposit flow: wallet connection, source chain and token selection, amount input, and cross-chain bridging. It supports three wallet integration modes depending on how your app manages wallets.
 
+## recipient vs dappAddress
+
+Two props look similar but serve different purposes:
+
+- **`recipient`** (required) — the address that receives the bridged funds on the target chain. This is a pure delivery target.
+- **`dappAddress`** (embedded wallet & QR modes) — the address that owns the deposit. The modal uses it to derive the smart account and, by default, as the delivery target. It is the user's identity in the flow, not a destination.
+
+In external wallet mode, the connected wallet is the owner, so only `recipient` is needed. In embedded and QR modes, you must pass `dappAddress` because the modal has no other way to know who owns the deposit.
+
 ## Integration modes
 
 ### External wallet
