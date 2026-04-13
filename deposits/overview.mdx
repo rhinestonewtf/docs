@@ -81,9 +81,50 @@ With the **API**, you control the UX entirely. The user interacts with your app 
 
 ## Supported chains and tokens
 
-Deposits can be sent from any supported EVM chain (Ethereum, Base, Optimism, Arbitrum, Polygon, and others) as well as Solana. Funds are bridged to any supported EVM target chain.
+{/*
+  Source: GET https://v1.orchestrator.rhinestone.dev/deposit-processor/chains
 
-For the full list, see [supported chains](/home/resources/supported-chains). You can also query the available chains and tokens programmatically via the [List supported chains and tokens](/api-reference/info/list-supported-chains-and-tokens) endpoint.
+  Hardcoded as plain markdown tables so they render at SSR time (no client-side
+  fetch, no flash-of-loading). Refresh manually when the upstream list changes.
+*/}
+
+Rhinestone Deposits supports a wide range of EVM chains plus Solana. Each chain is enabled as a **source** (the user can deposit from it), a **destination** (funds can settle on it), or both.
+
+- **Deposit** — users can transfer tokens on this chain and have them bridged to the target.
+- **Destination** — accounts on this chain can be registered as the target where funds land.
+- **Tokens** — `All` means any token routable through Warp; otherwise, only the listed tokens are accepted.
+
+### Mainnet
+
+| Name            | Deposit | Destination | Tokens          |
+| :-------------- | :-----: | :---------: | :-------------- |
+| Ethereum        |    ✓    |      ✓      | All             |
+| OP Mainnet      |    ✓    |      ✓      | All             |
+| BNB Smart Chain |    ✓    |      ✓      | All             |
+| Gnosis          |    —    |      ✓      | All             |
+| Polygon         |    ✓    |      ✓      | All             |
+| Sonic           |    —    |      ✓      | All             |
+| HyperEVM        |    —    |      ✓      | USDC, USDT0     |
+| Soneium         |    ✓    |      ✓      | ETH, USDC, WETH |
+| Base            |    ✓    |      ✓      | All             |
+| Plasma          |    ✓    |      ✓      | All             |
+| Arbitrum One    |    ✓    |      ✓      | All             |
+| Solana          |    ✓    |      —      | USDC, USDT, SOL |
+
+### Testnet
+
+| Name             | Deposit | Destination | Tokens                   |
+| :--------------- | :-----: | :---------: | :----------------------- |
+| Sepolia          |    ✓    |      ✓      | ETH, USDC, WETH          |
+| OP Sepolia       |    ✓    |      ✓      | ETH, USDC, WETH          |
+| Base Sepolia     |    ✓    |      ✓      | ETH, USDC, WETH, MockUSD |
+| Arbitrum Sepolia |    ✓    |      ✓      | ETH, USDC, WETH          |
+| Plasma Testnet   |    —    |      ✓      | USDT0, USDC              |
+
+<Info>
+  This data is also available programmatically via the [List supported chains
+  and tokens](/api-reference/info/list-supported-chains-and-tokens) endpoint.
+</Info>
 
 ## Which should you use?
 

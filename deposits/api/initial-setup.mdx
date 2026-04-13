@@ -96,7 +96,7 @@ await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
 | `minAmount` | `string` | Optional. Minimum accepted amount in raw token units (inclusive) |
 | `maxAmount` | `string` | Optional. Maximum accepted amount in raw token units (inclusive) |
 
-If no whitelist is set, all [supported tokens](/home/resources/supported-chains) are accepted with no amount restrictions.
+If no whitelist is set, all [supported tokens](/deposits/overview#supported-chains-and-tokens) are accepted with no amount restrictions.
 
 Rejected deposits trigger a `bridge-failed` webhook with error code `TOKEN-3` (token not allowed) or `BALANCE-3` (amount out of range).
 
