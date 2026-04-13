@@ -9,22 +9,30 @@ It's built for teams that need reliable deposit rails: neobanks, modern dapps, D
 
 ## Two ways to integrate
 
-<CardGroup cols={2}>
-  <Card title="Deposit API" icon="code" href="/deposits/api/quickstart">
-    A headless backend service for programmatic deposit handling. You register
-    accounts, configure webhooks, and process deposits server-side. Full control
-    over the deposit flow.
-  </Card>
-  <Card
-    title="Deposit Widget"
-    icon="panel-top"
-    href="/deposits/widget/quickstart"
-  >
-    A drop-in React modal that handles wallet connection, chain selection, and
-    deposit execution out of the box. Minimal frontend effort for a polished
-    deposit experience.
-  </Card>
-</CardGroup>
+<Tabs>
+<Tab title="Deposit API">
+
+A headless backend service for programmatic deposit handling. You register accounts, configure webhooks, and process deposits server-side. Full control over the deposit flow.
+
+<Frame caption="Example of an integration into a mobile app">
+  <video src="/images/deposits_api_integration.mp4" muted autoPlay loop style={{ maxHeight: "500px", margin: "0 auto" }} />
+</Frame>
+
+[Get started with the Deposit API →](/deposits/api/quickstart)
+
+</Tab>
+<Tab title="Deposit Widget">
+
+A drop-in React modal that handles wallet connection, chain selection, and deposit execution out of the box. Minimal frontend effort for a polished deposit experience.
+
+<Frame caption="Widget UI">
+  <img src="/images/deposits_widget_ui.png" style={{ maxHeight: "500px", margin: "0 auto" }} />
+</Frame>
+
+[Get started with the Deposit Widget →](/deposits/widget/quickstart)
+
+</Tab>
+</Tabs>
 
 ## How it works
 
