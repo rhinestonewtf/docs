@@ -15,7 +15,7 @@ It's built for teams that need reliable deposit rails: neobanks, modern dapps, D
 A headless backend service for programmatic deposit handling. You register accounts, configure webhooks, and process deposits server-side. Full control over the deposit flow.
 
 <Frame caption="Example of an integration into a mobile app">
-  <video src="/images/deposits_api_integration.mp4" muted autoPlay loop style={{ maxHeight: "500px", margin: "0 auto" }} />
+  <video src="/images/deposits_api_integration.mp4" muted loop controls className="rounded-2xl" style={{ maxHeight: "500px", margin: "0 auto" }} />
 </Frame>
 
 [Get started with the Deposit API →](/deposits/api/quickstart)
@@ -26,7 +26,7 @@ A headless backend service for programmatic deposit handling. You register accou
 A drop-in React modal that handles wallet connection, chain selection, and deposit execution out of the box. Minimal frontend effort for a polished deposit experience.
 
 <Frame caption="Widget UI">
-  <img src="/images/deposits_widget_ui.png" style={{ maxHeight: "500px", margin: "0 auto" }} />
+  <video src="/images/deposits_widget_ui.mov" muted loop controls className="rounded-2xl" style={{ maxHeight: "500px", margin: "0 auto" }} />
 </Frame>
 
 [Get started with the Deposit Widget →](/deposits/widget/quickstart)
@@ -61,6 +61,8 @@ The user makes a single transfer. Everything else — bridging, swaps, gas — i
 ## Why Deposits
 
 Deposits are self-custodial by design — funds are held in the user's smart account at every step, and Rhinestone never takes custody. Stablecoin swaps settle at parity, fees can be fully sponsored, and destination calls let funds land directly into a vault or position. The result is a deposit rail that feels like a native single-chain transfer, without the trust trade-offs of a centralized bridge.
+
+Under the hood, Rhinestone aggregates multiple bridging providers, solvers, and quoting services, routing each deposit through the best available path. If one provider is degraded or a route is unavailable, the service falls back automatically — giving you a single integration with the reliability of several.
 
 ## Key features
 
