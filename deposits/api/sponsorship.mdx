@@ -26,9 +26,12 @@ await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
   body: JSON.stringify({
     params: {
       sponsorship: {
-        "eip155:8453": { gas: "all", bridging: "all", swap: "all" }, // Base: fully sponsored
-        "eip155:10": { gas: "all" },                                  // Optimism: only gas
-        "eip155:42161": { gas: "deployed" },                           // Arbitrum: gas for deployed accounts only
+        // Base: fully sponsored
+        "eip155:8453": { gas: "all", bridging: "all", swap: "all" },
+        // Optimism: only gas
+        "eip155:10": { gas: "all" },
+        // Arbitrum: gas for deployed accounts only
+        "eip155:42161": { gas: "deployed" },
         // Ethereum, Polygon: no sponsorship (not listed)
       },
     },
@@ -46,14 +49,9 @@ Each fee type is resolved independently when processing a deposit, based on the 
 
 ## Effect on deposit amount
 
-**Sponsored fees** are covered by your sponsorship balance. The user receives the full bridged amount.
+**Sponsored fees** are covered by your sponsorship balance. The user receives the full bridged amount — if they deposit 100 USDC and fees are 0.50 USDC, they receive the full 100 USDC on the target chain.
 
-**Unsponsored fees** are deducted from the deposit. The user receives less than they sent.
-
-| Sponsorship | User deposits 100 USDC | Fees: 0.50 USDC | User receives |
-|---|---|---|---|
-| Fully sponsored | 100 USDC | Covered by you | 100 USDC |
-| Not sponsored | 100 USDC | Deducted from deposit | 99.50 USDC |
+**Unsponsored fees** are deducted from the deposit. The user receives less than they sent — if they deposit 100 USDC and fees are 0.50 USDC, they receive 99.50 USDC.
 
 ## Learn more
 

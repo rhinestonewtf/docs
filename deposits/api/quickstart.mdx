@@ -7,7 +7,7 @@ Register a managed account, deposit USDC on one chain, and receive it on another
 
 ## Prerequisites
 
-- A Rhinestone API key ([request one here](https://tally.so/r/wg22x4))
+- A Rhinestone API key
 - A wallet with testnet USDC on Optimism Sepolia ([Circle faucet](https://faucet.circle.com/))
 
 <Steps>
@@ -17,7 +17,8 @@ Register a managed account, deposit USDC on one chain, and receive it on another
 Set up gas sponsorship so deposit bridging is covered. This is a one-time call per API key.
 
 ```ts
-const DEPOSIT_SERVICE_URL = "https://deposits.rhinestone.dev";
+const DEPOSIT_SERVICE_URL =
+  "https://v1.orchestrator.rhinestone.dev/deposit-processor";
 const API_KEY = "YOUR_RHINESTONE_API_KEY";
 
 const response = await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
@@ -29,8 +30,8 @@ const response = await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
   body: JSON.stringify({
     params: {
       sponsorship: {
-        "eip155:84532": { gas: "all" },    // Base Sepolia
-        "eip155:11155420": { gas: "all" },  // Optimism Sepolia
+        "eip155:84532": { gas: "all" }, // Base Sepolia
+        "eip155:11155420": { gas: "all" }, // Optimism Sepolia
       },
     },
   }),
@@ -75,7 +76,7 @@ const registerResponse = await fetch(
         },
       },
     }),
-  }
+  },
 );
 
 const { evmDepositAddress, solanaDepositAddress } =
@@ -91,9 +92,7 @@ You should see two deposit addresses printed. The `evmDepositAddress` is where u
 <Step title="Verify registration">
 
 ```ts
-const check = await fetch(
-  `${DEPOSIT_SERVICE_URL}/check/${evmDepositAddress}`
-);
+const check = await fetch(`${DEPOSIT_SERVICE_URL}/check/${evmDepositAddress}`);
 const checkData = await check.json();
 console.log(checkData);
 ```
@@ -159,7 +158,7 @@ const deposits = await fetch(
   `${DEPOSIT_SERVICE_URL}/deposits?account=${evmDepositAddress}`,
   {
     headers: { "x-api-key": API_KEY },
-  }
+  },
 );
 const data = await deposits.json();
 console.log(data);
@@ -174,13 +173,25 @@ Once bridging completes, the deposit status changes to `completed` and includes 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Initial setup" icon="settings" href="/deposits/api/initial-setup">
+  <Card
+    title="Initial setup"
+    icon="settings"
+    href="/deposits/api/initial-setup"
+  >
     Webhooks, sponsorship rules, and deposit whitelists.
   </Card>
-  <Card title="Account registration" icon="user-plus" href="/deposits/api/account-registration">
+  <Card
+    title="Account registration"
+    icon="user-plus"
+    href="/deposits/api/account-registration"
+  >
     User-owned accounts, session configuration, and output token rules.
   </Card>
-  <Card title="Deposit processing" icon="arrow-right-left" href="/deposits/api/deposit-processing">
+  <Card
+    title="Deposit processing"
+    icon="arrow-right-left"
+    href="/deposits/api/deposit-processing"
+  >
     Deposit lifecycle, retries, and status tracking.
   </Card>
   <Card title="Webhooks" icon="bell" href="/deposits/api/webhooks">

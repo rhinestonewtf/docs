@@ -27,8 +27,6 @@ The service monitors registered accounts via chain indexer webhooks. When a toke
 
 The service submits a bridging intent to the Rhinestone Orchestrator, which routes the funds through the optimal settlement layer (Across, Relay, or others). If the primary layer fails, the service tries alternatives automatically.
 
-Same-chain, same-token deposits skip this step entirely — the deposit completes immediately without bridging.
-
 ### Settlement
 
 Tokens arrive on the target chain in the registered target token. If a recipient address was set at registration, funds are forwarded there. The service marks the deposit as `completed` and sends a `bridge-complete` [webhook](/deposits/api/webhooks).

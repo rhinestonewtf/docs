@@ -7,22 +7,25 @@ Every depositing user needs a registered smart account. You can let the service 
 
 ## Choose an account type
 
-| | Managed account | User-owned account |
-|---|---|---|
-| Who creates the account | Deposit service | You, via `@rhinestone/sdk` |
-| Session key setup | Automatic | You sign session authorization |
-| User-facing address | Service returns deposit address | Your existing smart account address |
-| Recipient | Required (you specify where funds go) | Optional (defaults to the account itself) |
-| Best for | Existing apps, EOA users (e.g. browser wallets) | Non-custodial flows, users with existing smart accounts |
+|                         | Managed account                                 | User-owned account                                      |
+| ----------------------- | ----------------------------------------------- | ------------------------------------------------------- |
+| Who creates the account | Deposit service                                 | You, via SDK                                            |
+| Session key setup       | Automatic                                       | You sign session authorization                          |
+| User-facing address     | Service returns deposit address                 | Your existing smart account address                     |
+| Recipient               | Required (you specify where funds go)           | Optional (defaults to the account itself)               |
+| Best for                | Existing apps, EOA users (e.g. browser wallets) | Non-custodial flows, users with existing smart accounts |
 
 <Info>
-Managed accounts are recommended for most integrations — simpler setup, no SDK dependency for registration. User-owned accounts are for cases where deposits should go to an existing smart account the user already controls.
+  Managed accounts are recommended for most integrations — simpler setup, no SDK
+  dependency for registration. User-owned accounts are for cases where deposits
+  should go to an existing smart account the user already controls.
 </Info>
 
 All examples below use these shared constants:
 
 ```ts
-const DEPOSIT_SERVICE_URL = "https://deposits.rhinestone.dev";
+const DEPOSIT_SERVICE_URL =
+  "https://v1.orchestrator.rhinestone.dev/deposit-processor";
 const API_KEY = "YOUR_RHINESTONE_API_KEY";
 
 const headers = {
@@ -60,8 +63,8 @@ const response = await fetch(`${DEPOSIT_SERVICE_URL}/register-managed`, {
     account: {
       salt,
       target: {
-        chain: "eip155:42161",  // Arbitrum
-        token: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",  // USDC
+        chain: "eip155:42161", // Arbitrum
+        token: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", // USDC
         recipient: "0xYOUR_RECIPIENT_ADDRESS",
       },
     },
@@ -73,10 +76,10 @@ const { evmDepositAddress, solanaDepositAddress } = await response.json();
 
 The response includes two deposit addresses:
 
-| Field | Description |
-|---|---|
-| `evmDepositAddress` | Accepts deposits on any supported EVM chain |
-| `solanaDepositAddress` | Accepts deposits on Solana |
+| Field                  | Description                                 |
+| ---------------------- | ------------------------------------------- |
+| `evmDepositAddress`    | Accepts deposits on any supported EVM chain |
+| `solanaDepositAddress` | Accepts deposits on Solana                  |
 
 Both addresses route to the same target chain and token.
 
@@ -84,9 +87,7 @@ Both addresses route to the same target chain and token.
 <Step title="Verify registration">
 
 ```ts
-const check = await fetch(
-  `${DEPOSIT_SERVICE_URL}/check/${evmDepositAddress}`
-);
+const check = await fetch(`${DEPOSIT_SERVICE_URL}/check/${evmDepositAddress}`);
 const data = await check.json();
 ```
 
@@ -118,19 +119,14 @@ npm install @rhinestone/sdk viem
 <Step title="Create the account">
 
 ```ts
-import {
-  RhinestoneSDK,
-  type RhinestoneAccountConfig,
-} from "@rhinestone/sdk";
-import { toViewOnlyAccount } from "@rhinestone/sdk/utils";
+import { RhinestoneSDK, type RhinestoneAccountConfig } from "@rhinestone/sdk";
 
 const rhinestone = new RhinestoneSDK();
 
 const config: RhinestoneAccountConfig = {
-  account: { type: "nexus" },
   owners: {
     type: "ecdsa",
-    accounts: [userSigner], // the user's signer (e.g. from privateKeyToAccount)
+    accounts: [userSigner],
   },
   experimental_sessions: { enabled: true },
 };
@@ -147,26 +143,19 @@ The deposit service uses a session key to sign bridging transactions on the user
 
 ```ts
 import { toViewOnlyAccount } from "@rhinestone/sdk/utils";
-import type { Chain } from "viem";
 import { base, optimism, arbitrum } from "viem/chains";
 
 const RHINESTONE_SIGNER_ADDRESS = "0x177bfcdd15bc01e99013dcc5d2b09cd87a18ce9c";
 const sessionSigner = toViewOnlyAccount(RHINESTONE_SIGNER_ADDRESS);
 
-function buildSession(chain: Chain) {
-  return {
-    owners: { type: "ecdsa" as const, accounts: [sessionSigner] },
-    chain,
-  };
-}
-
 const sourceChains = [base, optimism, arbitrum];
-const sessions = sourceChains.map((chain) => buildSession(chain));
+const sessions = sourceChains.map((chain) => ({
+  owners: { type: "ecdsa" as const, accounts: [sessionSigner] },
+  chain,
+}));
 
-const sessionDetails =
-  await account.experimental_getSessionDetails(sessions);
-const signature =
-  await account.experimental_signEnableSession(sessionDetails);
+const sessionDetails = await account.experimental_getSessionDetails(sessions);
+const signature = await account.experimental_signEnableSession(sessionDetails);
 
 const enableSessionDetails = {
   hashesAndChainIds: sessionDetails.hashesAndChainIds,
@@ -196,7 +185,7 @@ const response = await fetch(`${DEPOSIT_SERVICE_URL}/register`, {
         },
       },
     },
-    (_, v) => (typeof v === "bigint" ? v.toString() : v)
+    (_, v) => (typeof v === "bigint" ? v.toString() : v),
   ),
 });
 
@@ -219,17 +208,19 @@ const data = await check.json();
 </Step>
 </Steps>
 
-</Tab>
-</Tabs>
-
-## Optional: additional source chains
+### Adding source chains
 
 To accept deposits from chains that weren't included in the original registration, add new session details:
 
 ```ts
 import { polygon } from "viem/chains";
 
-const newSessions = [buildSession(polygon)];
+const newSessions = [
+  {
+    owners: { type: "ecdsa" as const, accounts: [sessionSigner] },
+    chain: polygon,
+  },
+];
 const newSessionDetails =
   await account.experimental_getSessionDetails(newSessions);
 const newSignature =
@@ -245,14 +236,18 @@ await fetch(`${DEPOSIT_SERVICE_URL}/account/${address}/session`, {
         signature: newSignature,
       },
     },
-    (_, v) => (typeof v === "bigint" ? v.toString() : v)
+    (_, v) => (typeof v === "bigint" ? v.toString() : v),
   ),
 });
 ```
 
 <Note>
-This only applies to user-owned accounts. Managed accounts automatically support all available source chains.
+  Managed accounts automatically support all available source chains — this
+  step is only needed for user-owned accounts.
 </Note>
+
+</Tab>
+</Tabs>
 
 ## Optional: token routing
 
@@ -260,19 +255,19 @@ By default, all deposits are bridged to the single target token you set at regis
 
 When registering an account, the `target` object accepts two optional fields:
 
-| Field | Type | Description |
-|---|---|---|
-| `outputTokenRules` | `Array<Rule>` | Routing rules evaluated by match specificity |
-| `rejectUnmapped` | `boolean` | If `true`, deposits that don't match any rule are rejected instead of falling back to `target.token` |
+| Field              | Type          | Description                                                                                          |
+| ------------------ | ------------- | ---------------------------------------------------------------------------------------------------- |
+| `outputTokenRules` | `Array<Rule>` | Routing rules evaluated by match specificity                                                         |
+| `rejectUnmapped`   | `boolean`     | If `true`, deposits that don't match any rule are rejected instead of falling back to `target.token` |
 
 Each rule has:
 
-| Field | Type | Description |
-|---|---|---|
-| `match.chain` | `string` (CAIP-2) | Match deposits from this source chain (e.g. `"eip155:1"`) |
-| `match.token` | `string` (address) | Match deposits of this source token address |
-| `match.symbol` | `string` | Match deposits by token symbol (case-insensitive, e.g. `"USDC"`) |
-| `outputToken` | `string` (address) | The final token to deliver on the target chain |
+| Field          | Type               | Description                                                      |
+| -------------- | ------------------ | ---------------------------------------------------------------- |
+| `match.chain`  | `string` (CAIP-2)  | Match deposits from this source chain (e.g. `"eip155:1"`)        |
+| `match.token`  | `string` (address) | Match deposits of this source token address                      |
+| `match.symbol` | `string`           | Match deposits by token symbol (case-insensitive, e.g. `"USDC"`) |
+| `outputToken`  | `string` (address) | The final token to deliver on the target chain                   |
 
 A rule's `match` must specify at least one of `chain`, `token`, or `symbol`. You can combine them for more specific matches.
 
@@ -280,14 +275,14 @@ A rule's `match` must specify at least one of `chain`, `token`, or `symbol`. You
 
 When multiple rules match a deposit, the most specific rule wins. Declaration order only matters when two rules share the same specificity.
 
-| Match type | Example |
-|---|---|
-| `chain` + `token` | Specific token from a specific chain |
-| `chain` + `symbol` | Any token with symbol X from chain Y |
-| `token` (only) | Specific token from any chain |
-| `symbol` (only) | Any token with symbol X from any chain |
-| `chain` (only) | Any token from a specific chain |
-| No match | Falls back to `target.token` (or rejected if `rejectUnmapped: true`) |
+| Match type         | Example                                                              |
+| ------------------ | -------------------------------------------------------------------- |
+| `chain` + `token`  | Specific token from a specific chain                                 |
+| `chain` + `symbol` | Any token with symbol X from chain Y                                 |
+| `token` (only)     | Specific token from any chain                                        |
+| `symbol` (only)    | Any token with symbol X from any chain                               |
+| `chain` (only)     | Any token from a specific chain                                      |
+| No match           | Falls back to `target.token` (or rejected if `rejectUnmapped: true`) |
 
 ### Example: USDC and ETH passthrough
 
@@ -321,6 +316,7 @@ await fetch(`${DEPOSIT_SERVICE_URL}/register-managed`, {
 ```
 
 With this configuration:
+
 - User deposits USDC (from any chain) → receives USDC.e on Optimism
 - User deposits ETH (from any chain) → receives WETH on Optimism
 - User deposits any other token → receives `target.token` (default fallback)
@@ -339,7 +335,7 @@ outputTokenRules: [
     match: { symbol: "USDC" },
     outputToken: "0xUSDC_NATIVE_ADDRESS",
   },
-]
+];
 ```
 
 ### Example: reject unknown tokens
@@ -400,8 +396,8 @@ await fetch(`${DEPOSIT_SERVICE_URL}/register-managed`, {
 });
 ```
 
-| Field | Type | Description |
-|---|---|---|
-| `type` | `"orderbook-swap"` | The action type |
-| `contract` | `Address` | Swap contract address |
-| `outputToken` | `Address` | Final token delivered to the recipient |
+| Field         | Type               | Description                            |
+| ------------- | ------------------ | -------------------------------------- |
+| `type`        | `"orderbook-swap"` | The action type                        |
+| `contract`    | `Address`          | Swap contract address                  |
+| `outputToken` | `Address`          | Final token delivered to the recipient |

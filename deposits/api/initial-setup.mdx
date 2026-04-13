@@ -5,15 +5,11 @@ description: "Configure webhooks, fee sponsorship, and deposit whitelists for yo
 
 Call `POST /setup` to configure how the deposit service handles your deposits. All fields are optional — configure what you need. Each call performs a partial update; omitted fields keep their current value.
 
-## Prerequisites
-
-- A Rhinestone API key ([request one here](https://tally.so/r/wg22x4))
-- You've completed the [quickstart](/deposits/api/quickstart) or are familiar with the base URL and auth header
-
 All examples below use these shared constants:
 
 ```ts
-const DEPOSIT_SERVICE_URL = "https://deposits.rhinestone.dev";
+const DEPOSIT_SERVICE_URL =
+  "https://v1.orchestrator.rhinestone.dev/deposit-processor";
 const API_KEY = "YOUR_RHINESTONE_API_KEY";
 
 const headers = {
@@ -52,9 +48,9 @@ await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
   body: JSON.stringify({
     params: {
       sponsorship: {
-        "eip155:8453": { gas: "all", bridging: "all" },  // Base
-        "eip155:10": { gas: "all" },                      // Optimism
-        "eip155:42161": { gas: "deployed" },               // Arbitrum
+        "eip155:8453": { gas: "all", bridging: "all" }, // Base
+        "eip155:10": { gas: "all" }, // Optimism
+        "eip155:42161": { gas: "deployed" }, // Arbitrum
       },
     },
   }),
@@ -77,13 +73,16 @@ await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
         "eip155:8453": [
           {
             token: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC on Base
-            minAmount: "1000000",    // 1 USDC minimum
+            minAmount: "1000000", // 1 USDC minimum
             maxAmount: "5000000000", // 5,000 USDC maximum
           },
         ],
         "eip155:42161": [
           { token: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" }, // USDC on Arbitrum, no limits
-          { token: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9", minAmount: "1000000" }, // USDT, $1 min
+          {
+            token: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+            minAmount: "1000000",
+          }, // USDT, $1 min
         ],
       },
     },
@@ -91,9 +90,9 @@ await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
 });
 ```
 
-| Field | Type | Description |
-|---|---|---|
-| `token` | `string` | Token address (`0x`-prefixed) |
+| Field       | Type     | Description                                                      |
+| ----------- | -------- | ---------------------------------------------------------------- |
+| `token`     | `string` | Token address (`0x`-prefixed)                                    |
 | `minAmount` | `string` | Optional. Minimum accepted amount in raw token units (inclusive) |
 | `maxAmount` | `string` | Optional. Maximum accepted amount in raw token units (inclusive) |
 
@@ -123,12 +122,12 @@ The default is `200` (2%) if not set. Tighten this for high-value stablecoin cor
 
 Each `/setup` call is a partial update. To explicitly clear a field, pass `null` for string fields or `{}` for object fields:
 
-| To clear | Pass |
-|---|---|
-| `webhookUrl` | `null` |
-| `webhookSecret` | `null` |
-| `sponsorship` | `{}` |
-| `depositWhitelist` | `{}` |
+| To clear               | Pass   |
+| ---------------------- | ------ |
+| `webhookUrl`           | `null` |
+| `webhookSecret`        | `null` |
+| `sponsorship`          | `{}`   |
+| `depositWhitelist`     | `{}`   |
 | `maxPriceDeviationBps` | `null` |
 
 ## Put it all together
