@@ -10,12 +10,20 @@ It's built for teams that need reliable deposit rails: neobanks, modern dapps, D
 ## Two ways to integrate
 
 <CardGroup cols={2}>
-<Card title="Deposit API" icon="code" href="/deposits/api/quickstart">
-  A headless backend service for programmatic deposit handling. You register accounts, configure webhooks, and process deposits server-side. Full control over the deposit flow.
-</Card>
-<Card title="Deposit Widget" icon="panel-top" href="/deposits/widget/quickstart">
-  A drop-in React modal that handles wallet connection, chain selection, and deposit execution out of the box. Minimal frontend effort for a polished deposit experience.
-</Card>
+  <Card title="Deposit API" icon="code" href="/deposits/api/quickstart">
+    A headless backend service for programmatic deposit handling. You register
+    accounts, configure webhooks, and process deposits server-side. Full control
+    over the deposit flow.
+  </Card>
+  <Card
+    title="Deposit Widget"
+    icon="panel-top"
+    href="/deposits/widget/quickstart"
+  >
+    A drop-in React modal that handles wallet connection, chain selection, and
+    deposit execution out of the box. Minimal frontend effort for a polished
+    deposit experience.
+  </Card>
 </CardGroup>
 
 ## How it works
@@ -42,13 +50,18 @@ sequenceDiagram
 
 The user makes a single transfer. Everything else — bridging, swaps, gas — is handled automatically.
 
+## Why Deposits
+
+Deposits are self-custodial by design — funds are held in the user's smart account at every step, and Rhinestone never takes custody. Stablecoin swaps settle at parity, fees can be fully sponsored, and destination calls let funds land directly into a vault or position. The result is a deposit rail that feels like a native single-chain transfer, without the trust trade-offs of a centralized bridge.
+
 ## Key features
 
 - **Automatic bridging** — deposits are detected and bridged to the target chain without any user interaction beyond the initial transfer
 - **Multi-chain support** — accept deposits from Ethereum, Base, Arbitrum, Optimism, Polygon, and Solana, with more chains added regularly
-- **Fee sponsorship** — cover gas, bridging, and swap fees for your users on a per-chain basis, so deposits are zero-cost from the user's perspective
-- **Webhook notifications** — receive real-time updates for each stage of the deposit lifecycle: received, bridge started, bridge complete, or bridge failed
-- **Retry and recovery** — failed deposits are automatically retried with exponential backoff, with manual retry available via the API
+- **1:1 stablecoin swaps** — USDC and USDT are swapped at parity
+- **Swap routing** — route between tokens as part of the deposit
+- **Calls on destination** — trigger contract calls on the target chain once funds arrive
+- **Fee sponsorship** — cover gas, bridging, and swap fees on a per-chain basis
 
 ## User experience
 
@@ -62,15 +75,13 @@ With the **API**, you control the UX entirely. The user interacts with your app 
 
 Deposits can be sent from any supported EVM chain (Ethereum, Base, Optimism, Arbitrum, Polygon, and others) as well as Solana. Funds are bridged to any supported EVM target chain.
 
-Supported tokens include USDC, USDT, ETH, and WETH, with coverage varying by chain.
-
 For the full list, see [supported chains](/home/resources/supported-chains). You can also query the available chains and tokens programmatically via the [List supported chains and tokens](/api-reference/info/list-supported-chains-and-tokens) endpoint.
 
 ## Which should you use?
 
-| | Deposit API | Deposit Widget |
-|---|---|---|
-| Integration effort | Moderate — backend + webhook handler | Low — drop in a React component |
-| UI control | Full — build your own | Themed modal with customization options |
-| Deposit triggers | Any transfer to the smart account | User-initiated via the modal |
-| Withdrawal support | Manual | Built-in withdraw modal |
+|                    | Deposit API                          | Deposit Widget                          |
+| ------------------ | ------------------------------------ | --------------------------------------- |
+| Integration effort | Moderate — backend + webhook handler | Low — drop in a React component         |
+| UI control         | Full — build your own                | Themed modal with customization options |
+| Deposit triggers   | Any transfer to the smart account    | User-initiated via the modal            |
+| Withdrawal support | Manual                               | Built-in withdraw modal                 |
