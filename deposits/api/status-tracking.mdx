@@ -1,13 +1,106 @@
 ---
-title: "Webhooks"
-description: "Webhook event types, payload schemas, signature verification, and delivery behavior."
+title: "Status tracking"
+description: "Track deposit status via polling or webhooks — two approaches for monitoring the deposit lifecycle."
 ---
+
+There are two ways to track a deposit through the processing pipeline:
+
+- **Polling** — query the `GET /deposits` endpoint filtered by transaction hash. Simple and stateless.
+- **Webhooks** — receive push notifications as deposits move through each stage. Real-time and event-driven.
+
+Use whichever fits your architecture. Many integrations combine both: webhooks for real-time updates, polling as a fallback or for on-demand status checks.
+
+## Polling
+
+Query the `GET /deposits` endpoint with the `txHash` parameter to look up a deposit by its source transaction hash.
+
+```ts
+const DEPOSIT_SERVICE_URL =
+  "https://v1.orchestrator.rhinestone.dev/deposit-processor";
+const API_KEY = "YOUR_RHINESTONE_API_KEY";
+
+const txHash = "0xabc123...";
+
+const response = await fetch(
+  `${DEPOSIT_SERVICE_URL}/deposits?txHash=${txHash}`,
+  {
+    headers: { "x-api-key": API_KEY },
+  },
+);
+
+const { deposits } = await response.json();
+```
+
+### Response
+
+Each item in the `deposits` array has the following shape:
+
+| Field | Type | Description |
+|---|---|---|
+| `chain` | `string` | Source chain (CAIP-2) |
+| `txHash` | `string` | Source transaction hash |
+| `token` | `string` | Deposit token address |
+| `amount` | `string` | Deposit amount (raw token units) |
+| `sender` | `string` | Sender address |
+| `account` | `string` | Registered account address |
+| `targetChain` | `string` | Destination chain (CAIP-2) |
+| `targetToken` | `string` | Destination token address |
+| `status` | `string` | `"processing"`, `"completed"`, or `"failed"` |
+| `sourceTxHash` | `string \| null` | Bridge source transaction hash |
+| `destinationTxHash` | `string \| null` | Bridge destination transaction hash |
+| `sourceAmount` | `string \| null` | Bridge source amount |
+| `destinationAmount` | `string \| null` | Bridge destination amount |
+| `errorCode` | `string \| null` | [Error code](/deposits/api/deposit-processing#error-codes) if the deposit failed |
+| `createdAt` | `string` | ISO 8601 timestamp of when the deposit was detected |
+| `completedAt` | `string \| null` | ISO 8601 timestamp of when the deposit completed |
+
+### Polling loop
+
+Poll until the deposit reaches a terminal status (`completed` or `failed`):
+
+```ts
+async function waitForDeposit(txHash: string): Promise<void> {
+  const url = `${DEPOSIT_SERVICE_URL}/deposits?txHash=${txHash}`;
+  const headers = { "x-api-key": API_KEY };
+
+  while (true) {
+    const response = await fetch(url, { headers });
+    const { deposits } = await response.json();
+    const deposit = deposits[0];
+
+    if (!deposit) {
+      // Deposit not yet indexed — wait and retry
+      await new Promise((r) => setTimeout(r, 1_000));
+      continue;
+    }
+
+    if (deposit.status === "completed") {
+      console.log("Deposit completed:", deposit.destinationTxHash);
+      return;
+    }
+
+    if (deposit.status === "failed") {
+      console.error("Deposit failed:", deposit.errorCode);
+      return;
+    }
+
+    // Still processing — poll again
+    await new Promise((r) => setTimeout(r, 1_000));
+  }
+}
+```
+
+<Tip>
+A 1-second interval works well for most use cases. Most deposits complete within seconds.
+</Tip>
+
+## Webhooks
 
 The deposit service sends webhook notifications to your configured endpoint as deposits move through the processing pipeline. All webhooks are `POST` requests with `Content-Type: application/json`.
 
 Configure your webhook URL and optional secret via the [`POST /setup`](/deposits/api/initial-setup#configure-a-webhook) endpoint.
 
-## Payload envelope
+### Payload envelope
 
 Every webhook request body follows the same envelope structure:
 
@@ -27,7 +120,7 @@ Every webhook request body follows the same envelope structure:
 | `time` | `string` | ISO 8601 timestamp of when the event was sent |
 | `data` | `object` | Event-specific payload (see below) |
 
-## Event types
+### Event types
 
 | Type | Trigger |
 |---|---|
@@ -39,7 +132,7 @@ Every webhook request body follows the same envelope structure:
 | [`post-bridge-swap-complete`](#post-bridge-swap-complete) | Post-bridge token swap completed |
 | [`post-bridge-swap-failed`](#post-bridge-swap-failed) | Post-bridge token swap failed |
 
-### `deposit-received`
+#### `deposit-received`
 
 Sent when an incoming token transfer is detected on a registered account.
 
@@ -68,7 +161,7 @@ Sent when an incoming token transfer is detected on a registered account.
 }
 ```
 
-### `bridge-started`
+#### `bridge-started`
 
 Sent when a bridging intent is created and submitted to the Orchestrator.
 
@@ -88,7 +181,7 @@ Sent when a bridging intent is created and submitted to the Orchestrator.
 | `deposit.sender` | `string` | Sender address |
 | `settlementLayer` | `string \| undefined` | Settlement layer used (e.g. `"layerzero"`) |
 
-### `bridge-progress`
+#### `bridge-progress`
 
 Sent when a bridge transaction progresses to a new stage. Only emitted for LayerZero OFT routes.
 
@@ -109,7 +202,7 @@ Sent when a bridge transaction progresses to a new stage. Only emitted for Layer
 | `deposit.sender` | `string` | Sender address |
 | `account` | `string` | Account address |
 
-### `bridge-complete`
+#### `bridge-complete`
 
 Sent when tokens have arrived on the target chain.
 
@@ -161,7 +254,7 @@ Sent when tokens have arrived on the target chain.
 }
 ```
 
-### `bridge-failed`
+#### `bridge-failed`
 
 Sent when a bridging operation fails. See [error codes](/deposits/api/deposit-processing#error-codes) for the full list and retry behavior.
 
@@ -177,7 +270,7 @@ Sent when a bridging operation fails. See [error codes](/deposits/api/deposit-pr
 | `deposit.sender` | `string` | Sender address |
 | `intentId` | `string \| undefined` | Intent ID, when available |
 
-### `post-bridge-swap-complete`
+#### `post-bridge-swap-complete`
 
 Sent when a post-bridge token swap completes successfully. This occurs when the account has [token routing rules](/deposits/api/account-registration) configured that require a swap after bridging.
 
@@ -200,7 +293,7 @@ Sent when a post-bridge token swap completes successfully. This occurs when the 
 | `bridge.amount` | `string \| undefined` | Bridge amount |
 | `account` | `string` | Account address |
 
-### `post-bridge-swap-failed`
+#### `post-bridge-swap-failed`
 
 Sent when a post-bridge token swap fails.
 
@@ -221,7 +314,7 @@ Sent when a post-bridge token swap fails.
 | `swap.recipient` | `string` | Intended recipient address |
 | `swap.bridgeTransactionHash` | `string \| undefined` | Bridge transaction hash |
 
-## Signature verification
+### Signature verification
 
 If you provided a `webhookSecret` during [setup](/deposits/api/initial-setup#configure-a-webhook), every webhook request includes an `X-Webhook-Signature` header:
 
@@ -260,7 +353,7 @@ function verifyWebhookSignature(
 Always verify against the **raw request body** string, not a re-serialized version of the parsed JSON. Re-serialization may change key order or whitespace, which will produce a different signature.
 </Warning>
 
-## Delivery behavior
+### Delivery behavior
 
 - **Retries** — failed deliveries are retried automatically.
 - **Ordering** — events for a single deposit are sent in lifecycle order (`deposit-received` → `bridge-started` → `bridge-complete`), but there is no global ordering guarantee across deposits.
