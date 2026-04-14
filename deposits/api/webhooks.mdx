@@ -1,0 +1,274 @@
+---
+title: "Webhooks"
+description: "Webhook event types, payload schemas, signature verification, and delivery behavior."
+---
+
+The deposit service sends webhook notifications to your configured endpoint as deposits move through the processing pipeline. All webhooks are `POST` requests with `Content-Type: application/json`.
+
+Configure your webhook URL and optional secret via the [`POST /setup`](/deposits/api/initial-setup#configure-a-webhook) endpoint.
+
+## Payload envelope
+
+Every webhook request body follows the same envelope structure:
+
+```json
+{
+  "version": "1.0",
+  "type": "<event-type>",
+  "time": "2025-01-15T12:00:00.000Z",
+  "data": { ... }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `version` | `string` | Protocol version. Currently `"1.0"` |
+| `type` | `string` | Event type identifier |
+| `time` | `string` | ISO 8601 timestamp of when the event was sent |
+| `data` | `object` | Event-specific payload (see below) |
+
+## Event types
+
+| Type | Trigger |
+|---|---|
+| [`deposit-received`](#deposit-received) | Token transfer detected on a registered account |
+| [`bridge-started`](#bridge-started) | Bridging intent created and submitted to the Orchestrator |
+| [`bridge-progress`](#bridge-progress) | Bridge transaction progressed to a new stage (LayerZero OFT routes only) |
+| [`bridge-complete`](#bridge-complete) | Tokens arrived on the target chain |
+| [`bridge-failed`](#bridge-failed) | Bridging failed |
+| [`post-bridge-swap-complete`](#post-bridge-swap-complete) | Post-bridge token swap completed |
+| [`post-bridge-swap-failed`](#post-bridge-swap-failed) | Post-bridge token swap failed |
+
+### `deposit-received`
+
+Sent when an incoming token transfer is detected on a registered account.
+
+| Field | Type | Description |
+|---|---|---|
+| `chain` | `string` | Source chain (CAIP-2, e.g. `"eip155:8453"`) |
+| `token` | `string` | Token address |
+| `amount` | `string` | Deposit amount in raw token units |
+| `account` | `string` | Account address |
+| `transactionHash` | `string` | Deposit transaction hash |
+| `sender` | `string` | Sender address |
+
+```json
+{
+  "version": "1.0",
+  "type": "deposit-received",
+  "time": "2025-01-15T12:00:00.000Z",
+  "data": {
+    "chain": "eip155:8453",
+    "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+    "amount": "1000000",
+    "account": "0x1234567890abcdef1234567890abcdef12345678",
+    "transactionHash": "0xabc123...",
+    "sender": "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+  }
+}
+```
+
+### `bridge-started`
+
+Sent when a bridging intent is created and submitted to the Orchestrator.
+
+| Field | Type | Description |
+|---|---|---|
+| `source.chain` | `string` | Source chain (CAIP-2) |
+| `source.asset` | `string` | Source asset address |
+| `source.amount` | `string` | Source amount |
+| `destination.chain` | `string` | Destination chain (CAIP-2) |
+| `destination.asset` | `string` | Destination asset address |
+| `destination.amount` | `string` | Destination amount |
+| `account` | `string` | Account address |
+| `deposit.transactionHash` | `string` | Original deposit transaction hash |
+| `deposit.chain` | `string` | Deposit chain (CAIP-2) |
+| `deposit.asset` | `string` | Deposit asset address |
+| `deposit.amount` | `string` | Deposit amount |
+| `deposit.sender` | `string` | Sender address |
+| `settlementLayer` | `string \| undefined` | Settlement layer used (e.g. `"layerzero"`) |
+
+### `bridge-progress`
+
+Sent when a bridge transaction progresses to a new stage. Only emitted for LayerZero OFT routes.
+
+| Field | Type | Description |
+|---|---|---|
+| `stage` | `string` | Current stage: `"source-confirmed"`, `"inflight"`, or `"delivering"` |
+| `estimatedTimeRemainingSeconds` | `number \| null` | Estimated seconds until completion |
+| `estimatedTotalTimeSeconds` | `number \| null` | Estimated total bridge duration in seconds |
+| `layerZeroGuid` | `string` | LayerZero message GUID |
+| `source.transactionHash` | `string` | Source chain transaction hash |
+| `source.chain` | `string` | Source chain (CAIP-2) |
+| `destination.transactionHash` | `string \| null` | Destination transaction hash (available once delivering) |
+| `destination.chain` | `string` | Destination chain (CAIP-2) |
+| `deposit.transactionHash` | `string` | Original deposit transaction hash |
+| `deposit.chain` | `string` | Deposit chain (CAIP-2) |
+| `deposit.asset` | `string` | Deposit asset address |
+| `deposit.amount` | `string` | Deposit amount |
+| `deposit.sender` | `string` | Sender address |
+| `account` | `string` | Account address |
+
+### `bridge-complete`
+
+Sent when tokens have arrived on the target chain.
+
+| Field | Type | Description |
+|---|---|---|
+| `deposit.transactionHash` | `string` | Original deposit transaction hash |
+| `deposit.chain` | `string` | Deposit chain (CAIP-2) |
+| `deposit.asset` | `string` | Deposit asset address |
+| `deposit.amount` | `string` | Deposit amount |
+| `deposit.sender` | `string` | Sender address |
+| `source.transactionHash` | `string` | Source chain claim transaction hash |
+| `source.chain` | `string` | Source chain (CAIP-2) |
+| `source.amount` | `string` | Source amount |
+| `source.asset` | `string` | Source asset address |
+| `destination.transactionHash` | `string` | Destination chain transaction hash |
+| `destination.chain` | `string` | Destination chain (CAIP-2) |
+| `destination.amount` | `string` | Destination amount |
+| `destination.asset` | `string` | Destination asset address |
+| `account` | `string` | Account address |
+| `settlementLayer` | `string \| undefined` | Settlement layer used |
+
+```json
+{
+  "version": "1.0",
+  "type": "bridge-complete",
+  "time": "2025-01-15T12:01:30.000Z",
+  "data": {
+    "deposit": {
+      "transactionHash": "0xabc123...",
+      "chain": "eip155:8453",
+      "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "amount": "1000000",
+      "sender": "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+    },
+    "source": {
+      "transactionHash": "0xdef456...",
+      "chain": "eip155:8453",
+      "amount": "1000000",
+      "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+    },
+    "destination": {
+      "transactionHash": "0x789ghi...",
+      "chain": "eip155:42161",
+      "amount": "990000",
+      "asset": "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
+    },
+    "account": "0x1234567890abcdef1234567890abcdef12345678"
+  }
+}
+```
+
+### `bridge-failed`
+
+Sent when a bridging operation fails. See [error codes](/deposits/api/deposit-processing#error-codes) for the full list and retry behavior.
+
+| Field | Type | Description |
+|---|---|---|
+| `errorCode` | `string` | Error code (e.g. `"BRIDGE-1"`) |
+| `account` | `string` | Account address |
+| `message` | `string \| undefined` | Human-readable error description |
+| `deposit.transactionHash` | `string` | Deposit transaction hash |
+| `deposit.chain` | `string` | Deposit chain (CAIP-2) |
+| `deposit.token` | `string` | Deposit token address |
+| `deposit.amount` | `string` | Deposit amount |
+| `deposit.sender` | `string` | Sender address |
+| `intentId` | `string \| undefined` | Intent ID, when available |
+
+### `post-bridge-swap-complete`
+
+Sent when a post-bridge token swap completes successfully. This occurs when the account has [token routing rules](/deposits/api/account-registration) configured that require a swap after bridging.
+
+| Field | Type | Description |
+|---|---|---|
+| `deposit.transactionHash` | `string` | Original deposit transaction hash |
+| `deposit.chain` | `string` | Deposit chain (CAIP-2) |
+| `deposit.asset` | `string` | Deposit asset address |
+| `deposit.amount` | `string` | Deposit amount |
+| `deposit.sender` | `string` | Sender address |
+| `swap.transactionHash` | `string` | Swap transaction hash |
+| `swap.chain` | `string` | Chain where the swap executed (CAIP-2) |
+| `swap.tokenIn` | `string` | Input token address |
+| `swap.tokenOut` | `string` | Output token address |
+| `swap.amount` | `string` | Output amount |
+| `swap.recipient` | `string` | Recipient address |
+| `bridge.transactionHash` | `string \| undefined` | Bridge transaction hash |
+| `bridge.chain` | `string \| undefined` | Bridge chain (CAIP-2) |
+| `bridge.asset` | `string \| undefined` | Bridge asset address |
+| `bridge.amount` | `string \| undefined` | Bridge amount |
+| `account` | `string` | Account address |
+
+### `post-bridge-swap-failed`
+
+Sent when a post-bridge token swap fails.
+
+| Field | Type | Description |
+|---|---|---|
+| `errorCode` | `string` | Error code (e.g. `"SWAP-1"`) |
+| `message` | `string \| undefined` | Human-readable error description |
+| `account` | `string` | Account address |
+| `deposit.transactionHash` | `string` | Original deposit transaction hash |
+| `deposit.chain` | `string` | Deposit chain (CAIP-2) |
+| `deposit.asset` | `string` | Deposit asset address |
+| `deposit.amount` | `string` | Deposit amount |
+| `deposit.sender` | `string` | Sender address |
+| `swap.chain` | `string` | Chain where the swap was attempted (CAIP-2) |
+| `swap.tokenIn` | `string` | Input token address |
+| `swap.tokenOut` | `string` | Output token address |
+| `swap.amount` | `string` | Attempted swap amount |
+| `swap.recipient` | `string` | Intended recipient address |
+| `swap.bridgeTransactionHash` | `string \| undefined` | Bridge transaction hash |
+
+## Signature verification
+
+If you provided a `webhookSecret` during [setup](/deposits/api/initial-setup#configure-a-webhook), every webhook request includes an `X-Webhook-Signature` header:
+
+```
+X-Webhook-Signature: sha256=<hex-encoded-signature>
+```
+
+The signature is an HMAC-SHA256 hash computed over the raw JSON request body using your secret.
+
+To verify:
+
+1. Read the raw request body as a string (before JSON parsing)
+2. Compute the HMAC-SHA256 of the raw body using your webhook secret
+3. Compare the result with the value in the `X-Webhook-Signature` header (strip the `sha256=` prefix)
+4. Use a constant-time comparison to prevent timing attacks
+
+```ts
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+function verifyWebhookSignature(
+  rawBody: string,
+  signatureHeader: string,
+  secret: string,
+): boolean {
+  const expected =
+    "sha256=" +
+    createHmac("sha256", secret).update(rawBody).digest("hex");
+  return (
+    signatureHeader.length === expected.length &&
+    timingSafeEqual(Buffer.from(signatureHeader), Buffer.from(expected))
+  );
+}
+```
+
+<Warning>
+Always verify against the **raw request body** string, not a re-serialized version of the parsed JSON. Re-serialization may change key order or whitespace, which will produce a different signature.
+</Warning>
+
+## Delivery behavior
+
+- **Retries** — failed deliveries are retried automatically.
+- **Ordering** — events for a single deposit are sent in lifecycle order (`deposit-received` → `bridge-started` → `bridge-complete`), but there is no global ordering guarantee across deposits.
+- **URL validation** — the webhook URL must use HTTPS and must not target internal or private network addresses.
+- **Idempotency** — use `data.deposit.transactionHash` combined with `type` to deduplicate events on your end.
+
+## Conventions
+
+- All addresses and token addresses are **lowercase**.
+- All amounts are **strings** (raw token units, not human-readable).
+- Chains use [CAIP-2](https://chainagnostic.org/CAIPs/caip-2) identifiers (e.g. `"eip155:8453"` for Base).

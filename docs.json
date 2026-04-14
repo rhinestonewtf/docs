@@ -237,6 +237,39 @@
         ]
       },
       {
+        "tab": "Deposits",
+        "pages": [
+          "deposits/overview",
+          "deposits/demo",
+          {
+            "group": "API",
+            "pages": [
+              "deposits/api/quickstart",
+              "deposits/api/initial-setup",
+              "deposits/api/account-registration",
+              "deposits/api/deposit-processing",
+              "deposits/api/fees",
+              "deposits/api/sponsorship",
+              "deposits/api/webhooks"
+            ]
+          },
+          {
+            "group": "Widget",
+            "pages": [
+              "deposits/widget/quickstart",
+              "deposits/widget/deposit-modal",
+              "deposits/widget/withdraw-modal",
+              "deposits/widget/customization",
+              "deposits/widget/status-tracking"
+            ]
+          },
+          {
+            "group": "API Reference",
+            "openapi": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/deposit-service.json"
+          }
+        ]
+      },
+      {
         "tab": "API Reference",
         "openapi": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/orchestrator.json"
       }

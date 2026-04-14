@@ -1,0 +1,137 @@
+---
+title: "Withdraw modal"
+description: "Let users withdraw tokens from a Safe to any supported chain using the withdraw modal."
+---
+
+<Warning>
+The withdraw modal currently only supports 1/1 Safe wallets.
+</Warning>
+
+The `WithdrawModal` component handles outbound transfers from a Safe. The user selects a destination chain and token, enters an amount, and the modal constructs and signs the withdrawal transaction.
+
+## Basic usage
+
+```tsx
+import { WithdrawModal } from "@rhinestone/deposit-modal";
+import "@rhinestone/deposit-modal/styles.css";
+
+<WithdrawModal
+  isOpen={isOpen}
+  onClose={() => setIsOpen(false)}
+  safeAddress="0xYOUR_SAFE_ADDRESS"
+  sourceChain={8453}
+  sourceToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  targetChain={10}
+  targetToken="0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85"
+  reownAppId="YOUR_REOWN_PROJECT_ID"
+  onWithdrawComplete={(data) => {
+    console.log("Withdrawal complete:", data.destinationTxHash);
+  }}
+/>
+```
+
+## Transaction signing
+
+By default, the modal uses Reown for wallet connection and signing. If your app manages wallets directly (e.g. Privy embedded wallets), pass `onSignTransaction` to handle Safe transaction signing yourself.
+
+The callback receives a `SafeTransactionRequest` containing the `safeTxHash` and EIP-712 typed data. Return a signature.
+
+```tsx
+<WithdrawModal
+  // ...required props
+  dappAddress={embeddedWalletAddress}
+  onSignTransaction={async (request) => {
+    const provider = await getEmbeddedWalletProvider();
+
+    // Sign the Safe transaction hash
+    const signature = await provider.request({
+      method: "personal_sign",
+      params: [request.safeTxHash, embeddedWalletAddress],
+    });
+
+    // Adjust v value for Safe's eth_sign verification
+    const v = parseInt(signature.slice(-2), 16);
+    const adjusted = signature.slice(0, -2) + (v + 4).toString(16);
+
+    return { signature: adjusted };
+  }}
+/>
+```
+
+<Note>
+Safe's `eth_sign` path requires adding 4 to the `v` value of a `personal_sign` signature. This adjustment is specific to Safe's signature verification — see the [Safe docs](https://docs.safe.global/advanced/smart-account-signatures#eth_sign-signature) for details.
+</Note>
+
+## Props reference
+
+### Required
+
+| Prop | Type | Description |
+|---|---|---|
+| `isOpen` | `boolean` | Controls modal visibility |
+| `onClose` | `() => void` | Called when the user closes the modal |
+| `safeAddress` | `Address` | The 1/1 Safe contract address |
+| `sourceChain` | `Chain \| number` | Chain where the Safe holds funds |
+| `sourceToken` | `Address` | Token to withdraw from the Safe |
+| `targetChain` | `Chain \| number` | Destination chain |
+| `targetToken` | `Address` | Token to receive on the destination chain |
+
+### Wallet
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `reownAppId` | `string` | — | Reown project ID for wallet connection |
+| `dappAddress` | `Address` | — | Owner address for embedded wallet flows |
+| `dappWalletClient` | `WalletClient` | — | Host-provided viem wallet client |
+| `dappPublicClient` | `PublicClient` | — | Host-provided viem public client |
+| `onSignTransaction` | `(request: SafeTransactionRequest) => Promise<{ signature: Hex }>` | — | Custom Safe transaction signer |
+| `onRequestConnect` | `() => void` | — | Called when wallet connection needed |
+| `connectButtonLabel` | `string` | — | Custom connect button label |
+
+### Transfer
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `recipient` | `Address` | Smart account address | Delivery address on target chain |
+| `defaultAmount` | `string` | — | Pre-filled withdrawal amount |
+| `allowedRoutes` | `RouteConfig` | — | Restrict available routes |
+
+### Session
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `sessionChainIds` | `number[]` | All supported | Chain IDs for session key creation |
+| `forceRegister` | `boolean` | `false` | Force session re-creation |
+| `waitForFinalTx` | `boolean` | `true` | Wait for destination chain confirmation |
+| `signerAddress` | `Address` | Default signer | Session signer address |
+| `rhinestoneApiKey` | `string` | — | API key for account setup |
+
+### Backend
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `backendUrl` | `string` | Rhinestone production URL | URL of your deposit-widget-backend instance |
+
+### Display
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `inline` | `boolean` | `false` | Render without modal overlay |
+| `closeOnOverlayClick` | `boolean` | `true` | Close modal on backdrop click |
+| `className` | `string` | — | CSS class for the modal container |
+| `theme` | `DepositModalTheme` | — | [Theme configuration](/deposits/widget/customization#theme) |
+| `branding` | `DepositModalBranding` | — | [Branding configuration](/deposits/widget/customization#branding) |
+| `uiConfig` | `DepositModalUIConfig` | — | [UI configuration](/deposits/widget/customization#ui-configuration) |
+| `debug` | `boolean` | `false` | Enable debug logging |
+
+### Callbacks
+
+| Prop | Type | Description |
+|---|---|---|
+| `onReady` | `() => void` | Modal initialized |
+| `onConnected` | `(data: ConnectedEventData) => void` | Smart account created |
+| `onWithdrawSubmitted` | `(data: WithdrawSubmittedEventData) => void` | Withdrawal transaction submitted |
+| `onWithdrawComplete` | `(data: WithdrawCompleteEventData) => void` | Tokens arrived on target chain |
+| `onWithdrawFailed` | `(data: WithdrawFailedEventData) => void` | Withdrawal failed |
+| `onError` | `(data: ErrorEventData) => void` | Error at any stage |
+| `onEvent` | `(event: WithdrawEvent) => void` | Analytics event |

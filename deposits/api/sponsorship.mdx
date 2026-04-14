@@ -1,0 +1,60 @@
+---
+title: "Sponsorship"
+description: "Sponsor deposit fees on behalf of your users."
+---
+
+Sponsorship lets you absorb deposit fees so your users receive the full deposited amount on the target chain. You configure which fee types to sponsor, independently per source chain, via the [`/setup` endpoint](/deposits/api/initial-setup#sponsor-fees).
+
+## Sponsorable fees
+
+Each fee type is controlled independently:
+
+| Fee | Values | Description |
+|---|---|---|
+| **Gas** | `"all"`, `"deployed"`, `"none"` | `"all"` sponsors gas for every deposit. `"deployed"` only sponsors gas when the account is already deployed on the source chain — useful to avoid covering first-time deployment costs. Default: `"none"`. |
+| **Bridging** | `"all"`, `"none"` | Covers the settlement layer bridging fee. Default: `"none"`. |
+| **Swap** | `"all"`, `"none"` | Covers the DEX swap fee when a token conversion is needed. Default: `"none"`. |
+
+## Per-chain configuration
+
+Sponsorship is configured per source chain using [CAIP-2](https://chainagnostic.org/CAIPs/caip-2) identifiers. Each chain is configured independently — there's no global toggle. Chains without explicit config default to no sponsorship.
+
+```ts
+await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    params: {
+      sponsorship: {
+        // Base: fully sponsored
+        "eip155:8453": { gas: "all", bridging: "all", swap: "all" },
+        // Optimism: only gas
+        "eip155:10": { gas: "all" },
+        // Arbitrum: gas for deployed accounts only
+        "eip155:42161": { gas: "deployed" },
+        // Ethereum, Polygon: no sponsorship (not listed)
+      },
+    },
+  }),
+});
+```
+
+## How sponsorship is resolved
+
+Each fee type is resolved independently when processing a deposit, based on the source chain config and the account's deployment status at that moment.
+
+- Each fee type is resolved independently. You can sponsor bridging without sponsoring gas, or vice versa.
+- Deployment status is checked at processing time, not at registration. An account registered before deployment will start receiving gas sponsorship once it's deployed (if the mode is `"deployed"`).
+- Chains without explicit config default to no sponsorship. Omitting a fee type from the chain config is equivalent to `"none"`.
+
+## Effect on deposit amount
+
+**Sponsored fees** are covered by your sponsorship balance. The user receives the full bridged amount — if they deposit 100 USDC and fees are 0.50 USDC, they receive the full 100 USDC on the target chain.
+
+**Unsponsored fees** are deducted from the deposit. The user receives less than they sent — if they deposit 100 USDC and fees are 0.50 USDC, they receive 99.50 USDC.
+
+## Learn more
+
+- [Initial setup](/deposits/api/initial-setup#sponsor-fees) — configure sponsorship via `/setup`
+- [Gas & fee sponsorship](/smart-wallet/gas-sponsorship/overview) — sponsorship in the Smart Wallet SDK context
+- [Fees](/deposits/api/fees) — full fee type breakdown
