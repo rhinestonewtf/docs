@@ -250,7 +250,7 @@
               "deposits/api/deposit-processing",
               "deposits/api/fees",
               "deposits/api/sponsorship",
-              "deposits/api/webhooks"
+              "deposits/api/status-tracking"
             ]
           },
           {

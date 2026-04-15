@@ -151,17 +151,34 @@ console.log(`Deposit tx: ${txHash}`);
 
 <Step title="Check deposit status">
 
-Poll the deposits endpoint to track the bridging progress.
+Poll the deposits endpoint by transaction hash to track the bridging progress. See [status tracking](/deposits/api/status-tracking#polling) for the full response schema.
 
 ```ts
-const deposits = await fetch(
-  `${DEPOSIT_SERVICE_URL}/deposits?account=${evmDepositAddress}`,
-  {
-    headers: { "x-api-key": API_KEY },
-  },
-);
-const data = await deposits.json();
-console.log(data);
+async function waitForDeposit(txHash: string) {
+  const url = `${DEPOSIT_SERVICE_URL}/deposits?txHash=${txHash}`;
+
+  while (true) {
+    const response = await fetch(url, {
+      headers: { "x-api-key": API_KEY },
+    });
+    const { deposits } = await response.json();
+    const deposit = deposits[0];
+
+    if (deposit?.status === "completed") {
+      console.log("Deposit completed:", deposit.destinationTxHash);
+      return deposit;
+    }
+
+    if (deposit?.status === "failed") {
+      console.error("Deposit failed:", deposit.errorCode);
+      return deposit;
+    }
+
+    await new Promise((r) => setTimeout(r, 1_000));
+  }
+}
+
+await waitForDeposit(txHash);
 ```
 
 Once bridging completes, the deposit status changes to `completed` and includes the destination transaction hash. The USDC is now at the recipient address on Base Sepolia.
@@ -194,7 +211,7 @@ Once bridging completes, the deposit status changes to `completed` and includes 
   >
     Deposit lifecycle, retries, and status tracking.
   </Card>
-  <Card title="Webhooks" icon="bell" href="/deposits/api/webhooks">
-    Event types, payload format, and HMAC verification.
+  <Card title="Status tracking" icon="activity" href="/deposits/api/status-tracking">
+    Track deposits via polling or webhooks.
   </Card>
 </CardGroup>
