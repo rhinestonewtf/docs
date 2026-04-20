@@ -93,6 +93,8 @@ Control the deposit destination and optionally pre-fill source parameters.
 | `sourceChain` | `Chain \| number` | No | Pre-selected source chain |
 | `sourceToken` | `Address` | No | Pre-selected source token |
 | `allowedRoutes` | `RouteConfig` | No | Restrict available source chains and tokens |
+| `outputTokenRules` | `OutputTokenRule[]` | No | Route the deposit to a different final token based on what the user deposited |
+| `rejectUnmapped` | `boolean` | No | Reject deposits that don't match any routing rule instead of falling back to `targetToken` |
 
 The `allowedRoutes` prop accepts `{ sourceChains?: number[], sourceTokens?: string[] }` to limit what the user can select. For supported chains and tokens, see [supported chains](/deposits/overview#supported-chains-and-tokens).
 
@@ -105,6 +107,29 @@ Sessions allow the widget to execute bridging on behalf of the user's smart acco
 | `sessionChainIds` | `number[]` | All supported chains | Restrict which chains get session keys |
 | `forceRegister` | `boolean` | `false` | Force session re-creation even if the account is already registered |
 | `waitForFinalTx` | `boolean` | `true` | Wait for destination chain confirmation before firing `onDepositComplete`. When `false`, resolves after the bridge is submitted. |
+
+## Destination token routing
+
+Deliver a different final token depending on what the user deposits. Pass `outputTokenRules` to map source deposits — matched by chain, token address, or symbol — to the output token delivered on the target chain. Deposits that don't match any rule fall back to `targetToken`, or are rejected when `rejectUnmapped` is `true`.
+
+```tsx
+<DepositModal
+  // ...required props
+  targetToken="0xFALLBACK_TOKEN_ADDRESS"
+  outputTokenRules={[
+    {
+      match: { symbol: "USDC" },
+      outputToken: "0x7f5c764cbc14f9669b88837ca1490cca17c31607",
+    },
+    {
+      match: { symbol: "ETH" },
+      outputToken: "0x4200000000000000000000000000000000000006",
+    },
+  ]}
+/>
+```
+
+When several rules match the same deposit, the most specific one wins: `chain + token` outranks `chain + symbol`, which outranks `token`, then `symbol`, then `chain` alone. See [token routing](/deposits/api/account-registration#optional-token-routing) for the full rule semantics, priority order, and additional examples.
 
 ## Post-bridge actions
 
@@ -171,6 +196,8 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 | `sourceChain` | `Chain \| number` | — | Pre-selected source chain |
 | `sourceToken` | `Address` | — | Pre-selected source token |
 | `allowedRoutes` | `RouteConfig` | — | `{ sourceChains?, sourceTokens? }` to restrict selection |
+| `outputTokenRules` | `OutputTokenRule[]` | — | Per-deposit output token routing rules |
+| `rejectUnmapped` | `boolean` | `false` | Reject deposits that don't match any `outputTokenRules` entry |
 | `postBridgeActions` | `PostBridgeAction[]` | — | Actions to execute after bridging |
 
 ### Session
