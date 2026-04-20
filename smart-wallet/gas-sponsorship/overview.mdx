@@ -75,9 +75,9 @@ const transactionData = await rhinestoneAccount.prepareTransaction({
 
 ## Sponsorship Policies
 
-Currently, the SDK doesn't provide any policies out of the box. You can implement bespoke, flexible policies on your backend.
+If you use [JWT authentication](/intents/configuration/jwt-authentication), you can restrict sponsorship declaratively with the built-in `shouldSponsor` filter — match by chain, account, or calls, evaluated at signing time on your backend.
 
-Here's one example, where we only sponsor transactions that interact with a specific contract:
+With API keys, you'll need to enforce the policy yourself. Here's one example, where we only sponsor transactions that interact with a specific contract:
 
 ```ts
 // Sponsors a transaction only if it interacts with our app

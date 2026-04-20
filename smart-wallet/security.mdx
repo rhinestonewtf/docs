@@ -9,6 +9,8 @@ When you obtain an API key from the Rhinestone dashboard and fund sponsorship th
 
 To prevent this, never expose your Rhinestone API key in the browser. Instead, proxy Orchestrator requests through a trusted server. The simplest option in a Next.js app is to use a Next Route Handler that forwards requests to the Orchestrator while enforcing your own allow/deny logic.
 
+<Tip>If you're starting from scratch, consider [JWT authentication](/intents/configuration/jwt-authentication) as a structured alternative to the proxy pattern below. It keeps the signing key server-side, issues short-lived access tokens to the client, and supports per-intent sponsorship policies without hand-rolling a proxy.</Tip>
+
 <Warning>Do not store `RHINESTONE_API_KEY` in public client-side variables like `NEXT_PUBLIC_*`. Keep it server-only and validate/whitelist what gets proxied.</Warning>
 
 ## Approach
