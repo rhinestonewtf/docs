@@ -1,0 +1,221 @@
+---
+title: "JWT authentication"
+description: "Authenticate the SDK with JWTs instead of API keys"
+---
+
+The SDK supports two authentication modes: **API key** and **JWT**. API keys are the default and easiest way to get started. JWTs are an alternative for integrators that need finer-grained control over token lifetime, key rotation, or per-request sponsorship policies.
+
+<Note>JWT authentication is **experimental**. The config option is prefixed with `experimental_` and the API may change in future versions.</Note>
+
+## Why JWTs
+
+JWTs are short-lived, RS256-signed tokens issued by your backend. Compared to a long-lived API key, they let you:
+
+- **Keep the signing key on your server.** The client never sees the private key — it only ever gets a short-lived access token.
+- **Scope sponsorship per intent.** For sponsored intents, you sign a separate extension token that binds to the exact intent being submitted, so the client cannot swap in a different payload.
+- **Apply a custom sponsorship policy.** Decide at signing time which chains, accounts, or calls to sponsor, and deny anything that falls outside of your policy.
+
+## Dashboard setup
+
+Before you can issue JWTs, you need to register a signing key with Rhinestone. Keys are managed per-project from the [Dashboard](https://dashboard.rhinestone.dev) under **Auth → JWT Keys**.
+
+### Viewing your keys
+
+Open the "JWT Keys" tab. If you haven't added a key yet, the list is empty:
+
+<Frame>
+  <img src="/images/dashboard/jwt-keys-empty.png" />
+</Frame>
+
+### Adding a key
+
+Press "+ Add Key" to open the key creation modal. There are two ways to add a key: generate a new keypair in the browser, or upload a public JWK you've created yourself.
+
+<Tabs>
+<Tab title="Generate">
+
+The dashboard can generate a keypair directly in your browser. Only the public key is sent to Rhinestone — the private key stays on your machine.
+
+<Steps>
+<Step title="Fill in the form">
+
+<Frame>
+  <img src="/images/dashboard/jwt-keys-generate.png" />
+</Frame>
+
+- **Integrator ID** — must match the `sub` claim in the JWTs you'll sign. Typically the name of your service.
+- **Key ID** — used as the `kid` header in your JWTs. Use a stable name per environment (e.g. `prod`, `staging`).
+
+Press "Add Key" to generate the keypair and register the public half.
+
+</Step>
+<Step title="Save the private key">
+
+The dashboard shows the private key **once**. Download the `.json` file and store it somewhere safe — Rhinestone never sees it and it cannot be recovered:
+
+<Frame>
+  <img src="/images/dashboard/jwt-keys-created.png" />
+</Frame>
+
+<Warning>If you lose the private key, you'll need to register a new one and rotate any clients using the old `kid`.</Warning>
+
+</Step>
+</Steps>
+
+</Tab>
+<Tab title="Upload">
+
+If you've generated a keypair yourself (for example, to store it in a secrets manager first), paste or drag the public JWK JSON into the form:
+
+<Frame>
+  <img src="/images/dashboard/jwt-keys-upload.png" />
+</Frame>
+
+The same **Integrator ID** and **Key ID** rules apply. Only the public key is uploaded.
+
+</Tab>
+</Tabs>
+
+Once the key is created, it shows up in the list along with the integrator ID, status, and creation time:
+
+<Frame>
+  <img src="/images/dashboard/jwt-keys-list.png" />
+</Frame>
+
+## SDK usage
+
+There are two integration patterns depending on where the signing key lives.
+
+<Tabs>
+<Tab title="Client-server">
+
+When the SDK runs on the client (browser, mobile) and a separate backend holds the private key, fetch tokens from your backend over HTTP:
+
+```ts
+const rhinestone = new RhinestoneSDK({
+  auth: {
+    mode: 'experimental_jwt',
+    accessToken: async () => {
+      const res = await fetch('/api/auth/token')
+      const { token } = await res.json()
+      return token
+    },
+    // Only required for sponsored intents:
+    getIntentExtensionToken: async (intentInput) => {
+      const res = await fetch('/api/auth/extension-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ intentInput }),
+      })
+      const { token } = await res.json()
+      return token
+    },
+  },
+})
+```
+
+Your backend is responsible for issuing the two token types. See [Sponsorship signing server](#sponsorship-signing-server) for a drop-in implementation.
+
+</Tab>
+<Tab title="Same-host">
+
+When the SDK runs server-side with direct access to the private key, use `createJwtSigner` to sign tokens in-process without an HTTP round-trip:
+
+```ts
+import { createJwtSigner } from '@rhinestone/sdk/jwt-server'
+
+const signer = createJwtSigner({
+  jwt: {
+    privateKey: myJwk,
+    integratorId: 'int_abc',
+    projectId: 'proj_xyz',
+    appId: 'app_prod',
+    keyId: 'key_1',
+  },
+})
+
+const rhinestone = new RhinestoneSDK({
+  auth: { mode: 'experimental_jwt', ...signer },
+})
+```
+
+`createJwtSigner` returns `{ accessToken, getIntentExtensionToken }` — the same shape as the `auth` config, so you can spread it directly.
+
+</Tab>
+</Tabs>
+
+## Sponsorship signing server
+
+For the client-server pattern, your backend needs two endpoints: one that issues short-lived access tokens, and one that signs an intent extension token for each sponsored intent. The SDK ships ready-made handlers for both.
+
+### Web standard handlers
+
+The Web Standard handlers accept a `Request` and return a `Response`. They work with Next.js App Router, Hono, SvelteKit, Remix, Deno, Bun, and Cloudflare Workers:
+
+```ts
+import {
+  createAccessTokenHandler,
+  createExtensionTokenHandler,
+} from '@rhinestone/sdk/jwt-server'
+
+const config = {
+  jwt: {
+    privateKey: myJwk,
+    integratorId: 'int_abc',
+    projectId: 'proj_xyz',
+    appId: 'app_prod',
+    keyId: 'key_1',
+  },
+}
+
+export const GET = createAccessTokenHandler(config)
+export const POST = createExtensionTokenHandler(config)
+```
+
+### Express
+
+For Express, use `createExpressRouter`. It mounts `GET /access-token` and `POST /extension-token`:
+
+```ts
+import express from 'express'
+import { createExpressRouter } from '@rhinestone/sdk/jwt-server'
+
+const app = express()
+app.use(express.json())
+app.use('/api/auth', createExpressRouter(config))
+```
+
+### Custom sponsorship policy
+
+By default the signer sponsors any intent your users submit. To restrict this, pass a `shouldSponsor` filter. Each predicate can be sync or async, and omitted predicates default to `true`. Filters are AND-composed — the intent must pass all of them to be signed:
+
+```ts
+import { createJwtSigner } from '@rhinestone/sdk/jwt-server'
+import { base, optimism } from 'viem/chains'
+
+const signer = createJwtSigner({
+  jwt: { privateKey, integratorId, projectId, appId, keyId },
+  shouldSponsor: {
+    chain: ({ id }) => [base.id, optimism.id].includes(id),
+    account: async (address) => await isKnownUser(address),
+    calls: (calls) => calls.every((c) => ALLOWED_CONTRACTS.has(c.to)),
+  },
+})
+```
+
+The same `shouldSponsor` config can be passed to the handler factories (`createAccessTokenHandler`, `createExtensionTokenHandler`, `createExpressRouter`).
+
+Denied requests throw a `SponsorshipDeniedError`, which the handlers surface as a `403`. When calling the signer directly, the error is `instanceof`-checkable:
+
+```ts
+import { SponsorshipDeniedError } from '@rhinestone/sdk/jwt-server'
+
+try {
+  await signer.getIntentExtensionToken(intentInput)
+} catch (error) {
+  if (error instanceof SponsorshipDeniedError) {
+    // intent was rejected by your policy
+  }
+  throw error
+}
+```
