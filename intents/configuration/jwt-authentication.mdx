@@ -11,9 +11,9 @@ The SDK supports two authentication modes: **API key** and **JWT**. API keys are
 
 JWTs are short-lived, RS256-signed tokens issued by your backend. Compared to a long-lived API key, they let you:
 
-- **Keep the signing key on your server.** The client never sees the private key — it only ever gets a short-lived access token.
-- **Scope sponsorship per intent.** For sponsored intents, you sign a separate extension token that binds to the exact intent being submitted, so the client cannot swap in a different payload.
-- **Apply a custom sponsorship policy.** Decide at signing time which chains, accounts, or calls to sponsor, and deny anything that falls outside of your policy.
+- **Cut latency and backend code.** Clients hit Rhinestone directly with a bounded access token instead of round-tripping through your server for every SDK call. For sponsored intents, a separate extension token binds your approval to the exact payload — so you stay in control per intent without proxying the submission.
+- **Bound the blast radius of a leaked credential.** Access tokens expire on a TTL you choose. An API key stays valid until you notice and rotate it.
+- **Rotate signing keys without downtime.** Register a new `kid`, start minting tokens with it, and tokens signed under the old `kid` keep verifying until they expire. No coordinated client deploy, no revocation race.
 
 ## Dashboard setup
 
