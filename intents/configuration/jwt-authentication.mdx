@@ -15,6 +15,33 @@ JWTs are short-lived, RS256-signed tokens issued by your backend. Compared to a 
 - **Bound the blast radius of a leaked credential.** Access tokens expire on a TTL you choose. An API key stays valid until you notice and rotate it.
 - **Rotate signing keys without downtime.** Register a new `kid`, start minting tokens with it, and tokens signed under the old `kid` keep verifying until they expire. No coordinated client deploy, no revocation race.
 
+For unsponsored intents, the difference in hops looks like this:
+
+```mermaid actions={false}
+sequenceDiagram
+    participant C as Client
+    participant S as Your server
+    participant R as Rhinestone
+
+    Note over C,R: API key
+    C->>S: get quote
+    S->>R: get quote (+ API key)
+    R-->>S: quote
+    S-->>C: quote
+    C->>S: submit signed intent
+    S->>R: submit signed intent (+ API key)
+    R-->>S: result
+    S-->>C: result
+
+    Note over C,R: JWT
+    C->>S: fetch access token (once per TTL)
+    S-->>C: token
+    C->>R: get quote (+ token)
+    R-->>C: quote
+    C->>R: submit signed intent (+ token)
+    R-->>C: result
+```
+
 ## Dashboard setup
 
 Before you can issue JWTs, you need to register a signing key with Rhinestone. Keys are managed per-project from the [Dashboard](https://dashboard.rhinestone.dev) under **Auth → JWT Keys**.
