@@ -218,6 +218,7 @@
             "group": "API guides",
             "pages": [
               "intents/guides/using-the-api",
+              "intents/guides/api-versioning",
               "intents/guides/getting-a-quote",
               "intents/guides/token-requirements",
               "intents/guides/signing",
