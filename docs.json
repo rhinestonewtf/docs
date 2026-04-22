@@ -231,6 +231,7 @@
           {
             "group": "Configuration",
             "pages": [
+              "intents/configuration/jwt-authentication",
               "smart-wallet/chain-abstraction/local-orchestrator-docker"
             ]
           }
