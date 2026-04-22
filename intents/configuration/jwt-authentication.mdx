@@ -9,7 +9,7 @@ The SDK supports two authentication modes: **API key** and **JWT**. API keys are
 
 ## Why JWTs
 
-JWTs are short-lived, RS256-signed tokens issued by your backend. Compared to a long-lived API key, they let you:
+JWTs are short-lived, asymmetrically-signed tokens (RS256 or ES256) issued by your backend. Compared to a long-lived API key, they let you:
 
 - **Cut latency and backend code.** Clients hit Rhinestone directly with a bounded access token instead of round-tripping through your server for every SDK call. For sponsored intents, a separate extension token binds your approval to the exact payload — so you stay in control per intent without proxying the submission.
 - **Bound the blast radius of a leaked credential.** Access tokens expire on a TTL you choose. An API key stays valid until you notice and rotate it.
@@ -70,8 +70,8 @@ The dashboard can generate a keypair directly in your browser. Only the public k
   <img src="/images/dashboard/jwt-keys-generate.png" />
 </Frame>
 
-- **Integrator ID** — must match the `sub` claim in the JWTs you'll sign. Typically the name of your service.
-- **Key ID** — used as the `kid` header in your JWTs. Use a stable name per environment (e.g. `prod`, `staging`).
+- **Integrator ID** — identifier for your organisation, emitted as the `iss` claim in the JWTs you'll sign. Typically the name of your service.
+- **Key ID** — identifier for this specific public key, emitted as the `kid` JOSE header. Use a stable name you can rotate later (e.g. `prod-2026-04`).
 
 Press "Add Key" to generate the keypair and register the public half.
 
@@ -109,6 +109,24 @@ Once the key is created, it shows up in the list along with the integrator ID, s
   <img src="/images/dashboard/jwt-keys-list.png" />
 </Frame>
 
+## Configuration
+
+Signing a JWT requires five values. Three come from the Dashboard; the other two are free-form labels you pick yourself.
+
+| Field | Where from | JWT claim |
+|-------|------------|-----------|
+| `privateKey` | Downloaded once when the key was generated (or supplied at registration) | n/a — signs the token |
+| `integratorId` | Dashboard — set when registering the key | `iss` |
+| `keyId` | Dashboard — set when registering the key | `kid` (JOSE header) |
+| `projectId` | Dashboard — shown on the project overview | `sub` |
+| `appId` | You choose | `app_id` |
+
+**`integratorId`, `keyId`, and `projectId`** are verified server-side. The access token's `(iss, kid)` must resolve to a registered key, and the token's `sub` must equal the project that key was registered against. Mismatches produce a `401` or `403` at verification time — see [Troubleshooting](#troubleshooting).
+
+**`appId`** is a free-form environment/app label — typically `prod`, `staging`, etc. It isn't registered anywhere. The only server-side check is that the access token's `app_id` matches the accompanying intent-extension token's `app_id`, so a sponsorship approval issued for one deployment can't be spent by another. Use it to correlate logs or split rate limits per deployment; if you don't need that, use the same value everywhere.
+
+<Note>`keyId` and `appId` are independent axes. `keyId` rotates on **key rotation** (same deployment, new signing key). `appId` rotates on **environment changes** (same key, new deployment). You can reuse one signing key across multiple environments, or rotate keys within a single environment.</Note>
+
 ## SDK usage
 
 There are two integration patterns depending on where the signing key lives.
@@ -123,7 +141,7 @@ const rhinestone = new RhinestoneSDK({
   auth: {
     mode: 'experimental_jwt',
     accessToken: async () => {
-      const res = await fetch('/api/auth/token')
+      const res = await fetch('/api/auth/access-token')
       const { token } = await res.json()
       return token
     },
@@ -166,7 +184,7 @@ const rhinestone = new RhinestoneSDK({
 })
 ```
 
-`createJwtSigner` returns `{ accessToken, getIntentExtensionToken }` — the same shape as the `auth` config, so you can spread it directly.
+`createJwtSigner` returns `{ accessToken, getIntentExtensionToken }` — the two callbacks the `auth` config expects, so you can spread them in next to the `mode` field.
 
 </Tab>
 </Tabs>
@@ -246,3 +264,17 @@ try {
   throw error
 }
 ```
+
+## Troubleshooting
+
+Auth failures surface as HTTP 4xx responses with a `message` field. The common ones:
+
+| Status | Message | Cause | Fix |
+|--------|---------|-------|-----|
+| 401 | `Unknown integrator key: iss=<x>, kid=<y>` | No registered key matches the `(iss, kid)` pair in the token | Confirm `integratorId` and `keyId` exactly match the values shown in the Dashboard for this key |
+| 401 | `access_token verification failed: ...` | Signature invalid, token expired, or wrong audience | Check that the private key matches the registered public key, that the system clock isn't skewed, and that the TTL isn't too short |
+| 401 | `Invalid token type: expected "access", got "intent_extension"` | Extension token sent in the `Authorization` header (or vice versa) | Send the access token as `Authorization: Bearer`; send the extension token as `X-Intent-Extension: Bearer` |
+| 403 | `access_token sub does not match the project bound to signing key` | `projectId` doesn't match the project this key was registered against | Copy the project ID from the Dashboard project page into your signer config |
+| 403 | intent-extension binding failure | `iss` / `sub` / `app_id` differ between the access token and the extension token, or the `jti` has already been spent | Sign both tokens from the same config; mint a fresh extension token (new `jti`) when retrying a failed submit |
+
+If you're hitting a 401 seconds after registering or rotating a key, the verification cache may briefly hold the old state — wait a minute and retry, or register under a fresh `kid`.
