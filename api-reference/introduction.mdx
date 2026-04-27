@@ -1,0 +1,35 @@
+---
+title: "Introduction"
+description: "Reference for the Rhinestone REST APIs."
+---
+
+The Rhinestone platform exposes two REST APIs:
+
+- **Orchestrator** — quote, submit, and track cross-chain intents. Backs the core Warp flow.
+- **Deposit Service** — register accounts and process cross-chain deposits with automatic bridging and gas sponsorship.
+
+Both share the same base host, `https://v1.orchestrator.rhinestone.dev`, with the Deposit Service mounted at `/deposit-processor`.
+
+## Authentication
+
+All endpoints require an API key sent in the `x-api-key` header. The orchestrator additionally supports short-lived JWTs as an alternative for integrators that need bounded credentials or per-request sponsorship policies.
+
+- [Get an API key](https://tally.so/r/wg22x4)
+- [JWT authentication](/intents/configuration/jwt-authentication)
+
+## Errors
+
+Errors are returned with standard HTTP status codes and a JSON body. See [Error handling](/intents/guides/error-handling) for the full taxonomy and recovery patterns.
+
+## Guides
+
+If you're integrating from scratch, start with the workflow guides — they show how the endpoints fit together end-to-end.
+
+<CardGroup cols={2}>
+  <Card title="Intents quickstart" icon="route" href="/intents/quickstart">
+    Build the full intent flow: quote, sign, submit, track.
+  </Card>
+  <Card title="Deposits quickstart" icon="wallet" href="/deposits/api/quickstart">
+    Register accounts and accept cross-chain deposits.
+  </Card>
+</CardGroup>
