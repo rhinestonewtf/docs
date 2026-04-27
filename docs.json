@@ -263,16 +263,31 @@
               "deposits/widget/customization",
               "deposits/widget/status-tracking"
             ]
-          },
-          {
-            "group": "API Reference",
-            "openapi": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/deposit-service.json"
           }
         ]
       },
       {
         "tab": "API Reference",
-        "openapi": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/orchestrator.json"
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": ["api-reference/introduction"]
+          },
+          {
+            "group": "Orchestrator",
+            "openapi": {
+              "source": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/orchestrator.json",
+              "directory": "api-reference/orchestrator"
+            }
+          },
+          {
+            "group": "Deposit Service",
+            "openapi": {
+              "source": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/deposit-service.json",
+              "directory": "api-reference/deposit-service"
+            }
+          }
+        ]
       }
     ]
   },
