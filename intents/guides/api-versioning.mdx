@@ -1,0 +1,137 @@
+---
+title: "API versioning"
+description: "How the Rhinestone API evolves, how to pin a version, and how to migrate between them."
+---
+
+The Rhinestone API is versioned. Pin a version via the `x-api-version` header and upgrade on your own schedule — new versions are additive and opt-in.
+
+## Why versioning
+
+The API evolves as Rhinestone adds chains, settlement layers, and new intent patterns. Versioning lets us ship those changes without forcing every integrator to migrate in lockstep.
+
+We use dated versions (`YYYY-MM.name`) rather than semver-style major versions. Semver majors tend to hoard changes into rare, big-bang releases — each bump looks like a migration project, so teams avoid shipping them. Dated versions normalise small, frequent bumps, so each one carries a small diff. Stripe and other mature APIs follow the same model.
+
+The `.name` suffix gives each release a human handle. We name versions after mountains, one per letter — `alps`, `blanc`, `corno`, and so on. It's easier to say "switch to blanc" than "switch to 2026-04".
+
+## Pinning a version
+
+Pin a version by sending `x-api-version` on every request:
+
+```ts {6}
+const res = await fetch("https://v1.orchestrator.rhinestone.dev/intents/route", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    "x-api-version": "2026-01.alps",
+  },
+  body: JSON.stringify(payload),
+});
+```
+
+The format is `YYYY-MM.name`. The header is required — requests without it are rejected.
+
+## Compatibility
+
+### What we can change without a new version
+
+Within a version, we treat the response schema as open. These changes ship freely:
+
+- New optional request fields
+- New response fields
+- New enum variants in responses (e.g. a new `settlementLayer`)
+- New endpoints
+- Widened request validation
+- Changed default values
+
+### What your client must do
+
+To consume those changes safely:
+
+- **Ignore unknown fields.** If you use a strict JSON parser (Go's `DisallowUnknownFields`, Rust `serde(deny_unknown_fields)`, Jackson's `FAIL_ON_UNKNOWN_PROPERTIES`), disable it for our responses.
+- **Handle unknown enum values gracefully.** A `switch` on `settlementLayer` that throws on default will break the day we add a new one. Treat unknown values as "not supported by this client" and fall back.
+- **Don't reconstruct EIP-712 types client-side.** Forward the server's typed data verbatim to `wallet.signTypedData()`. Hand-rolled type libraries break on additive schema changes.
+- **Treat quote 404s as normal.** Quoted intents are stored server-side with a short TTL. If a quote expires or the quote store restarts, you'll see 404 on submit. Re-quote — don't retry the submit.
+- **Take `routes[0]` unless you have your own criteria.** The array is server-sorted by cost. Re-sorting client-side usually degrades route quality.
+
+### What triggers a new version
+
+- Removing or renaming any field
+- Adding a required request field
+- Changing a field's type
+- Restructuring request or response shape
+- Narrowing request validation
+- Making a required response field optional or nullable
+- Removing an endpoint
+
+### Deprecation lifecycle
+
+Fields deprecated in version N remain present and documented as deprecated; they're removed in N+1. Versions themselves are not routinely deprecated — each version is intended to stay live indefinitely so you never have to migrate on our clock.
+
+The one exception is `2026-01.alps`, which will be sunset after integrators migrate to `blanc`. The shape difference between the two is large enough that maintaining both long-term isn't practical. Future version transitions will follow the standard per-field deprecation rule.
+
+## Versions
+
+### `2026-04.blanc`
+
+The current version. Start here if you're integrating from scratch.
+
+**What changed:**
+
+- **Server-stored intents.** `POST /intents/route` returns an `intentId`; the full intent payload stays server-side. Submit via `POST /intents/{intentId}/submit` with just signatures — no more round-tripping `intentOp`.
+- **EIP-712 typed data in the response.** Forward `signData.origin[]` and `signData.destination` directly to `wallet.signTypedData()`. The SDK no longer maintains type definitions.
+- **Flat `routes[]` array.** Each route has its own `intentId`, `cost`, and `signData`. Pre-sorted by cost — `routes[0]` is the recommended route.
+- **Flattened cost structure.** One `cost` object per route with `input`, `output`, and USD-denominated `fees.breakdown`. Replaces the scattered `tokensSpent` / `tokensReceived` / `feeBreakdownUSD` / `gasCost` / `sponsorFee` fields.
+
+#### Migrating from `alps`
+
+**Quote and submit**
+
+```ts
+// Before (alps) — client round-trips the full intentOp
+const { intentOp } = await post("/intents/route", body);
+const signatures = await sign(intentOp);
+await post("/intent-operations", {
+  signedIntentOp: { ...intentOp, ...signatures },
+});
+
+// After (blanc) — server stores the intent, client submits signatures by id
+const { routes } = await post("/intents/route", body);
+const { intentId, signData } = routes[0];
+const signatures = {
+  origin: await Promise.all(signData.origin.map(signTypedData)),
+  destination: await signTypedData(signData.destination),
+};
+await post(`/intents/${intentId}/submit`, { signatures });
+```
+
+**Signing**
+
+```ts
+// Before (alps) — client hashes intent fields with hand-built EIP-712 types
+const hash = getIntentHash(intentOp);
+const sig = await signer.signTypedData(types, hash);
+
+// After (blanc) — server provides the typed data directly
+const sig = await signer.signTypedData(signData.origin[0]);
+```
+
+**Reading costs**
+
+```ts
+// Before (alps)
+const gasUSD = response.feeBreakdownUSD.gas;
+const inputAmount = response.tokensSpent[0].amount;
+
+// After (blanc)
+const gasUSD = route.cost.fees.breakdown.gas.usd;
+const inputAmount = route.cost.input[0].amount;
+```
+
+### `2026-01.alps`
+
+The original release. Intents are round-tripped through the client, signed via client-reconstructed EIP-712, and submitted with the full `intentOp` attached to `signedIntentOp`.
+
+<Warning>
+Deprecated. Will be removed once existing integrations migrate to `blanc`. No new features will land on this version.
+</Warning>
