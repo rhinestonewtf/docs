@@ -1,6 +1,7 @@
 # Mintlify Starter Kit
 
 <!-- test commit -->
+<!-- test 2 amended commit -->
 
 
 Click on `Use this template` to copy the Mintlify starter kit. The starter kit contains examples including
