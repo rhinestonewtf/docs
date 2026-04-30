@@ -2,13 +2,62 @@
 title: "Migration guide"
 ---
 
-## Migrating from 1.x Alpha SDK
+## Migrating from 1.x SDK
 
 To use the latest version of the SDK:
 
 ```bash
 npm i @rhinestone/sdk
 ```
+
+The SDK now talks the orchestrator's `2026-04.blanc` API on your behalf. The wire-level changes (CAIP-2 chain ids, reshaped quote/submit handshake, unified error envelope) are absorbed by the client — you don't need to touch your integration unless you call the orchestrator API directly.
+
+### ESM-only build
+
+The SDK is now ESM-only. `require('@rhinestone/sdk')` no longer works — use ESM `import` syntax. Internal subpath imports were also removed; use the curated entry points (`./actions/*`, `./errors`, `./utils`, `./smart-sessions`, `./jwt-server`).
+
+### Quote selection
+
+`prepareTransaction` now returns `quotes: { best, all }` instead of a single `quote`. Existing `prepare → sign → submit` code keeps working — `signTransaction` defaults to `quotes.best`:
+
+```ts
+const prepared = await rhinestoneAccount.prepareTransaction({
+  // …
+})
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const result = await rhinestoneAccount.submitTransaction(signed)
+```
+
+To sign a non-default route, pass an `intentId` from `prepared.quotes.all`:
+
+```ts
+const prepared = await rhinestoneAccount.prepareTransaction({
+  // …
+})
+const chosen =
+  prepared.quotes.all.find((q) => q.settlementLayer === 'across') ??
+  prepared.quotes.best
+const signed = await rhinestoneAccount.signTransaction(prepared, {
+  intentId: chosen.intentId,
+})
+```
+
+`getTransactionMessages(prepared, { intentId })` accepts the same selection so external signers see the route `signTransaction` will sign.
+
+### Intent status by ID
+
+`getIntentStatus` now takes a `string` instead of a `bigint`. If you persist intent IDs across runs, switch the storage type to string.
+
+### Portfolio shape
+
+`PortfolioToken` no longer carries a token-level `decimals` or aggregate `balances`. `decimals` now lives on each per-chain `chains[]` entry alongside `address` and `amount`, since the same logical token can have different decimals across chains (e.g., USDC is 6 on Ethereum, 18 on BSC). Read the per-chain entry directly when rendering balances.
+
+### Removed features
+
+- **Compact-bound options.** The `lockFunds` transaction option and `Account.emissaryConfig` are removed. The Compact-based deposit/withdrawal flow is no longer part of the public surface.
+- **Permit2 signing helpers.** `signPermit2Batch`, `signPermit2Sequential`, and the related `MultiChainPermit2Config` / `MultiChainPermit2Result` / `BatchPermit2Result` types are removed. Signing now uses orchestrator-provided EIP-712 typed data internally; the SDK no longer exposes standalone signing helpers.
+
+## Migrating from 1.x Alpha SDK
 
 ### New entry point
 
