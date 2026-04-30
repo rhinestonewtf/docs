@@ -18,18 +18,18 @@ The `.name` suffix gives each release a human handle. We name versions after mou
 Pin a version by sending `x-api-version` on every request:
 
 ```ts {6}
-const res = await fetch("https://v1.orchestrator.rhinestone.dev/intents/route", {
+const res = await fetch("https://v1.orchestrator.rhinestone.dev/quotes", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
     "x-api-key": apiKey,
-    "x-api-version": "2026-01.alps",
+    "x-api-version": "2026-04.blanc",
   },
   body: JSON.stringify(payload),
 });
 ```
 
-The format is `YYYY-MM.name`. The header is required — requests without it are rejected.
+The format is `YYYY-MM.name`. Always send the header — requests without it fall back to the deprecated `2026-01.alps` shape, and unknown or malformed values return `400 VALIDATION_ERROR`.
 
 ## Compatibility
 
@@ -78,10 +78,17 @@ The current version. Start here if you're integrating from scratch.
 
 **What changed:**
 
-- **Server-stored intents.** `POST /intents/route` returns an `intentId`; the full intent payload stays server-side. Submit via `POST /intents/{intentId}/submit` with just signatures — no more round-tripping `intentOp`.
-- **EIP-712 typed data in the response.** Forward `signData.origin[]` and `signData.destination` directly to `wallet.signTypedData()`. The SDK no longer maintains type definitions.
-- **Flat `routes[]` array.** Each route has its own `intentId`, `cost`, and `signData`. Pre-sorted by cost — `routes[0]` is the recommended route.
-- **Flattened cost structure.** One `cost` object per route with `input`, `output`, and USD-denominated `fees.breakdown`. Replaces the scattered `tokensSpent` / `tokensReceived` / `feeBreakdownUSD` / `gasCost` / `sponsorFee` fields.
+- **CAIP-2 chain ids.** Every chain id on the wire is now an `eip155:<chainId>` string — `1` becomes `"eip155:1"`. Affects scalar fields, arrays, and chain-keyed maps. Path parameters are unchanged.
+- **Resource-style endpoints.** `POST /quotes` (was `/intents/route`), `POST /intents` (was `/intent-operations`), `GET /intents/:id` (was `/intent-operation/:id`), `POST /intents/splits` (was `/intents/split`).
+- **Server-stored intents.** `POST /quotes` returns an `intentId`; the full intent stays server-side. Submit via `POST /intents` with `{ intentId, signatures }` — no more round-tripping `intentOp`.
+- **Submit response collapsed.** `POST /intents` returns just `{ intentId }` (was `{ result: { id, status } }`). The synthesised `status: "FAILED"` is gone — simulation failures now surface as 4xx with the unified error envelope.
+- **EIP-712 typed data in the response.** Forward `signData.origin[]` and `signData.destination` directly to `wallet.signTypedData()`. No more client-side type reconstruction.
+- **Flat `routes[]` array.** Each route carries its own `intentId`, `cost`, `signData`, and `tokenRequirements` (EOAs only — smart accounts handle approvals internally). Pre-sorted by cost; `routes[0]` is recommended.
+- **Flattened cost structure.** One `cost` object per route with `input`, `output`, and `fees: { total, breakdown }`. Replaces scattered `tokensSpent` / `tokensReceived` / `feeBreakdownUSD` / `gasCost` / `sponsorFee`.
+- **Unified error envelope.** All non-2xx responses share `{ code, message, traceId, details? }`. Switch from message-pattern matching to `code`-based dispatch.
+- **Field renames.** Notable: `destinationGasUnits` → `destinationGasLimit`, `sponsorSettings.{gas,bridgeFees,swapFees}Sponsored` → `{gas,bridgeFees,swapFees}`, `userAddress` → `accountAddress`. Portfolio token shape uses `symbol` (was `tokenName`), `chains` (was `tokenChainBalance`), and per-chain `address`/`decimals` (were `tokenAddress`/`tokenDecimals`). Timestamps move from `BigIntLike` strings to integer Unix seconds.
+- **Schema trimming.** `Account.mockSignature` is gone — use the per-chain `Account.mockSignatures` map. `AccountType.SMART_ACCOUNT` is gone — use `ERC7579`. The `accountAccessList` flat-array variant is gone — use the structured shape.
+- **Compact / resource locks removed.** No blanc equivalent for `topupCompact`, `emissaryConfig`, `MultichainCompact` origin signatures, or the `/withdrawals` endpoints. Stay on `alps` if you depend on them.
 
 #### Migrating from `alps`
 
@@ -96,13 +103,13 @@ await post("/intent-operations", {
 });
 
 // After (blanc) — server stores the intent, client submits signatures by id
-const { routes } = await post("/intents/route", body);
+const { routes } = await post("/quotes", body);
 const { intentId, signData } = routes[0];
 const signatures = {
   origin: await Promise.all(signData.origin.map(signTypedData)),
   destination: await signTypedData(signData.destination),
 };
-await post(`/intents/${intentId}/submit`, { signatures });
+await post("/intents", { intentId, signatures });
 ```
 
 **Signing**
@@ -114,6 +121,24 @@ const sig = await signer.signTypedData(types, hash);
 
 // After (blanc) — server provides the typed data directly
 const sig = await signer.signTypedData(signData.origin[0]);
+```
+
+**Chain ids**
+
+```ts
+// Before (alps)
+{ "chainId": 42161 }
+
+// After (blanc)
+{ "chainId": "eip155:42161" }
+```
+
+The portfolio filter switches from comma-separated lists to repeated query parameters, with `tokens` keyed as `chain:address`:
+
+```
+GET /accounts/0xabc/portfolio
+  ?chainIds=eip155:1&chainIds=eip155:137
+  &tokens=eip155:1:0xa0b...&tokens=eip155:137:0xa0b...
 ```
 
 **Reading costs**
@@ -128,9 +153,47 @@ const gasUSD = route.cost.fees.breakdown.gas.usd;
 const inputAmount = route.cost.input[0].amount;
 ```
 
+**Error handling**
+
+```ts
+// Before (alps) — message-pattern matching
+if (err.message === "Insufficient balance") { /* ... */ }
+if (err.message.startsWith("Unsupported chain ")) { /* ... */ }
+
+// After (blanc) — code-based dispatch
+switch (err.code) {
+  case "INSUFFICIENT_LIQUIDITY":
+    // err.details: { availableIntents, unfillable }
+    break;
+  case "VALIDATION_ERROR":
+    // err.details: [{ message, context? }]
+    break;
+}
+```
+
+Honour `Retry-After` on `429 TOO_MANY_REQUESTS`.
+
+| Code                          | HTTP |
+| ----------------------------- | ---- |
+| `VALIDATION_ERROR`            | 400  |
+| `UNAUTHORIZED`                | 401  |
+| `FORBIDDEN`                   | 403  |
+| `NOT_FOUND`                   | 404  |
+| `CONFLICT`                    | 409  |
+| `UNPROCESSABLE_CONTENT`       | 422  |
+| `INSUFFICIENT_LIQUIDITY`      | 422  |
+| `TOO_MANY_REQUESTS`           | 429  |
+| `INTERNAL_ERROR`              | 500  |
+| `SETTLEMENT_QUOTE_ERROR`      | 502  |
+| `SETTLEMENT_EXECUTION_ERROR`  | 502  |
+| `RELAYER_MARKET_UNAVAILABLE`  | 503  |
+| `EXTERNAL_SERVICE_TIMEOUT`    | 504  |
+
+The list is extensible — add unknown codes to a generic fallback path.
+
 ### `2026-01.alps`
 
-The original release. Intents are round-tripped through the client, signed via client-reconstructed EIP-712, and submitted with the full `intentOp` attached to `signedIntentOp`.
+The original release. Intents are round-tripped through the client, signed via client-reconstructed EIP-712, and submitted with the full `intentOp` attached to `signedIntentOp`. The Compact / resource-lock surface (`topupCompact`, `emissaryConfig`, `/withdrawals`, `MultichainCompact` signatures) is only available on this version — stay on `alps` if you depend on it.
 
 <Warning>
 Deprecated. Will be removed once existing integrations migrate to `blanc`. No new features will land on this version.
