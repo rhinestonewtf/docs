@@ -10,8 +10,6 @@ To use the latest version of the SDK:
 npm i @rhinestone/sdk
 ```
 
-The SDK now talks the orchestrator's `2026-04.blanc` API on your behalf. The wire-level changes (CAIP-2 chain ids, reshaped quote/submit handshake, unified error envelope) are absorbed by the client — you don't need to touch your integration unless you call the orchestrator API directly.
-
 ### ESM-only build
 
 The SDK is now ESM-only. `require('@rhinestone/sdk')` no longer works — use ESM `import` syntax. Internal subpath imports were also removed; use the curated entry points (`./actions/*`, `./errors`, `./utils`, `./smart-sessions`, `./jwt-server`).
