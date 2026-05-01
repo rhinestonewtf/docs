@@ -14,6 +14,79 @@ npm i @rhinestone/sdk
 
 The SDK is now ESM-only. `require('@rhinestone/sdk')` no longer works — use ESM `import` syntax. Internal subpath imports were also removed; use the curated entry points (`./actions/*`, `./errors`, `./utils`, `./smart-sessions`, `./jwt-server`).
 
+### `sendTransaction` removed
+
+The `account.sendTransaction(transaction)` shortcut is gone. Use the explicit `prepareTransaction → signTransaction → submitTransaction` flow:
+
+```ts
+// Before
+const result = await rhinestoneAccount.sendTransaction({
+  targetChain,
+  calls,
+  tokenRequests,
+})
+
+// After
+const prepared = await rhinestoneAccount.prepareTransaction({
+  targetChain,
+  calls,
+  tokenRequests,
+})
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const result = await rhinestoneAccount.submitTransaction(signed)
+```
+
+`sendUserOperation` for ERC-4337 flows is unchanged.
+
+### Session permissions are ABI-driven
+
+`Session.actions` is replaced with `Session.permissions`. Each permission is an `{ abi, address, functions }` entry — the SDK derives function selectors and param calldata offsets from the ABI, and type-checks param values against ABI input types:
+
+```ts
+// Before
+const session: Session = {
+  owners: { type: 'ecdsa', accounts: [sessionOwner] },
+  actions: [
+    {
+      target: usdcAddress,
+      selector: toFunctionSelector(
+        getAbiItem({ abi: erc20Abi, name: 'transfer' }),
+      ),
+      policies: [
+        {
+          type: 'universal-action',
+          rules: [
+            {
+              condition: 'equal',
+              calldataOffset: 0n,
+              referenceValue: recipient,
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
+
+// After
+const session: Session = {
+  owners: { type: 'ecdsa', accounts: [sessionOwner] },
+  permissions: [
+    {
+      abi: erc20Abi,
+      address: usdcAddress,
+      functions: {
+        transfer: {
+          params: {
+            recipient: { condition: 'equal', value: recipient },
+          },
+        },
+      },
+    },
+  ],
+}
+```
+
 ### Quote selection
 
 `prepareTransaction` now returns `quotes: { best, all }` instead of a single `quote`. Existing `prepare → sign → submit` code keeps working — `signTransaction` defaults to `quotes.best`:
@@ -42,6 +115,34 @@ const signed = await rhinestoneAccount.signTransaction(prepared, {
 
 `getTransactionMessages(prepared, { intentId })` accepts the same selection so external signers see the route `signTransaction` will sign.
 
+### `submitTransaction` options bag
+
+`submitTransaction` now takes an options object instead of positional arguments:
+
+```ts
+// Before
+await rhinestoneAccount.submitTransaction(signed, authorizations)
+
+// After
+await rhinestoneAccount.submitTransaction(signed, { authorizations })
+```
+
+### `waitForExecution` no longer accepts preconfirmations
+
+The `acceptsPreconfirmations` parameter is removed. `waitForExecution` always waits for `FILLED` / `COMPLETED` and never treats `PRECONFIRMED` as terminal:
+
+```ts
+// Before
+await rhinestoneAccount.waitForExecution(result, false)
+
+// After
+await rhinestoneAccount.waitForExecution(result)
+```
+
+### Passport account removed
+
+`account.type: 'passport'` is no longer accepted. The `PassportAccount` type and the `passport` member of `AccountType` / `AccountProviderConfig` are removed.
+
 ### Intent status by ID
 
 `getIntentStatus` now takes a `string` instead of a `bigint`. If you persist intent IDs across runs, switch the storage type to string.
@@ -50,7 +151,7 @@ const signed = await rhinestoneAccount.signTransaction(prepared, {
 
 `PortfolioToken` no longer carries a token-level `decimals` or aggregate `balances`. `decimals` now lives on each per-chain `chains[]` entry alongside `address` and `amount`, since the same logical token can have different decimals across chains (e.g., USDC is 6 on Ethereum, 18 on BSC). Read the per-chain entry directly when rendering balances.
 
-### Removed features
+### Removed helpers
 
 - **Compact-bound options.** The `lockFunds` transaction option and `Account.emissaryConfig` are removed. The Compact-based deposit/withdrawal flow is no longer part of the public surface.
 - **Permit2 signing helpers.** `signPermit2Batch`, `signPermit2Sequential`, and the related `MultiChainPermit2Config` / `MultiChainPermit2Result` / `BatchPermit2Result` types are removed. Signing now uses orchestrator-provided EIP-712 typed data internally; the SDK no longer exposes standalone signing helpers.
