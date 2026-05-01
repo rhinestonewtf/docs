@@ -200,17 +200,33 @@ const chains = await response.json()
 
 ### `deployAccountsForOwners` removed
 
-Deploy each user's account by calling `deploy` with `sponsored: true` — the orchestrator submits a sponsored intent that runs the deployment:
+Create a backend deployer account, take a view-only reference to each user account, and submit a sponsored intent that calls `deploy(userAccount)`. Pass multiple `deploy(...)` calls in one intent to batch deployments.
 
 ```ts
+import { RhinestoneSDK } from '@rhinestone/sdk'
+import { deploy } from '@rhinestone/sdk/actions'
+import { toViewOnlyAccount } from '@rhinestone/sdk/utils'
+
+const rhinestone = new RhinestoneSDK({ apiKey })
+
+const deployerAccount = await rhinestone.createAccount({
+  owners: { type: 'ecdsa', accounts: [deployerSigner] },
+})
+
 const userAccount = await rhinestone.createAccount({
-  account: { type: 'safe' },
   owners: {
     type: 'ecdsa',
-    accounts: [{ address: ownerAddress, type: 'json-rpc' }],
+    accounts: [toViewOnlyAccount(userAddress)],
   },
 })
-await userAccount.deploy(chain, { sponsored: true })
+
+const prepared = await deployerAccount.prepareTransaction({
+  chain,
+  calls: [deploy(userAccount)],
+  sponsored: true,
+})
+const signed = await deployerAccount.signTransaction(prepared)
+await deployerAccount.submitTransaction(signed)
 ```
 
 ### `checkERC20AllowanceDirect` removed
