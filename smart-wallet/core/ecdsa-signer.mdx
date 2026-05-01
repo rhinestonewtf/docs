@@ -120,3 +120,19 @@ await account.sendTransaction({
   tokenRequests: [],
 })
 ```
+
+## Validator versions
+
+The SDK ships with two Ownable Validator implementations. The default is the latest version, which supports EIP-712 legible signing — wallet prompts show structured typed data instead of an opaque hash — but accepts only raw 65-byte ECDSA signatures. The legacy validator (`0x2483da3a338895199e5e538530213157e931bf06`) does not support EIP-712 legibility, but it accepts ERC-1271 contract signatures, so you can use a smart account (e.g., a Safe) as an owner.
+
+To use the legacy validator, pass its address as `module`:
+
+```ts {5}
+const account = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [smartAccountSigner],
+    module: '0x2483da3a338895199e5e538530213157e931bf06',
+  },
+})
+```
