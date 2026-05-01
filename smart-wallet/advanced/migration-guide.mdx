@@ -43,7 +43,7 @@ const result = await rhinestoneAccount.submitTransaction(signed)
 `Session.actions` is gone. Build sessions with `toSession({ chain, owners, permissions })` instead — an ABI-driven definition the SDK resolves into a low-level `Session`. Each permission is an `{ abi, address, functions }` entry; function selectors and param calldata offsets are derived from the ABI, and param value types are checked against ABI input types:
 
 ```ts
-import { toSession } from '@rhinestone/sdk'
+import { toSession } from '@rhinestone/sdk/smart-sessions'
 
 // Before
 const session: Session = {
@@ -187,10 +187,51 @@ const policy: Permit2ClaimPolicy = {
 }
 ```
 
-### Removed helpers
+### Token registry helpers removed
 
-- **Compact-bound options.** The `lockFunds` transaction option and `Account.emissaryConfig` are removed. The Compact-based deposit/withdrawal flow is no longer part of the public surface.
-- **Permit2 signing helpers.** `signPermit2Batch`, `signPermit2Sequential`, and the related `MultiChainPermit2Config` / `MultiChainPermit2Result` / `BatchPermit2Result` types are removed. Signing now uses orchestrator-provided EIP-712 typed data internally; the SDK no longer exposes standalone signing helpers.
+`getSupportedTokens`, `getTokenAddress`, `getTokenDecimals`, and `getAllSupportedChainsAndTokens` are removed. Fetch the equivalent data from the orchestrator's `/chains` endpoint:
+
+```ts
+const response = await fetch('https://v1.orchestrator.rhinestone.dev/chains', {
+  headers: { 'x-api-key': apiKey },
+})
+const chains = await response.json()
+```
+
+### `deployAccountsForOwners` removed
+
+Deploy each user's account by calling `deploy` with `sponsored: true` — the orchestrator submits a sponsored intent that runs the deployment:
+
+```ts
+const userAccount = await rhinestone.createAccount({
+  account: { type: 'safe' },
+  owners: {
+    type: 'ecdsa',
+    accounts: [{ address: ownerAddress, type: 'json-rpc' }],
+  },
+})
+await userAccount.deploy(chain, { sponsored: true })
+```
+
+### `checkERC20AllowanceDirect` removed
+
+Read allowances directly with viem's `readContract`:
+
+```ts
+const allowance = await publicClient.readContract({
+  address: tokenAddress,
+  abi: erc20Abi,
+  functionName: 'allowance',
+  args: [owner, spender],
+})
+```
+
+### Removed and relocated helpers
+
+- **Compact-bound surface.** The `@rhinestone/sdk/actions/compact` subpackage, the `lockFunds` transaction option, and `Account.emissaryConfig` are removed alongside the orchestrator's compact-based deposit/withdrawal flow.
+- **Permit2 signing helpers.** `signPermit2Batch`, `signPermit2Sequential`, and the related `MultiChainPermit2Config` / `MultiChainPermit2Result` / `BatchPermit2Result` types are removed. Signing now uses orchestrator-provided EIP-712 typed data internally.
+- **`getPermit2Address`** is removed. Permit2 lives at `0x000000000022D473030F116dDEE9F6B43aC78BA3` on every supported chain — hardcode the constant.
+- **`walletClientToAccount` and `wrapParaAccount`** moved from the package root to `@rhinestone/sdk/utils`.
 
 ## Migrating from 1.x Alpha SDK
 
