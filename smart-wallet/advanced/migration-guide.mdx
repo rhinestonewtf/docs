@@ -40,11 +40,14 @@ const result = await rhinestoneAccount.submitTransaction(signed)
 
 ### Session permissions are ABI-driven
 
-`Session.actions` is replaced with `Session.permissions`. Each permission is an `{ abi, address, functions }` entry — the SDK derives function selectors and param calldata offsets from the ABI, and type-checks param values against ABI input types:
+`Session.actions` is gone. Build sessions with `toSession({ chain, owners, permissions })` instead — an ABI-driven definition the SDK resolves into a low-level `Session`. Each permission is an `{ abi, address, functions }` entry; function selectors and param calldata offsets are derived from the ABI, and param value types are checked against ABI input types:
 
 ```ts
+import { toSession } from '@rhinestone/sdk'
+
 // Before
 const session: Session = {
+  chain: base,
   owners: { type: 'ecdsa', accounts: [sessionOwner] },
   actions: [
     {
@@ -69,7 +72,8 @@ const session: Session = {
 }
 
 // After
-const session: Session = {
+const session = toSession({
+  chain: base,
   owners: { type: 'ecdsa', accounts: [sessionOwner] },
   permissions: [
     {
@@ -84,8 +88,10 @@ const session: Session = {
       },
     },
   ],
-}
+})
 ```
+
+The hand-written shape is now `SessionDefinition`; `Session` is the resolved output of `toSession`.
 
 ### Quote selection
 
