@@ -157,6 +157,36 @@ await rhinestoneAccount.waitForExecution(result)
 
 `PortfolioToken` no longer carries a token-level `decimals` or aggregate `balances`. `decimals` now lives on each per-chain `chains[]` entry alongside `address` and `amount`, since the same logical token can have different decimals across chains (e.g., USDC is 6 on Ethereum, 18 on BSC). Read the per-chain entry directly when rendering balances.
 
+### Permit2 claim policy renames
+
+If you constructed `Permit2ClaimPolicy` values directly, the type tag and field names changed to be chain-aware:
+
+```ts
+// Before
+const policy: Permit2ClaimPolicy = {
+  type: 'permit2-claim',
+  arbiters: [spender],
+  tokensIn: [{ chainId: base.id, token: usdcAddress }],
+  tokensOut: [{ chainId: base.id, token: outputToken }],
+  recipients: [{ chainId: base.id, recipient: 'any' }],
+  recipientIsSponsor: true,
+  expiryBounds: { min: 1n, max: 100n },
+  fillExpiryBounds: [{ chainId: base.id, min: 1n, max: 100n }],
+}
+
+// After
+const policy: Permit2ClaimPolicy = {
+  type: 'permit2',
+  spenders: [spender],
+  sourceTokens: [{ chain: base, address: usdcAddress }],
+  destinationTokens: [{ chain: base, address: outputToken }],
+  recipients: [{ chain: base, address: 'any' }],
+  recipientIsAccount: true,
+  permitDeadline: { min: 1n, max: 100n },
+  fillDeadline: [{ chain: base, min: 1n, max: 100n }],
+}
+```
+
 ### Removed helpers
 
 - **Compact-bound options.** The `lockFunds` transaction option and `Account.emissaryConfig` are removed. The Compact-based deposit/withdrawal flow is no longer part of the public surface.
