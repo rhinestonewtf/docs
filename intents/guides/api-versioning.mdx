@@ -9,7 +9,7 @@ The Rhinestone API is versioned. Pin a version via the `x-api-version` header an
 
 The API evolves as Rhinestone adds chains, settlement layers, and new intent patterns. Versioning lets us ship those changes without forcing every integrator to migrate in lockstep.
 
-We use dated versions (`YYYY-MM.name`) rather than semver-style major versions. Semver majors tend to hoard changes into rare, big-bang releases — each bump looks like a migration project, so teams avoid shipping them. Dated versions normalise small, frequent bumps, so each one carries a small diff. Stripe and other mature APIs follow the same model.
+We use dated versions (`YYYY-MM.name`) rather than semver-style major versions. Semver majors tend to hoard changes into rare, big-bang releases — each bump looks like a migration project, so teams avoid shipping them. Dated versions normalise small, frequent bumps, so each one carries a small diff.
 
 The `.name` suffix gives each release a human handle. We name versions after mountains, one per letter — `alps`, `blanc`, `corno`, and so on. It's easier to say "switch to blanc" than "switch to 2026-04".
 
@@ -52,7 +52,7 @@ To consume those changes safely:
 - **Handle unknown enum values gracefully.** A `switch` on `settlementLayer` that throws on default will break the day we add a new one. Treat unknown values as "not supported by this client" and fall back.
 - **Don't reconstruct EIP-712 types client-side.** Forward the server's typed data verbatim to `wallet.signTypedData()`. Hand-rolled type libraries break on additive schema changes.
 - **Treat quote 404s as normal.** Quoted intents are stored server-side with a short TTL. If a quote expires or the quote store restarts, you'll see 404 on submit. Re-quote — don't retry the submit.
-- **Take `routes[0]` unless you have your own criteria.** The array is server-sorted by cost. Re-sorting client-side usually degrades route quality.
+- **Take `routes[0]` unless you have your own criteria.** The array is server-ranked by a cost/speed tradeoff. Re-sorting client-side usually degrades route quality.
 
 ### What triggers a new version
 
@@ -83,7 +83,7 @@ The current version. Start here if you're integrating from scratch.
 - **Server-stored intents.** `POST /quotes` returns an `intentId`; the full intent stays server-side. Submit via `POST /intents` with `{ intentId, signatures }` — no more round-tripping `intentOp`.
 - **Submit response collapsed.** `POST /intents` returns just `{ intentId }` (was `{ result: { id, status } }`). The synthesised `status: "FAILED"` is gone — simulation failures now surface as 4xx with the unified error envelope.
 - **EIP-712 typed data in the response.** Forward `signData.origin[]` and `signData.destination` directly to `wallet.signTypedData()`. No more client-side type reconstruction.
-- **Flat `routes[]` array.** Each route carries its own `intentId`, `cost`, `signData`, and `tokenRequirements` (EOAs only — smart accounts handle approvals internally). Pre-sorted by cost; `routes[0]` is recommended.
+- **Flat `routes[]` array.** Each route carries its own `intentId`, `cost`, `signData`, and `tokenRequirements` (EOAs only — smart accounts handle approvals internally). Pre-ranked; `routes[0]` is recommended.
 - **Flattened cost structure.** One `cost` object per route with `input`, `output`, and `fees: { total, breakdown }`. Replaces scattered `tokensSpent` / `tokensReceived` / `feeBreakdownUSD` / `gasCost` / `sponsorFee`.
 - **Unified error envelope.** All non-2xx responses share `{ code, message, traceId, details? }`. Switch from message-pattern matching to `code`-based dispatch.
 - **Field renames.** Notable: `destinationGasUnits` → `destinationGasLimit`, `sponsorSettings.{gas,bridgeFees,swapFees}Sponsored` → `{gas,bridgeFees,swapFees}`, `userAddress` → `accountAddress`. Portfolio token shape uses `symbol` (was `tokenName`), `chains` (was `tokenChainBalance`), and per-chain `address`/`decimals` (were `tokenAddress`/`tokenDecimals`). Timestamps move from `BigIntLike` strings to integer Unix seconds.
