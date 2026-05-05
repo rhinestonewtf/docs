@@ -78,17 +78,17 @@ The current version. Start here if you're integrating from scratch.
 
 **What changed:**
 
-- **CAIP-2 chain ids.** Every chain id on the wire is now an `eip155:<chainId>` string — `1` becomes `"eip155:1"`. Affects scalar fields, arrays, and chain-keyed maps. Path parameters are unchanged.
-- **Resource-style endpoints.** `POST /quotes` (was `/intents/route`), `POST /intents` (was `/intent-operations`), `GET /intents/:id` (was `/intent-operation/:id`), `POST /intents/splits` (was `/intents/split`).
-- **Server-stored intents.** `POST /quotes` returns an `intentId`; the full intent stays server-side. Submit via `POST /intents` with `{ intentId, signatures }` — no more round-tripping `intentOp`.
-- **Submit response collapsed.** `POST /intents` returns just `{ intentId }` (was `{ result: { id, status } }`). The synthesised `status: "FAILED"` is gone — simulation failures now surface as 4xx with the unified error envelope.
-- **EIP-712 typed data in the response.** Forward `signData.origin[]` and `signData.destination` directly to `wallet.signTypedData()`. No more client-side type reconstruction.
 - **Flat `routes[]` array.** Each route carries its own `intentId`, `cost`, `signData`, and `tokenRequirements` (EOAs only — smart accounts handle approvals internally). Pre-ranked; `routes[0]` is recommended.
+- **CAIP-2 chain ids.** Every chain id on the wire is now an `eip155:<chainId>` string — `1` becomes `"eip155:1"`. Affects scalar fields, arrays, and chain-keyed maps. Path parameters are unchanged.
+- **EIP-712 typed data in the response.** Forward `signData.origin[]` and `signData.destination` directly to `wallet.signTypedData()`. No more client-side type reconstruction.
+- **Server-stored intents.** `POST /quotes` returns an `intentId`; the full intent stays server-side. Submit via `POST /intents` with `{ intentId, signatures }` — no more round-tripping `intentOp`.
+- **Resource-style endpoints.** `POST /quotes` (was `/intents/route`), `POST /intents` (was `/intent-operations`), `GET /intents/:id` (was `/intent-operation/:id`), `POST /intents/splits` (was `/intents/split`).
 - **Flattened cost structure.** One `cost` object per route with `input`, `output`, and `fees: { total, breakdown }`. Replaces scattered `tokensSpent` / `tokensReceived` / `feeBreakdownUSD` / `gasCost` / `sponsorFee`.
-- **Unified error envelope.** All non-2xx responses share `{ code, message, traceId, details? }`. Switch from message-pattern matching to `code`-based dispatch.
+- **Submit response collapsed.** `POST /intents` returns just `{ intentId }` (was `{ result: { id, status } }`). The synthesised `status: "FAILED"` is gone — simulation failures now surface as 4xx with the unified error envelope.
 - **Field renames.** Notable: `destinationGasUnits` → `destinationGasLimit`, `sponsorSettings.{gas,bridgeFees,swapFees}Sponsored` → `{gas,bridgeFees,swapFees}`, `userAddress` → `accountAddress`. Portfolio token shape uses `symbol` (was `tokenName`), `chains` (was `tokenChainBalance`), and per-chain `address`/`decimals` (were `tokenAddress`/`tokenDecimals`). Timestamps move from `BigIntLike` strings to integer Unix seconds.
+- **Unified error envelope.** All non-2xx responses share `{ code, message, traceId, details? }`. Switch from message-pattern matching to `code`-based dispatch.
 - **Schema trimming.** `Account.mockSignature` is gone — use the per-chain `Account.mockSignatures` map. `AccountType.SMART_ACCOUNT` is gone — use `ERC7579`. The `accountAccessList` flat-array variant is gone — use the structured shape.
-- **Compact / resource locks removed.** No blanc equivalent for `topupCompact`, `emissaryConfig`, `MultichainCompact` origin signatures, or the `/withdrawals` endpoints. Stay on `alps` if you depend on them.
+- **Compact / resource locks removed.** No blanc equivalent for `topupCompact`, `emissaryConfig`, `MultichainCompact` origin signatures, or the `/withdrawals` endpoints.
 
 #### Migrating from `alps`
 
