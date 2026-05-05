@@ -123,14 +123,47 @@ const sig = await signer.signTypedData(types, hash);
 const sig = await signer.signTypedData(signData.origin[0]);
 ```
 
+**Submit response**
+
+```ts
+// Before (alps) — wrapped, with synthesised status
+const { result } = await post("/intent-operations", body);
+const id = result.id; // result.status was "PENDING" or synthesised "FAILED"
+
+// After (blanc) — id only; simulation failures surface as 4xx
+const { intentId } = await post("/intents", body);
+```
+
+**Status polling**
+
+```ts
+// Before (alps)
+const op = await get(`/intent-operation/${id}`);
+const status = op.result.status;
+
+// After (blanc)
+const op = await get(`/intents/${intentId}`);
+const status = op.status;
+```
+
+The status enum is narrower in blanc — legacy values that no longer apply are removed. `PRECONFIRMED` is gone; if your client branches on it, drop that case.
+
+**Splits endpoint**
+
+`POST /intents/split` → `POST /intents/splits`. Request and response shapes follow the same blanc-wide rules (CAIP-2 chain ids, unified error envelope).
+
 **Chain ids**
+
+CAIP-2 strings (`eip155:<chainId>`) replace numeric chain ids on every field that carries one — `chainId`, `sourceChainId`, `destinationChainId`, `chainIds`, `allChainIds`, and chain-keyed maps like `auxiliaryFunds`, `preClaimExecutions`, `chainTokens`, and `tokenRequirements`. Path parameters are unchanged.
 
 ```ts
 // Before (alps)
 { "chainId": 42161 }
+{ "tokenRequirements": { "1": [...], "42161": [...] } }
 
 // After (blanc)
 { "chainId": "eip155:42161" }
+{ "tokenRequirements": { "eip155:1": [...], "eip155:42161": [...] } }
 ```
 
 The portfolio filter switches from comma-separated lists to repeated query parameters, with `tokens` keyed as `chain:address`:
@@ -151,6 +184,69 @@ const inputAmount = response.tokensSpent[0].amount;
 // After (blanc)
 const gasUSD = route.cost.fees.breakdown.gas.usd;
 const inputAmount = route.cost.input[0].amount;
+```
+
+**Field renames**
+
+| Before (alps)         | After (blanc)         |
+| --------------------- | --------------------- |
+| `userAddress`         | `accountAddress`      |
+| `destinationGasUnits` | `destinationGasLimit` |
+| `tokensSpent`         | `cost.input`          |
+| `tokensReceived`      | `cost.output`         |
+| `feeBreakdownUSD`     | `cost.fees.breakdown` |
+| `tokenName`           | `symbol`              |
+| `tokenChainBalance`   | `chains`              |
+| `tokenAddress`        | `address`             |
+| `tokenDecimals`       | `decimals`            |
+
+Timestamps move from `BigIntLike` strings (`"1700000000"`) to integer Unix seconds (`1700000000`).
+
+**Sponsor settings**
+
+```ts
+// Before (alps)
+{
+  sponsorSettings: {
+    gasSponsored: true,
+    bridgeFeesSponsored: false,
+    swapFeesSponsored: false,
+  }
+}
+
+// After (blanc)
+{
+  sponsorSettings: {
+    gas: true,
+    bridgeFees: false,
+    swapFees: false,
+  }
+}
+```
+
+**Account types and mock signatures**
+
+`AccountType.SMART_ACCOUNT` is gone — use `ERC7579`. The flat `accountAccessList` array shape is gone — use the structured shape. Mock signatures move from a single `Account.mockSignature` to a per-chain `Account.mockSignatures` map.
+
+```ts
+// Before (alps)
+{
+  account: {
+    accountType: "SMART_ACCOUNT",
+    mockSignature: "0x...",
+  }
+}
+
+// After (blanc)
+{
+  account: {
+    accountType: "ERC7579",
+    mockSignatures: {
+      "eip155:1": "0x...",
+      "eip155:42161": "0x...",
+    },
+  }
+}
 ```
 
 **Error handling**
@@ -190,6 +286,12 @@ Honour `Retry-After` on `429 TOO_MANY_REQUESTS`.
 | `EXTERNAL_SERVICE_TIMEOUT`    | 504  |
 
 The list is extensible — add unknown codes to a generic fallback path.
+
+**Things you can't migrate**
+
+<Warning>
+The Compact / resource-lock surface has no blanc equivalent. If your integration depends on `topupCompact`, `emissaryConfig`, the `/withdrawals` endpoints, or `MultichainCompact` origin signatures, stay on `alps` until a replacement ships.
+</Warning>
 
 ### `2026-01.alps`
 
