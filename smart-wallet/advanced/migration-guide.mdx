@@ -2,13 +2,254 @@
 title: "Migration guide"
 ---
 
-## Migrating from 1.x Alpha SDK
+## Migrating from 1.x SDK
 
 To use the latest version of the SDK:
 
 ```bash
 npm i @rhinestone/sdk
 ```
+
+### ESM-only build
+
+The SDK is now ESM-only. `require('@rhinestone/sdk')` no longer works — use ESM `import` syntax. Internal subpath imports were also removed; use the curated entry points (`./actions/*`, `./errors`, `./utils`, `./smart-sessions`, `./jwt-server`).
+
+### `sendTransaction` removed
+
+The `account.sendTransaction(transaction)` shortcut is gone. Use the explicit `prepareTransaction → signTransaction → submitTransaction` flow:
+
+```ts
+// Before
+const result = await rhinestoneAccount.sendTransaction({
+  targetChain,
+  calls,
+  tokenRequests,
+})
+
+// After
+const prepared = await rhinestoneAccount.prepareTransaction({
+  targetChain,
+  calls,
+  tokenRequests,
+})
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const result = await rhinestoneAccount.submitTransaction(signed)
+```
+
+`sendUserOperation` for ERC-4337 flows is unchanged.
+
+### Session permissions are ABI-driven
+
+`Session.actions` is gone. Build sessions with `toSession({ chain, owners, permissions })` instead — an ABI-driven definition the SDK resolves into a low-level `Session`. Each permission is an `{ abi, address, functions }` entry; function selectors and param calldata offsets are derived from the ABI, and param value types are checked against ABI input types:
+
+```ts
+import { toSession } from '@rhinestone/sdk/smart-sessions'
+
+// Before
+const session: Session = {
+  chain: base,
+  owners: { type: 'ecdsa', accounts: [sessionOwner] },
+  actions: [
+    {
+      target: usdcAddress,
+      selector: toFunctionSelector(
+        getAbiItem({ abi: erc20Abi, name: 'transfer' }),
+      ),
+      policies: [
+        {
+          type: 'universal-action',
+          rules: [
+            {
+              condition: 'equal',
+              calldataOffset: 0n,
+              referenceValue: recipient,
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
+
+// After
+const session = toSession({
+  chain: base,
+  owners: { type: 'ecdsa', accounts: [sessionOwner] },
+  permissions: [
+    {
+      abi: erc20Abi,
+      address: usdcAddress,
+      functions: {
+        transfer: {
+          params: {
+            recipient: { condition: 'equal', value: recipient },
+          },
+        },
+      },
+    },
+  ],
+})
+```
+
+The hand-written shape is now `SessionDefinition`; `Session` is the resolved output of `toSession`.
+
+### Quote selection
+
+`prepareTransaction` now returns `quotes: { best, all }` instead of a single `quote`. Existing `prepare → sign → submit` code keeps working — `signTransaction` defaults to `quotes.best`:
+
+```ts
+const prepared = await rhinestoneAccount.prepareTransaction({
+  // …
+})
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const result = await rhinestoneAccount.submitTransaction(signed)
+```
+
+To sign a non-default route, pass an `intentId` from `prepared.quotes.all`:
+
+```ts
+const prepared = await rhinestoneAccount.prepareTransaction({
+  // …
+})
+const chosen =
+  prepared.quotes.all.find((q) => q.settlementLayer === 'across') ??
+  prepared.quotes.best
+const signed = await rhinestoneAccount.signTransaction(prepared, {
+  intentId: chosen.intentId,
+})
+```
+
+`getTransactionMessages(prepared, { intentId })` accepts the same selection so external signers see the route `signTransaction` will sign.
+
+### `submitTransaction` options bag
+
+`submitTransaction` now takes an options object instead of positional arguments:
+
+```ts
+// Before
+await rhinestoneAccount.submitTransaction(signed, authorizations)
+
+// After
+await rhinestoneAccount.submitTransaction(signed, { authorizations })
+```
+
+### `waitForExecution` no longer accepts preconfirmations
+
+The `acceptsPreconfirmations` parameter is removed. `waitForExecution` always waits for `FILLED` / `COMPLETED` and never treats `PRECONFIRMED` as terminal:
+
+```ts
+// Before
+await rhinestoneAccount.waitForExecution(result, false)
+
+// After
+await rhinestoneAccount.waitForExecution(result)
+```
+
+### Passport account removed
+
+`account.type: 'passport'` is no longer accepted. The `PassportAccount` type and the `passport` member of `AccountType` / `AccountProviderConfig` are removed.
+
+### Intent status by ID
+
+`getIntentStatus` now takes a `string` instead of a `bigint`. If you persist intent IDs across runs, switch the storage type to string.
+
+### Portfolio shape
+
+`PortfolioToken` no longer carries a token-level `decimals` or aggregate `balances`. `decimals` now lives on each per-chain `chains[]` entry alongside `address` and `amount`, since the same logical token can have different decimals across chains (e.g., USDC is 6 on Ethereum, 18 on BSC). Read the per-chain entry directly when rendering balances.
+
+### Permit2 claim policy renames
+
+If you constructed `Permit2ClaimPolicy` values directly, the type tag and field names changed to be chain-aware:
+
+```ts
+// Before
+const policy: Permit2ClaimPolicy = {
+  type: 'permit2-claim',
+  arbiters: [spender],
+  tokensIn: [{ chainId: base.id, token: usdcAddress }],
+  tokensOut: [{ chainId: base.id, token: outputToken }],
+  recipients: [{ chainId: base.id, recipient: 'any' }],
+  recipientIsSponsor: true,
+  expiryBounds: { min: 1n, max: 100n },
+  fillExpiryBounds: [{ chainId: base.id, min: 1n, max: 100n }],
+}
+
+// After
+const policy: Permit2ClaimPolicy = {
+  type: 'permit2',
+  spenders: [spender],
+  sourceTokens: [{ chain: base, address: usdcAddress }],
+  destinationTokens: [{ chain: base, address: outputToken }],
+  recipients: [{ chain: base, address: 'any' }],
+  recipientIsAccount: true,
+  permitDeadline: { min: 1n, max: 100n },
+  fillDeadline: [{ chain: base, min: 1n, max: 100n }],
+}
+```
+
+### Token registry helpers removed
+
+`getSupportedTokens`, `getTokenAddress`, `getTokenDecimals`, and `getAllSupportedChainsAndTokens` are removed. Fetch the equivalent data from the orchestrator's `/chains` endpoint:
+
+```ts
+const response = await fetch('https://v1.orchestrator.rhinestone.dev/chains', {
+  headers: { 'x-api-key': apiKey },
+})
+const chains = await response.json()
+```
+
+### `deployAccountsForOwners` removed
+
+Create a backend deployer account, take a view-only reference to each user account, and submit a sponsored intent that calls `deploy(userAccount)`. Pass multiple `deploy(...)` calls in one intent to batch deployments.
+
+```ts
+import { RhinestoneSDK } from '@rhinestone/sdk'
+import { deploy } from '@rhinestone/sdk/actions'
+import { toViewOnlyAccount } from '@rhinestone/sdk/utils'
+
+const rhinestone = new RhinestoneSDK({ apiKey })
+
+const deployerAccount = await rhinestone.createAccount({
+  owners: { type: 'ecdsa', accounts: [deployerSigner] },
+})
+
+const userAccount = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [toViewOnlyAccount(userAddress)],
+  },
+})
+
+const prepared = await deployerAccount.prepareTransaction({
+  chain,
+  calls: [deploy(userAccount)],
+  sponsored: true,
+})
+const signed = await deployerAccount.signTransaction(prepared)
+await deployerAccount.submitTransaction(signed)
+```
+
+### `checkERC20AllowanceDirect` removed
+
+Read allowances directly with viem's `readContract`:
+
+```ts
+const allowance = await publicClient.readContract({
+  address: tokenAddress,
+  abi: erc20Abi,
+  functionName: 'allowance',
+  args: [owner, spender],
+})
+```
+
+### Removed and relocated helpers
+
+- **Compact-bound surface.** The `@rhinestone/sdk/actions/compact` subpackage, the `lockFunds` transaction option, and `Account.emissaryConfig` are removed alongside the orchestrator's compact-based deposit/withdrawal flow.
+- **Permit2 signing helpers.** `signPermit2Batch`, `signPermit2Sequential`, and the related `MultiChainPermit2Config` / `MultiChainPermit2Result` / `BatchPermit2Result` types are removed. Signing now uses orchestrator-provided EIP-712 typed data internally.
+- **`getPermit2Address`** is removed. Permit2 lives at `0x000000000022D473030F116dDEE9F6B43aC78BA3` on every supported chain — hardcode the constant.
+- **`walletClientToAccount` and `wrapParaAccount`** moved from the package root to `@rhinestone/sdk/utils`.
+
+## Migrating from 1.x Alpha SDK
 
 ### New entry point
 
