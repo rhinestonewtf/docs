@@ -3,24 +3,16 @@ title: "Sudo"
 sidebarTitle: "Sudo"
 ---
 
-Sudo policy allows any transaction to pass. It is the default session.
+Sudo allows any transaction to pass. It's the default — a session with no `permissions` accepts everything.
 
-To enable a sudo policy:
-
-```ts {6-14}
-const session: Session = {
+```ts
+const session = toSession({
+  chain: base,
   owners: {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-  actions: [
-    {
-      policies: [
-        {
-          type: 'sudo',
-        },
-      ],
-    },
-  ],
-}
+})
 ```
+
+<Warning>Always restrict sessions to the minimum permissions you need. A sudo session has the same authority as the account owner.</Warning>

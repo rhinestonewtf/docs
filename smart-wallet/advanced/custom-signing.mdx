@@ -10,8 +10,6 @@ Custom signing is useful when you need to implement custom signing flows (e.g. s
 ## Example
 
 ```ts
-import { signTypedData } from "viem/accounts";
-
 // 1. Prepare the transaction
 const transactionData = await rhinestoneAccount.prepareTransaction({
   // …
@@ -30,7 +28,9 @@ const destinationSignature = await sign(destination);
 // 4. Submit the transaction
 const transaction = await rhinestoneAccount.submitTransaction({
   ...transactionData,
+  quote: transactionData.quotes.best,
   originSignatures,
   destinationSignature,
+  targetExecutionSignature: undefined,
 });
 ```

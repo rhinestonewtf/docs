@@ -45,35 +45,65 @@ Since the user's EOA is the sole owner, the account is fully non-custodial. Your
 Define multi-chain sessions scoped to the vault contracts your app supports. The session key is controlled by your app's service.
 
 ```ts
-import { type Session } from "@rhinestone/sdk";
+import { toSession } from "@rhinestone/sdk/smart-sessions";
+import { erc20Abi } from "viem";
 import { arbitrum, optimism } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 
 // Session key controlled by your app's service
 const sessionOwnerAccount = privateKeyToAccount(appSessionKey);
 
-const sessions: Session[] = [
-  {
+const sessions = [
+  toSession({
     chain: arbitrum,
     owners: {
       type: "ecdsa",
       accounts: [sessionOwnerAccount],
     },
-    actions: [
-      { target: ARBITRUM_VAULT_ADDRESS },
+    permissions: [
+      {
+        abi: vaultAbi,
+        address: ARBITRUM_VAULT_ADDRESS,
+        functions: { deposit: {} },
+      },
+      // Pulling USDC from the user and returning vault shares also flow
+      // through this session — scope them too.
+      {
+        abi: erc20Abi,
+        address: USDC_ADDRESS,
+        functions: {
+          // ...
+        },
+      },
+      {
+        abi: erc20Abi,
+        address: ARBITRUM_VAULT_TOKEN_ADDRESS,
+        functions: {
+          // ...
+        },
+      },
     ],
-  },
-  {
+  }),
+  toSession({
     chain: optimism,
     owners: {
       type: "ecdsa",
       accounts: [sessionOwnerAccount],
     },
-    actions: [
-      { target: OPTIMISM_VAULT_A_ADDRESS },
-      { target: OPTIMISM_VAULT_B_ADDRESS },
+    permissions: [
+      {
+        abi: vaultAbi,
+        address: OPTIMISM_VAULT_A_ADDRESS,
+        functions: { deposit: {} },
+      },
+      {
+        abi: vaultAbi,
+        address: OPTIMISM_VAULT_B_ADDRESS,
+        functions: { deposit: {} },
+      },
+      // Plus the ERC-20 permissions, as above.
     ],
-  },
+  }),
 ];
 ```
 
@@ -133,7 +163,7 @@ Once funded, the companion account executes the crosschain intent using the sess
 ```ts
 import { encodeFunctionData, erc20Abi } from "viem";
 
-await companionAccount.sendTransaction({
+const prepared = await companionAccount.prepareTransaction({
   sourceChains: [ethereum],
   targetChain: arbitrum,
   calls: [
@@ -171,6 +201,8 @@ await companionAccount.sendTransaction({
     },
   },
 });
+const signed = await companionAccount.signTransaction(prepared);
+await companionAccount.submitTransaction(signed);
 ```
 
 <Note>
@@ -201,7 +233,7 @@ When your app is ready to execute, it pulls the funds from the user and executes
 **Pull approved tokens into the companion account** (same-chain):
 
 ```ts
-await companionAccount.sendTransaction({
+const preparedPull = await companionAccount.prepareTransaction({
   targetChain: ethereum,
   calls: [
     {
@@ -219,12 +251,14 @@ await companionAccount.sendTransaction({
     enableData: sessionEnableData,
   },
 });
+const signedPull = await companionAccount.signTransaction(preparedPull);
+await companionAccount.submitTransaction(signedPull);
 ```
 
 **Execute the crosschain intent** (bridge + vault deposit):
 
 ```ts
-await companionAccount.sendTransaction({
+const preparedExecute = await companionAccount.prepareTransaction({
   sourceChains: [ethereum],
   targetChain: arbitrum,
   calls: [
@@ -257,6 +291,8 @@ await companionAccount.sendTransaction({
     enableData: sessionEnableData,
   },
 });
+const signedExecute = await companionAccount.signTransaction(preparedExecute);
+await companionAccount.submitTransaction(signedExecute);
 ```
 
 <Note>

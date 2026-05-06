@@ -105,7 +105,7 @@ The Rhinestone account will automatically use the Turnkey signer for all transac
 import { encodeFunctionData, parseUnits, erc20Abi } from 'viem'
 import { baseSepolia, arbitrumSepolia } from 'viem/chains'
 
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [baseSepolia],
   targetChain: arbitrumSepolia,
   calls: [
@@ -125,6 +125,8 @@ const transaction = await rhinestoneAccount.sendTransaction({
     },
   ],
 })
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const transaction = await rhinestoneAccount.submitTransaction(signed)
 ```
 
 <Note>Don't forget to fund the account before making any transactions.</Note>

@@ -3,9 +3,11 @@ title: "Send a transaction"
 description: "Send single-chain and cross-chain transactions from a Rhinestone smart account."
 ---
 
+Sending a transaction is a three-step flow: `prepareTransaction` fetches a quote, `signTransaction` signs it, `submitTransaction` sends it to the orchestrator. Splitting the steps lets you show the user a quote before they approve, fetch on a backend and sign on a mobile frontend, or pick a non-default route.
+
 ## Send a single-chain transaction
 
-Call `sendTransaction` with a `chain` and a list of `calls`. The example below transfers USDC on Base Sepolia:
+Pass a `chain` and a list of `calls`. The example below transfers USDC on Base Sepolia:
 
 ```ts
 import { encodeFunctionData, erc20Abi } from 'viem'
@@ -14,7 +16,7 @@ import { baseSepolia } from 'viem/chains'
 const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 const usdcAmount = 1n
 
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain: baseSepolia,
   calls: [
     {
@@ -28,6 +30,8 @@ const transaction = await rhinestoneAccount.sendTransaction({
     },
   ],
 })
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const transaction = await rhinestoneAccount.submitTransaction(signed)
 
 const result = await rhinestoneAccount.waitForExecution(transaction)
 console.log('Result', result)
@@ -40,7 +44,7 @@ Swap `chain` for `sourceChains` + `targetChain`. The SDK handles bridging and ro
 ```ts
 import { baseSepolia, arbitrumSepolia } from 'viem/chains'
 
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [baseSepolia],
   targetChain: arbitrumSepolia,
   calls: [
@@ -61,31 +65,13 @@ const transaction = await rhinestoneAccount.sendTransaction({
     },
   ],
 })
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const transaction = await rhinestoneAccount.submitTransaction(signed)
 
 const result = await rhinestoneAccount.waitForExecution(transaction)
 ```
 
-## Use the granular API
-
-Use `prepareTransaction` → `signTransaction` → `submitTransaction` when you need to separate fetching from signing. For example, to show the user transaction details before they approve, or to fetch intent data on a backend and sign on a mobile frontend:
-
-```ts
-// Fetch intent data (can be done server-side)
-const transactionData = await rhinestoneAccount.prepareTransaction({
-  chain: baseSepolia,
-  calls: [...],
-})
-
-// Sign: prompts account owners
-const signedData = await rhinestoneAccount.signTransaction(transactionData)
-
-// Submit
-const transaction = await rhinestoneAccount.submitTransaction(signedData)
-```
-
-<Note>To deploy the account on a specific chain before transacting, call `await rhinestoneAccount.deploy(chain)` first.</Note>
-
-<Note>Any `sendTransaction` call triggers deployment if the account is not yet deployed on that chain. It does not have to be a token transfer. Contract calls, approvals, or any other action will deploy the account as part of the intent.</Note>
+<Note>To deploy the account on a specific chain before transacting, call `await rhinestoneAccount.deploy(chain)` first. Otherwise, any transaction triggers deployment as part of the intent — token transfers, contract calls, approvals, anything.</Note>
 
 ## Next steps
 

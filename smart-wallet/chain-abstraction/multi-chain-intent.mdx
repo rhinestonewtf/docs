@@ -18,7 +18,7 @@ We will make a cross-chain token transfer using multi-chain intents.
 ```tsx
 const amount = parseUnits('100', 6) // 100 USDC
 
-const transferTransaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
   calls: [
@@ -38,6 +38,8 @@ const transferTransaction = await rhinestoneAccount.sendTransaction({
     },
   ],
 })
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const transferTransaction = await rhinestoneAccount.submitTransaction(signed)
 ```
 
 ## Source Chain
@@ -55,7 +57,7 @@ If you already have an account deployed on one or more source chains, you can om
 You can override the default gas limit for the target chain execution with `gasLimit`. Doing this will make the intent better priced, because we can more accurately calculate the fee that a solver needs to be reimbursed with for paying the gas. If this is not provided, we calculate using a gas limit of `1_000_000`.
 
 ```ts {10}
-const transaction = await rhinestoneAccount.sendTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
   calls: [
@@ -73,7 +75,7 @@ const transaction = await rhinestoneAccount.sendTransaction({
 You can specify what token (or tokens) to use as an input asset:
 
 ```ts {10}
-const transaction = await rhinestoneAccount.sendTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
   calls: [
@@ -89,7 +91,7 @@ const transaction = await rhinestoneAccount.sendTransaction({
 You can also specify source assets on a per-chain basis:
 
 ```ts {9-12}
-const transaction = await rhinestoneAccount.sendTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   targetChain: arbitrum,
   calls: [
     // …
@@ -132,20 +134,11 @@ This lets you get a quote before getting the funds ready on the account.
 
 ## Wait for Execution
 
-`sendTransaction` returns a pending intent. To wait until it gets executed, use `waitForExecution`:
+`submitTransaction` returns once the intent has been accepted by the orchestrator. To wait until it actually settles onchain, use `waitForExecution`:
 
 ```ts
-const transaction = await rhinestoneAccount.sendTransaction({
-  // …
-})
+const transaction = await rhinestoneAccount.submitTransaction(signed)
 const transactionResult = await rhinestoneAccount.waitForExecution(transaction)
-```
-
-By default, intents are pre-confirmed by a relayer to be executed before they actually land onchain. You can opt out of this by waiting for onchain execution:
-
-```ts
-const acceptPreconfirmations = false;
-const transactionResult = await rhinestoneAccount.waitForExecution(transaction, acceptPreconfirmations)
 ```
 
 ## Get Intent Status
@@ -153,9 +146,7 @@ const transactionResult = await rhinestoneAccount.waitForExecution(transaction, 
 You can also fetch the intent status directly to implement a custom polling logic:
 
 ```ts
-const transaction = await rhinestoneAccount.sendTransaction({
-  // …
-})
+const transaction = await rhinestoneAccount.submitTransaction(signed)
 const transactionResult = await rhinestone.getIntentStatus(transaction.id)
 ```
 
@@ -177,21 +168,23 @@ const splits = await rhinestone.splitIntents({
 Then, send each split as a separate transaction:
 
 ```ts
-const transactions = await Promise.all(
-  splits.map((split) =>
-    rhinestoneAccount.sendTransaction({
-      sourceChains: [optimism],
-      targetChain: base,
-      tokenRequests: Object.entries(split.tokens).map(([address, amount]) => ({
-        address,
-        amount,
-      })),
-      calls: [
-        // …
-      ],
-    }),
-  ),
-)
+async function sendIntent(split) {
+  const prepared = await rhinestoneAccount.prepareTransaction({
+    sourceChains: [optimism],
+    targetChain: base,
+    tokenRequests: Object.entries(split.tokens).map(([address, amount]) => ({
+      address,
+      amount,
+    })),
+    calls: [
+      // …
+    ],
+  })
+  const signed = await rhinestoneAccount.signTransaction(prepared)
+  return rhinestoneAccount.submitTransaction(signed)
+}
+
+const transactions = await Promise.all(splits.map(sendIntent))
 ```
 
 You can optionally filter which settlement layers to use:

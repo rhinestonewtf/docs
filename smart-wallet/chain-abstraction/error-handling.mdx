@@ -23,14 +23,14 @@ title: "Error handling"
 
 ## Orchestrator errors
 
-* `InsufficientBalanceError`: the account doesn't have enough funds. See [Insufficient Balance](/intents/guides/error-handling#insufficient-balance).
-* `UnsupportedChainIdError`: this chain is not supported. See [Unsupported chain id](/intents/guides/error-handling#unsupported-chain-id).
-* `UnsupportedChainError`: the target or the source chain is not supported. See [Unsupported chain id](/intents/guides/error-handling#unsupported-chain-id).
-* `UnsupportedTokenError`: the token you're requesting is not supported. Make sure you're only using supported tokens when setting `tokenRequests`. See [Unsupported token addresses](/intents/guides/error-handling#unsupported-token-addresses).
-* `TokenNotSupportedError`: the token you're requesting is not supported. See [Unsupported token addresses](/intents/guides/error-handling#unsupported-token-addresses).
-* `AuthenticationRequiredError`: make sure you're providing an API key when using mainnets by passing `rhinestoneApiKey` param. See [Authentication is required](/intents/guides/error-handling#authentication-is-required).
-* `InvalidApiKeyError`: the API key you're using has expired or is invalid. See [Invalid API key](/intents/guides/error-handling#invalid-api-key).
-* `InvalidIntentSignatureError`: [Invalid bundle signature](/intents/guides/error-handling#invalid-bundle-signature).
+* `InsufficientBalanceError`: the account doesn't have enough funds. See [Error handling](/intents/guides/error-handling).
+* `UnsupportedChainIdError`: this chain is not supported. See [Error handling](/intents/guides/error-handling).
+* `UnsupportedChainError`: the target or the source chain is not supported. See [Error handling](/intents/guides/error-handling).
+* `UnsupportedTokenError`: the token you're requesting is not supported. Make sure you're only using supported tokens when setting `tokenRequests`. See [Error handling](/intents/guides/error-handling).
+* `TokenNotSupportedError`: the token you're requesting is not supported. See [Error handling](/intents/guides/error-handling).
+* `AuthenticationRequiredError`: make sure you're providing an API key when using mainnets by passing `rhinestoneApiKey` param. See [Error handling](/intents/guides/error-handling).
+* `InvalidApiKeyError`: the API key you're using has expired or is invalid. See [Error handling](/intents/guides/error-handling).
+* `InvalidIntentSignatureError`: see [Error handling](/intents/guides/error-handling).
 * `OnlyOneTargetTokenAmountCanBeUnsetError`: when specifying `tokenRequests`, you need to provide the exact token amounts for all except one token.
 * `NoPathFoundError`: we couldn't find a path for the intent you've provided. Try using a different set of token requests on the target chain.
 * `IntentNotFoundError`: can't find the intent in the system. Please try again or use different input parameters.

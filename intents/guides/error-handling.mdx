@@ -3,59 +3,85 @@ title: "Error handling"
 description: "Common Orchestrator errors and how to resolve them"
 ---
 
+Every non-2xx response shares the same shape:
+
+```json
+{
+  "code": "INSUFFICIENT_LIQUIDITY",
+  "message": "...",
+  "traceId": "...",
+  "details": { /* optional, code-specific */ }
+}
+```
+
+Switch on `code`, not `message`. The full code/HTTP table lives in the [versioning guide](./api-versioning#error-codes).
+
+```ts
+switch (err.code) {
+  case "INSUFFICIENT_LIQUIDITY":
+    // err.details: { availableIntents, unfillable }
+    break;
+  case "VALIDATION_ERROR":
+    // err.details: [{ message, context? }]
+    break;
+  case "TOO_MANY_REQUESTS":
+    // honour the Retry-After header
+    break;
+  default:
+    // unknown codes — fall through to a generic error
+    break;
+}
+```
+
+The list is extensible — always include a default fallback for codes you don't recognise.
+
 <AccordionGroup>
-<Accordion title="Insufficient Balance">
+<Accordion title="INSUFFICIENT_LIQUIDITY (422)">
 
-In most cases, getting this error means the account balance is not enough to cover the tokens required on the target chain, together with the gas costs.
+The account balance can't cover the requested tokens together with gas and fees, or the cost to claim funds (e.g. on Ethereum mainnet) is too high to fill profitably.
 
-Sometimes, you have enough balance, but the cost to claim it is too high (e.g., on Ethereum Mainnet).
+`details` contains `availableIntents` (alternative routes you could fall back to) and `unfillable` (the routes that couldn't be filled and why).
 
-You can also get the error if the contract is not deployed on any supported chain.
-
-Make sure your account is deployed and funded.
-
-Also, make sure you have enough funds for your transaction, taking gas costs into account. You can use the [spendable amount utility](/smart-wallet/chain-abstraction/source-token-amount) to get an estimate of how much you can spend.
+Make sure the account is deployed and funded. For SDK users, the [spendable amount utility](/smart-wallet/chain-abstraction/source-token-amount) gives an estimate of how much can be spent.
 
 </Accordion>
-<Accordion title="Unsupported chain id">
+<Accordion title="VALIDATION_ERROR (400)">
 
-This error could mean that your `targetChain` [is not supported](/home/resources/supported-chains).
+The request payload didn't validate. Common causes:
 
-It could also mean that you're using testnet chains on a production environment, or mainnet chains on a dev environment.
+- Unsupported `destinationChainId` — check the [supported chains](/home/resources/supported-chains).
+- Unsupported token address on the destination chain.
+- Mainnet chain ids on a development API key, or testnet chain ids on a production key.
+- Malformed CAIP-2 chain ids — they must be `eip155:<chainId>` strings.
+- Missing or unknown `x-api-version` header.
 
-Make sure the chain you're using matches the environment.
-
-Also, make sure that the chain you're using is supported.
-
-</Accordion>
-<Accordion title="Unsupported token addresses">
-
-Most likely, you will encounter this when the token that you're requesting on the target chain doesn't exist or is not supported.
-
-Make sure the token that you request corresponds to the target execution chain.
+`details` is an array of `{ message, context? }` entries.
 
 </Accordion>
-<Accordion title="Authentication is required">
+<Accordion title="UNAUTHORIZED (401)">
 
-Every request to the Orchestrator on mainnets requires an API key.
+The API key is missing or invalid. Pass it in `x-api-key`. [Reach out to us](https://t.me/konradkopp) if you need a key.
 
-Make sure you provide a key. [Reach out to us](https://t.me/konradkopp) if you need one.
-
-</Accordion>
-<Accordion title="Invalid API key">
-
-The API key you've provided when making a request is not valid.
-
-Make sure you provide a development API key if you're working with testnets, and a production API key if you're working with mainnets. [Reach out to us](https://t.me/konradkopp) if you miss the proper key.
+Make sure you're using a development API key for testnets and a production API key for mainnets.
 
 </Accordion>
-<Accordion title="Invalid bundle signature">
+<Accordion title="NOT_FOUND (404) on submit">
 
-The bundle signature doesn't match the account.
+`POST /intents` returns 404 when the `intentId` no longer exists server-side — typically because the quote TTL elapsed or the quote store was restarted.
 
-Make sure the bundle hash you're signing is correct.
+Re-quote and re-sign. Don't retry the submit with the same `intentId`.
 
-Also, make sure the signer (or signers) of the hash is the owner of the account.
+</Accordion>
+<Accordion title="UNPROCESSABLE_CONTENT (422) on submit">
+
+The signature didn't validate against the account. Either the typed data was modified before signing, or the signer isn't an authorised owner of the account.
+
+Forward `signData.origin[]` and `signData.destination` verbatim to `signTypedData` — don't reconstruct the types client-side. For smart accounts, make sure the validator wraps the signature using its expected encoding.
+
+</Accordion>
+<Accordion title="TOO_MANY_REQUESTS (429)">
+
+Rate limited. Honour the `Retry-After` header before retrying.
 
 </Accordion>
 </AccordionGroup>

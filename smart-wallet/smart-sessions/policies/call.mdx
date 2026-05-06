@@ -3,15 +3,11 @@ title: "Call"
 sidebarTitle: "Call"
 ---
 
-Call policy allows you to filter out transactions based on the call data and ether value.
-
-Within a policy, you can set up to 16 rules. Each rule consists of a condition, the calldata offset, and a reference value to compare.
-
-When checking a transaction, the policy checks it against every rule. For a policy to accept a transaction, *every* rule of that policy should pass.
+The call policy filters transactions by calldata and ETH value. In v2 sessions, you express it as ABI-driven _parameter rules_ on a permission's function — the SDK reads the function selector and parameter offsets from the ABI for you.
 
 ## Conditions
 
-Available conditions are:
+Available conditions:
 
 * equal ($x = A$)
 * greater than ($x > A$)
@@ -21,127 +17,79 @@ Available conditions are:
 * not equal ($x \neq A$)
 * in range ($A \leq x \leq B$)
 
-## Calldata Offset
-
-The number of bytes to offset from the start (excluding the function selector).
-
-The resulting value is a hex string of 32 bytes.
-
-In other words, if the offset is 10, the compared value will be formed from the calldata with the starting index of `4 + 10 = 14` and an end index of `4 + 10 + 32 = 46`.
-
-## Reference Value
-
-Value to compare the calldata against.
-
-The reference value is a hex string of 32 bytes. For convenience, you can pass the hex string of a smaller length or a bigint, and the SDK will convert it for you.
-
 ## Usage
 
-To enable a call policy:
+To restrict an ERC20 transfer to a single recipient:
 
-```ts {8-31}
+```ts {15}
 const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 
-const session: Session = {
+const session = toSession({
+  chain: base,
   owners: {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-  actions: [
+  permissions: [
     {
-      // ERC20 transfer action
-      target: usdcAddress,
-      selector: toFunctionSelector(
-        getAbiItem({
-          abi: erc20,
-          name: 'transfer',
-        }),
-      ),
-      policies: [
-        {
-          type: 'universal-action',
-          rules: [
-            {
-              condition: 'equal',
-              calldataOffset: 0n,
-              referenceValue: receiver,
-            },
-          ],
+      abi: erc20Abi,
+      address: usdcAddress,
+      functions: {
+        transfer: {
+          params: {
+            recipient: { condition: 'equal', value: receiver },
+          },
         },
-      ],
+      },
     },
   ],
-}
+})
 ```
 
-Together with an ERC20 transfer action, this policy will only allow USDC transfers to a single receiver address.
+Reference parameters by name — the SDK looks them up in the ABI. Only static types are supported (`address`, `bool`, `uint*`, `int*`, `bytes1`–`bytes32`).
 
-### Param Accumulator
+### Param accumulator
 
-You can limit the total accumulated value of a param across all session uses.
+Cap the total accumulated value of a param across all session uses with `usageLimit`. Useful for capping cumulative spend across calls.
 
-This can be helpful if you want to e.g. limit the total value of tokens passed through the session.
-
-```ts {17}
-const session: Session = {
-  owners: {
-    type: 'ecdsa',
-    accounts: [sessionOwnerAccount],
+```ts {8-12}
+permissions: [
+  {
+    abi: erc20Abi,
+    address: usdcAddress,
+    functions: {
+      transfer: {
+        params: {
+          amount: {
+            condition: 'lessThan',
+            value: parseUnits('10', 6),
+            usageLimit: parseUnits('50', 6),
+          },
+        },
+      },
+    },
   },
-  actions: [
-    {
-      // ERC20 transfer action
-      policies: [
-        {
-          type: 'universal-action',
-          rules: [
-            {
-              condition: 'lessThan',
-              calldataOffset: 20n,
-              referenceValue: parseUnits('10', 6),
-              usageLimit: parseUnits('50', 6),
-            },
-          ],
-        },
-      ],
-    },
-  ],
-}
+],
 ```
 
-Together with an ERC20 transfer action, this will limit the token transferred to 10 USDC per session use, and 50 USDC for a total lifespan of the session.
+This caps each transfer at 10 USDC and the total across the session lifetime at 50 USDC.
 
-### Value Limit
+### Value limit
 
-To limit the maximum value to pass for a single session use:
+To cap the ETH value sent on a single call, use `valueLimitPerUse` at the function level:
 
-```ts {14}
-const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
-
-const session: Session = {
-  owners: {
-    type: 'ecdsa',
-    accounts: [sessionOwnerAccount],
+```ts {7}
+permissions: [
+  {
+    abi: vaultAbi,
+    address: vaultAddress,
+    functions: {
+      depositEth: {
+        valueLimitPerUse: parseUnits('0.1', 18),
+      },
+    },
   },
-  actions: [
-    {
-      // ERC20 transfer action
-      policies: [
-        {
-          type: 'universal-action',
-          valueLimitPerUse: parseUnits('0.1', 18),
-          rules: [
-            {
-              condition: 'equal',
-              calldataOffset: 0n,
-              referenceValue: receiver,
-            },
-          ],
-        },
-      ],
-    },
-  ],
-}
+],
 ```
 
-This will limit the value per session use to 0.1 ETH.
+This limits the value per call to 0.1 ETH.

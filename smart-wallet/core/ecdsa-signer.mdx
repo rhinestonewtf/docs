@@ -52,7 +52,7 @@ By default, `threshold` is `1`, meaning any single owner can sign.
 For m-of-n setups, specify which signers to use when sending a transaction:
 
 ```ts
-const result = await account.sendTransaction({
+const transaction = await account.prepareTransaction({
   chain,
   calls: [
     // …
@@ -72,7 +72,7 @@ const result = await account.sendTransaction({
 ```ts
 import { addOwner } from '@rhinestone/sdk/actions/ecdsa'
 
-await account.sendTransaction({
+const transaction = await account.prepareTransaction({
   chain,
   calls: [addOwner(newSigner.address)],
 })
@@ -83,7 +83,7 @@ await account.sendTransaction({
 ```ts
 import { removeOwner } from '@rhinestone/sdk/actions/ecdsa'
 
-await account.sendTransaction({
+const transaction = await account.prepareTransaction({
   chain,
   calls: [removeOwner(signerC.address)],
 })
@@ -94,7 +94,7 @@ await account.sendTransaction({
 ```ts
 import { changeThreshold } from '@rhinestone/sdk/actions/ecdsa'
 
-await account.sendTransaction({
+const transaction = await account.prepareTransaction({
   chain,
   calls: [changeThreshold(2)],
 })
@@ -114,7 +114,7 @@ If you need to enable the ECDSA module on an existing account rather than at cre
 ```ts
 import { enable as enableEcdsa } from '@rhinestone/sdk/actions/ecdsa'
 
-await account.sendTransaction({
+const transaction = await account.prepareTransaction({
   chain,
   calls: [enableEcdsa([signer.address])],
   tokenRequests: [],

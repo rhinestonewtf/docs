@@ -6,7 +6,7 @@ description: "Let your users pas for gas with ERC-20 tokens"
 You can choose what asset to use as a fee token (i.e., to cover gas and bridging fees):
 
 ```ts {10}
-const transaction = await rhinestoneAccount.sendTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
   calls: [

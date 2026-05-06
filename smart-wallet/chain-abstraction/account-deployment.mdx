@@ -6,7 +6,7 @@ The SDK handles the account deployments for you. When transacting on a new chain
 
 ## How deployment works
 
-Deployment is per-chain. When you call `sendTransaction` targeting a chain where the account is not deployed yet, the Orchestrator bundles the deployment into the intent automatically. The account is only deployed on that specific chain, not on all supported chains at once.
+Deployment is per-chain. When you submit a transaction targeting a chain where the account is not deployed yet, the Orchestrator bundles the deployment into the intent automatically. The account is only deployed on that specific chain, not on all supported chains at once.
 
 Receiving tokens at the counterfactual address does not trigger deployment. Only an outbound transaction submitted through the SDK does.
 
@@ -61,7 +61,7 @@ const newAccount = await rhinestone.createAccount({
   owners: { type: 'ecdsa', accounts: [newOwner] },
 })
 
-await sponsorAccount.sendTransaction({
+const transaction = await sponsorAccount.prepareTransaction({
   chain,
   calls: [deploy(newAccount)],
 })

@@ -13,14 +13,14 @@ Pass a user address and your API key to get aggregated balances across all chain
 ```ts
 const baseUrl = "https://v1.orchestrator.rhinestone.dev";
 const apiKey = "YOUR_RHINESTONE_API_KEY";
-const userAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
+const accountAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
 
 const res = await fetch(
-  `${baseUrl}/accounts/${userAddress}/portfolio?filterEmpty=true`,
+  `${baseUrl}/accounts/${accountAddress}/portfolio?filterEmpty=true`,
   {
     headers: {
       "x-api-key": apiKey,
-      Accept: "application/json",
+      "x-api-version": "2026-04.blanc",
     },
   }
 );
@@ -28,28 +28,56 @@ const res = await fetch(
 const { portfolio } = await res.json();
 ```
 
-Each entry in `portfolio` represents a token aggregated across chains. Use `balance.unlocked` to determine whether the user can fund an intent — `balance.locked` reflects tokens already allocated to a pending intent.
+Each entry in `portfolio` is a token aggregated across chains: `{ symbol, chains: [{ chainId, address, decimals, amount }] }`. Amounts are raw (apply `decimals` to display).
+
+```json
+{
+  "portfolio": [
+    {
+      "symbol": "USDC",
+      "chains": [
+        {
+          "chainId": "eip155:8453",
+          "address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+          "decimals": 6,
+          "amount": "500000"
+        }
+      ]
+    }
+  ]
+}
+```
 
 ## Filter by chain or token
 
-To scope results to specific chains, pass `chainIds`:
+To scope results to specific chains, pass `chainIds` as a repeated query parameter using CAIP-2 ids:
 
 ```ts
 const res = await fetch(
-  `${baseUrl}/accounts/${userAddress}/portfolio?chainIds=10,8453&filterEmpty=true`,
-  { headers: { "x-api-key": apiKey } }
+  `${baseUrl}/accounts/${accountAddress}/portfolio?chainIds=eip155:10&chainIds=eip155:8453&filterEmpty=true`,
+  {
+    headers: {
+      "x-api-key": apiKey,
+      "x-api-version": "2026-04.blanc",
+    },
+  }
 );
 ```
 
-To scope to specific tokens, pass `chainId:tokenAddress` pairs via `tokens`:
+To scope to specific tokens, pass `chain:address` pairs as repeated `tokens` parameters:
 
 ```ts
-const usdc10 = "10:0x0b2c639c533813f4aa9d7837caf62653d097ff85";
-const usdc8453 = "8453:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const usdcOptimism = "eip155:10:0x0b2c639c533813f4aa9d7837caf62653d097ff85";
+const usdcBase = "eip155:8453:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 
 const res = await fetch(
-  `${baseUrl}/accounts/${userAddress}/portfolio?tokens=${usdc10},${usdc8453}`,
-  { headers: { "x-api-key": apiKey } }
+  `${baseUrl}/accounts/${accountAddress}/portfolio?tokens=${usdcOptimism}&tokens=${usdcBase}`,
+  {
+    headers: {
+      "x-api-key": apiKey,
+      "x-api-version": "2026-04.blanc",
+    },
+  }
 );
 ```
 
