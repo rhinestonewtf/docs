@@ -51,6 +51,9 @@ const transaction = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [experimental_enable()],
 })
+const signed = await rhinestoneAccount.signTransaction(transaction)
+const result = await rhinestoneAccount.submitTransaction(signed)
+await rhinestoneAccount.waitForExecution(result)
 ```
 
 </Step>
@@ -135,6 +138,9 @@ const transaction = await rhinestoneAccount.prepareTransaction({
     ),
   ],
 })
+const signed = await rhinestoneAccount.signTransaction(transaction)
+const result = await rhinestoneAccount.submitTransaction(signed)
+await rhinestoneAccount.waitForExecution(result)
 ```
 
 </Step>
