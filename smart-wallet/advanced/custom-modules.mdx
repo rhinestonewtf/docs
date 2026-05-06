@@ -42,7 +42,7 @@ You can install and use custom validators, executors, and hooks.
 ```ts
 import { installModule, uninstallModule } from '@rhinestone/sdk/actions'
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   targetChain: base,
   calls: [
     installModule({
@@ -60,7 +60,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
 You can also remove any module from the account:
 
 ```ts
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   targetChain: base,
   calls: [
     uninstallModule({

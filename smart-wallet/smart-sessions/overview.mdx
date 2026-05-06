@@ -85,7 +85,7 @@ You can also install it when the account is already deployed:
 ```ts
 import { experimental_enable } from '@rhinestone/sdk/actions/smart-sessions'
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [experimental_enable()],
 })
@@ -96,7 +96,7 @@ To uninstall the validator:
 ```ts
 import { experimental_disable } from '@rhinestone/sdk/actions/smart-sessions'
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [experimental_disable()],
 })
@@ -179,7 +179,7 @@ const enableSignature =
   await rhinestoneAccount.experimental_signEnableSession(sessionDetails)
 const sessionIndex = 0
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain,
   calls: [
     experimental_enableSession(

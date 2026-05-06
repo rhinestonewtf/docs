@@ -23,7 +23,7 @@ The Intent Executor is a standard ERC-7579 executor module (module type `2`). In
 ```ts
 import { installModule } from '@rhinestone/sdk/actions'
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   targetChain: base,
   calls: [
     installModule({
@@ -72,7 +72,7 @@ Returns `true` once the module has been installed on the account.
 ```ts
 import { uninstallModule } from '@rhinestone/sdk/actions'
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   targetChain: base,
   calls: [
     uninstallModule({

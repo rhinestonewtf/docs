@@ -59,7 +59,7 @@ This tutorial builds on the [Quickstart](../quickstart). You'll need a working s
     You can choose which fee types to cover:
 
     ```ts
-    const prepared = await account.prepareTransaction({
+    const transaction = await account.prepareTransaction({
       sourceChains: [arbitrum],
       targetChain: base,
       calls: [...],
@@ -81,7 +81,7 @@ This tutorial builds on the [Quickstart](../quickstart). You'll need a working s
 
     const calls = [{ to: '0xYourContractAddress', value: 0n, data: encodedCalldata }]
 
-    const prepared = await account.prepareTransaction({
+    const transaction = await account.prepareTransaction({
       sourceChains: [arbitrum],
       targetChain: base,
       calls,

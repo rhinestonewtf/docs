@@ -47,7 +47,7 @@ If the account is already deployed, you can install the module in a separate tra
 ```ts
 import { experimental_enable } from '@rhinestone/sdk/actions/smart-sessions'
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [experimental_enable()],
 })
@@ -124,7 +124,7 @@ const sessionDetails = await rhinestoneAccount.experimental_getSessionDetails(se
 const enableSignature = await rhinestoneAccount.experimental_signEnableSession(sessionDetails)
 const sessionIndex = 0
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [
     experimental_enableSession(

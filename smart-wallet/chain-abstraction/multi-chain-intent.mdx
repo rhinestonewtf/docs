@@ -57,7 +57,7 @@ If you already have an account deployed on one or more source chains, you can om
 You can override the default gas limit for the target chain execution with `gasLimit`. Doing this will make the intent better priced, because we can more accurately calculate the fee that a solver needs to be reimbursed with for paying the gas. If this is not provided, we calculate using a gas limit of `1_000_000`.
 
 ```ts {10}
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
   calls: [
@@ -75,7 +75,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
 You can specify what token (or tokens) to use as an input asset:
 
 ```ts {10}
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
   calls: [
@@ -91,7 +91,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
 You can also specify source assets on a per-chain basis:
 
 ```ts {9-12}
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   targetChain: arbitrum,
   calls: [
     // …
@@ -113,7 +113,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
 In case you have funds not available immediately for an intent (e.g. locked in a vault or sitting in an exchange), you can specify them as auxiliary funds:
 
 ```ts {9-14}
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   targetChain: arbitrum,
   calls: [
     // …
@@ -168,23 +168,23 @@ const splits = await rhinestone.splitIntents({
 Then, send each split as a separate transaction:
 
 ```ts
-const transactions = await Promise.all(
-  splits.map(async (split) => {
-    const prepared = await rhinestoneAccount.prepareTransaction({
-      sourceChains: [optimism],
-      targetChain: base,
-      tokenRequests: Object.entries(split.tokens).map(([address, amount]) => ({
-        address,
-        amount,
-      })),
-      calls: [
-        // …
-      ],
-    })
-    const signed = await rhinestoneAccount.signTransaction(prepared)
-    return rhinestoneAccount.submitTransaction(signed)
-  }),
-)
+async function sendIntent(split) {
+  const prepared = await rhinestoneAccount.prepareTransaction({
+    sourceChains: [optimism],
+    targetChain: base,
+    tokenRequests: Object.entries(split.tokens).map(([address, amount]) => ({
+      address,
+      amount,
+    })),
+    calls: [
+      // …
+    ],
+  })
+  const signed = await rhinestoneAccount.signTransaction(prepared)
+  return rhinestoneAccount.submitTransaction(signed)
+}
+
+const transactions = await Promise.all(splits.map(sendIntent))
 ```
 
 You can optionally filter which settlement layers to use:

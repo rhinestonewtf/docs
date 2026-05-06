@@ -98,7 +98,7 @@ const swapTx = await call1inchAPI<TxResponse>('/swap', {
 **3. Submit as a crosschain transaction:**
 
 ```ts
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   sourceChains: [arbitrum],
   targetChain: base,
   calls: [

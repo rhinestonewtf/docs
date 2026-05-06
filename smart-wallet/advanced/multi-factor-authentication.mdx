@@ -50,7 +50,7 @@ const rhinestoneAccount = await rhinestone.createAccount({
   // …
 });
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain: sourceChain,
   calls: [
     enableMultiFactor([
@@ -110,7 +110,7 @@ const transactionData = await rhinestoneAccount.prepareTransaction({
 ```ts
 const validatorId = 2;
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain: sourceChain,
   calls: [
     setSubValidator(validatorId, {
@@ -126,7 +126,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
 ```ts
 const validatorId = 2;
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain: sourceChain,
   calls: [
     removeSubValidator(validatorId, {

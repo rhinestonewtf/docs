@@ -61,7 +61,7 @@ const newAccount = await rhinestone.createAccount({
   owners: { type: 'ecdsa', accounts: [newOwner] },
 })
 
-const prepared = await sponsorAccount.prepareTransaction({
+const transaction = await sponsorAccount.prepareTransaction({
   chain,
   calls: [deploy(newAccount)],
 })

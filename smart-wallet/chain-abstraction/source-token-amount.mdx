@@ -9,7 +9,7 @@ This can be helpful if you want to limit the amount of tokens to bridge, or if y
 To bridge a specific amount of tokens:
 
 ```ts  {4-10}
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   sourceChains: [optimism],
   targetChain: base,
   sourceAssets: [
@@ -50,7 +50,7 @@ const usdcBalance = await publicClient.readContract({
   args: [address],
 })
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   sourceChains: [sourceChain],
   targetChain,
   sourceAssets: [
@@ -75,7 +75,7 @@ This will sweep the user's USDC balance on Optimism to Base.
 You can specify exact source amounts from multiple source chains:
 
 ```ts {4-15}
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   sourceChains: [optimism, base],
   targetChain: arbitrum,
   sourceAssets: [

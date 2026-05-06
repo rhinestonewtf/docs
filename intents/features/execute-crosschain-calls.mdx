@@ -70,7 +70,7 @@ The relayer fronts gas on the destination chain and claims repayment from the us
 ```ts
 import { arbitrum } from 'viem/chains'
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   targetChain: arbitrum,
   calls: [
     {
@@ -90,7 +90,7 @@ To restrict which chain the gas repayment is taken from, provide `sourceChains`:
 ```ts
 import { base, arbitrum } from 'viem/chains'
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
   calls: [

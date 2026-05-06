@@ -15,27 +15,22 @@ const transactionData = await rhinestoneAccount.prepareTransaction({
   // …
 });
 
-// 2. Pick a quote (default: the best one)
-const quote = transactionData.quotes.best;
-
-// 3. Extract messages
+// 2. Extract messages
 const { origin, destination } =
   rhinestoneAccount.getTransactionMessages(transactionData);
 
-// 4. Sign each message
+// 3. Sign each message
 const originSignatures = await Promise.all(
   origin.map((message) => sign(message)),
 );
 const destinationSignature = await sign(destination);
 
-// 5. Submit the transaction
+// 4. Submit the transaction
 const transaction = await rhinestoneAccount.submitTransaction({
   ...transactionData,
-  quote,
+  quote: transactionData.quotes.best,
   originSignatures,
   destinationSignature,
   targetExecutionSignature: undefined,
 });
 ```
-
-To sign a non-default quote, pass the chosen quote's `intentId` to `getTransactionMessages` and use the matching entry from `transactionData.quotes.all` as the `quote` field.

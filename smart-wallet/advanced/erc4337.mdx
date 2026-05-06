@@ -79,12 +79,10 @@ const rhinestone = new RhinestoneSDK({
 
 ## Usage
 
-ERC-4337 has a separate transaction API: `sendUserOperation` (or the granular `prepareUserOperation` → `signUserOperation` → `submitUserOperation` flow). Use it when a module requires the user-op flow — intent flows continue to use `prepareTransaction`.
-
-### Send a UserOperation
+ERC-4337 has a separate transaction API. Use it when a module requires the user-op flow — intent flows continue to use `prepareTransaction`.
 
 ```ts
-const result = await rhinestoneAccount.sendUserOperation({
+const prepared = await rhinestoneAccount.prepareUserOperation({
   chain: base,
   calls: [
     {
@@ -94,21 +92,8 @@ const result = await rhinestoneAccount.sendUserOperation({
     },
   ],
 })
+const signed = await rhinestoneAccount.signUserOperation(prepared)
+const result = await rhinestoneAccount.submitUserOperation(signed)
 
-const status = await rhinestoneAccount.waitForExecution(result)
-```
-
-### Granular API
-
-Use the lower-level API to separate preparation, signing, and submission:
-
-```ts
-const transactionData = await rhinestoneAccount.prepareUserOperation({
-  chain: base,
-  calls: [...],
-})
-
-const signedData = await rhinestoneAccount.signUserOperation(transactionData)
-const result = await rhinestoneAccount.submitUserOperation(signedData)
 const status = await rhinestoneAccount.waitForExecution(result)
 ```

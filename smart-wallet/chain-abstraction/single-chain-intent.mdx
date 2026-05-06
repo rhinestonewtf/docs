@@ -36,7 +36,7 @@ const transaction = await rhinestoneAccount.submitTransaction(signed)
 You can override the default gas limit for the target chain execution with `gasLimit`. Doing this will make the intent better priced, because we can more accurately calculate the fee that a solver needs to be reimbursed with for paying the gas. If this is not provided, we calculate using a gas limit of `1_000_000`.
 
 ```ts {9}
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [
     // …
@@ -53,7 +53,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
 You can specify what token (or tokens) to use as an input asset:
 
 ```ts {9}
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [
     // …
@@ -70,7 +70,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
 In case you have funds not available immediately for an intent (e.g. locked in a vault or sitting in an exchange), you can specify them as auxiliary funds:
 
 ```ts {9-14}
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [
     // …

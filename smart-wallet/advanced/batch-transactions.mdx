@@ -12,7 +12,7 @@ const usdcAmount = 1n
 const ethAmount = 2n
 const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 
-const prepared = await rhinestoneAccount.prepareTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain,
   calls: [
     {
