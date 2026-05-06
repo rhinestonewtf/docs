@@ -46,7 +46,7 @@ sequenceDiagram
     participant Dest as Target chain
 
     App->>DS: Register account with target chain/token
-    Note over App: User deposits tokens on any source chain
+    Note over App: User sends tokens on any source chain
     DS->>DS: Detect deposit via webhook listener
     DS->>Warp: Create bridging intent
     Warp->>Dest: Route and settle funds
@@ -92,15 +92,15 @@ With the **API**, you control the UX entirely. The user interacts with your app 
   fetch, no flash-of-loading). Refresh manually when the upstream list changes.
 */}
 
-Rhinestone Deposits supports a wide range of EVM chains plus Solana. Each chain is enabled as a **source** (the user can deposit from it), a **destination** (funds can settle on it), or both.
+Rhinestone Deposits supports a wide range of EVM chains plus Solana. Each chain is enabled as a **source** (the user can send funds to it), a **destination** (funds can settle on it), or both.
 
-- **Deposit** — users can transfer tokens on this chain and have them bridged to the target.
+- **Source** — users can transfer tokens on this chain and have them bridged to the target.
 - **Destination** — accounts on this chain can be registered as the target where funds land.
 - **Tokens** — `All` means any token routable through Warp; otherwise, only the listed tokens are accepted.
 
 ### Mainnet
 
-| Name            | Deposit | Destination | Tokens          |
+| Name            | Source  | Destination | Tokens          |
 | :-------------- | :-----: | :---------: | :-------------- |
 | Ethereum        |    ✓    |      ✓      | All             |
 | OP Mainnet      |    ✓    |      ✓      | All             |
@@ -117,7 +117,7 @@ Rhinestone Deposits supports a wide range of EVM chains plus Solana. Each chain 
 
 ### Testnet
 
-| Name             | Deposit | Destination | Tokens                   |
+| Name             | Source  | Destination | Tokens                   |
 | :--------------- | :-----: | :---------: | :----------------------- |
 | Sepolia          |    ✓    |      ✓      | ETH, USDC, WETH          |
 | OP Sepolia       |    ✓    |      ✓      | ETH, USDC, WETH          |
