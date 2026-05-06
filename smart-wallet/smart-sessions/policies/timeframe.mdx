@@ -3,28 +3,33 @@ title: "Timeframe"
 sidebarTitle: "Timeframe"
 ---
 
-You can set the valid timeframe for the transactions, by defining the timebound in which the transaction remains valid.
+Restrict when a session function can be called. Attach the policy at the function level.
 
-To enable the policy:
-
-```ts {6-16}
-const session: Session = {
+```ts {14-18}
+const session = toSession({
+  chain: base,
   owners: {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-  actions: [
+  permissions: [
     {
-      policies: [
-        {
-          type: 'time-frame',
-          validAfter: Date.now(),
-          validUntil: Date.now() + 1000 * 60 * 60 * 24,
+      abi: erc20Abi,
+      address: usdcAddress,
+      functions: {
+        transfer: {
+          policies: [
+            {
+              type: 'time-frame',
+              validAfter: Date.now(),
+              validUntil: Date.now() + 1000 * 60 * 60 * 24,
+            },
+          ],
         },
-      ],
+      },
     },
   ],
-}
+})
 ```
 
-This will create a session that will be valid for 24 hours.
+This limits the function to a 24-hour window.

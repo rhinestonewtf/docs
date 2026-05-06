@@ -139,7 +139,7 @@ Set `RHINESTONE_API_KEY` only on the server (e.g., in `.env` without `NEXT_PUBLI
 Point the SDK to your proxy URL so user traffic never touches the Orchestrator directly:
 
 ```ts
-import { RhinestoneSDK, walletClientToAccount } from "@rhinestone/sdk";
+import { RhinestoneSDK } from "@rhinestone/sdk";
 
 const baseUrl = typeof window !== "undefined" ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 

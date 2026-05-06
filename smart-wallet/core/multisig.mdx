@@ -88,7 +88,7 @@ By default, the `threshold` is 1 (any multisig owner can sign any transaction).
 For 1-of-n and m-of-n multisigs, you usually want to sign the transaction with a subset of owners instead of using all of them. You can choose which signers to use with `signers`:
 
 ```ts {6-10}
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain,
   calls: [
     // …
@@ -116,7 +116,7 @@ To add a new signer to your multisig:
 import { addOwner } from '@rhinestone/sdk/actions/ecdsa'
 
 // Add a new owner
-const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain,
   calls: [addOwner(accountD.address)],
 })
@@ -133,7 +133,7 @@ const pubKeyY = BigInt(slice(passkeyAccountC.publicKey, 32))
 const requiresUV = false;
 
 // Add a new owner
-const addOwnerTransaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain,
   calls: [addOwner(pubKeyX, pubKeyY, requiresUV)],
 })
@@ -153,7 +153,7 @@ To remove an existing signer from your multisig:
 import { removeOwner } from '@rhinestone/sdk/actions/ecdsa'
 
 // Remove an owner
-const removeOwnerTransaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain,
   calls: [removeOwner(accountC.address)],
 })
@@ -166,7 +166,7 @@ const removeOwnerTransaction = await rhinestoneAccount.sendTransaction({
 import { removeOwner } from '@rhinestone/sdk/actions/passkeys'
 
 // Remove an owner
-const removeOwnerTransaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain,
   calls: [removeOwner(pubKeyX, pubKeyY)],
 })
@@ -186,7 +186,7 @@ To update the signature threshold for your multisig:
 import { changeThreshold } from '@rhinestone/sdk/actions/ecdsa'
 
 // Change threshold to 2-of-N
-const changeThresholdTransaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain,
   calls: [changeThreshold(2)],
 })
@@ -199,7 +199,7 @@ const changeThresholdTransaction = await rhinestoneAccount.sendTransaction({
 import { changeThreshold } from '@rhinestone/sdk/actions/passkeys'
 
 // Change threshold to 2-of-N
-const changeThresholdTransaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain,
   calls: [changeThreshold(2)],
 })

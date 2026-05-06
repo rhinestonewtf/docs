@@ -23,7 +23,7 @@ import { encodeFunctionData, parseUnits } from 'viem'
 const usdcArbitrum = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
 const usdcAmount = parseUnits('100', 6)
 
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
   tokenRequests: [
@@ -53,6 +53,8 @@ const transaction = await rhinestoneAccount.sendTransaction({
     },
   ],
 })
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const transaction = await rhinestoneAccount.submitTransaction(signed)
 ```
 
 <Note>
@@ -68,7 +70,7 @@ The relayer fronts gas on the destination chain and claims repayment from the us
 ```ts
 import { arbitrum } from 'viem/chains'
 
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   targetChain: arbitrum,
   calls: [
     {
@@ -88,7 +90,7 @@ To restrict which chain the gas repayment is taken from, provide `sourceChains`:
 ```ts
 import { base, arbitrum } from 'viem/chains'
 
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
   calls: [

@@ -17,14 +17,12 @@ Rhinestone supports two swap modes:
 Specify the token you want on the destination chain. If it differs from what the user holds, Warp handles the bridge and swap automatically.
 
 ```ts
-import { getTokenAddress } from '@rhinestone/sdk'
 import { baseSepolia, arbitrumSepolia } from 'viem/chains'
 
-const ethTarget = getTokenAddress('ETH', arbitrumSepolia.id)
 const ethAmount = 2n
 const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [baseSepolia],
   targetChain: arbitrumSepolia,
   calls: [
@@ -35,11 +33,13 @@ const transaction = await rhinestoneAccount.sendTransaction({
   ],
   tokenRequests: [
     {
-      address: ethTarget,
+      address: 'ETH',
       amount: ethAmount,
     },
   ],
 })
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const transaction = await rhinestoneAccount.submitTransaction(signed)
 ```
 
 If the user has USDC on Base Sepolia, Warp will swap it to ETH, bridge to Arbitrum Sepolia, and execute the transfer.
@@ -98,7 +98,7 @@ const swapTx = await call1inchAPI<TxResponse>('/swap', {
 **3. Submit as a crosschain transaction:**
 
 ```ts
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [arbitrum],
   targetChain: base,
   calls: [

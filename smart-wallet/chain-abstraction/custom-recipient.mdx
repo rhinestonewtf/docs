@@ -10,7 +10,7 @@ By default, the destination funds are sent to the sender's account. You can over
 Pass a plain address to send funds to an arbitrary address:
 
 ```ts {4}
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [optimism],
   targetChain: base,
   recipient: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
@@ -28,7 +28,7 @@ const transaction = await rhinestoneAccount.sendTransaction({
 You can also pass a `RhinestoneAccountConfig` to send funds to a smart account:
 
 ```ts {4-9}
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [optimism],
   targetChain: base,
   recipient: {

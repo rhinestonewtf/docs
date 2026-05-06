@@ -50,7 +50,7 @@ const rhinestoneAccount = await rhinestone.createAccount({
   // …
 });
 
-const enableMfaTx = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain: sourceChain,
   calls: [
     enableMultiFactor([
@@ -65,7 +65,6 @@ const enableMfaTx = await rhinestoneAccount.sendTransaction({
     ]),
   ],
 })
-await rhinestoneAccount.waitForExecution(enableMfaTx)
 ```
 
 ## Usage
@@ -111,7 +110,7 @@ const transactionData = await rhinestoneAccount.prepareTransaction({
 ```ts
 const validatorId = 2;
 
-const addSubValidatorTx = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain: sourceChain,
   calls: [
     setSubValidator(validatorId, {
@@ -120,7 +119,6 @@ const addSubValidatorTx = await rhinestoneAccount.sendTransaction({
     }),
   ],
 })
-await rhinestoneAccount.waitForExecution(addSubValidatorTx)
 ```
 
 ### Removing a validator
@@ -128,7 +126,7 @@ await rhinestoneAccount.waitForExecution(addSubValidatorTx)
 ```ts
 const validatorId = 2;
 
-const removeSubValidatorTx = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain: sourceChain,
   calls: [
     removeSubValidator(validatorId, {
@@ -137,5 +135,4 @@ const removeSubValidatorTx = await rhinestoneAccount.sendTransaction({
     }),
   ],
 })
-await rhinestoneAccount.waitForExecution(removeSubValidatorTx)
 ```

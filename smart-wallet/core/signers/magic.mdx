@@ -78,7 +78,8 @@ Magic also supports SMS, social login, WebAuthn, and more. See [Magic's authenti
 Create a viem account from Magic's provider and pass it to Rhinestone:
 
 ```tsx
-import { RhinestoneSDK, walletClientToAccount } from "@rhinestone/sdk"
+import { RhinestoneSDK } from "@rhinestone/sdk"
+import { walletClientToAccount } from "@rhinestone/sdk/utils"
 import { createWalletClient, custom } from "viem"
 import { toAccount } from "viem/accounts"
 import type { SignableMessage, TypedDataDefinition } from "viem"
@@ -349,7 +350,7 @@ import { encodeFunctionData, parseUnits, erc20Abi } from 'viem'
 import { baseSepolia, arbitrumSepolia } from 'viem/chains'
 
 async function handleCrossChainTransfer(rhinestoneAccount) {
-  const transaction = await rhinestoneAccount.sendTransaction({
+  const prepared = await rhinestoneAccount.prepareTransaction({
     sourceChains: [baseSepolia],
     targetChain: arbitrumSepolia,
     calls: [
@@ -369,6 +370,8 @@ async function handleCrossChainTransfer(rhinestoneAccount) {
       },
     ],
   })
+  const signed = await rhinestoneAccount.signTransaction(prepared)
+  const transaction = await rhinestoneAccount.submitTransaction(signed)
 }
 ```
 

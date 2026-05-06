@@ -14,7 +14,7 @@ Relayers execute single-chain intents through the intent executor module. For a 
 Here's how you can make a token transfer:
 
 ```ts
-const singleChainTx = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [
     {
@@ -27,6 +27,8 @@ const singleChainTx = await rhinestoneAccount.sendTransaction({
     },
   ],
 })
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const transaction = await rhinestoneAccount.submitTransaction(signed)
 ```
 
 ## Gas Limit
@@ -34,7 +36,7 @@ const singleChainTx = await rhinestoneAccount.sendTransaction({
 You can override the default gas limit for the target chain execution with `gasLimit`. Doing this will make the intent better priced, because we can more accurately calculate the fee that a solver needs to be reimbursed with for paying the gas. If this is not provided, we calculate using a gas limit of `1_000_000`.
 
 ```ts {9}
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [
     // …
@@ -51,7 +53,7 @@ const transaction = await rhinestoneAccount.sendTransaction({
 You can specify what token (or tokens) to use as an input asset:
 
 ```ts {9}
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [
     // …
@@ -68,7 +70,7 @@ const transaction = await rhinestoneAccount.sendTransaction({
 In case you have funds not available immediately for an intent (e.g. locked in a vault or sitting in an exchange), you can specify them as auxiliary funds:
 
 ```ts {9-14}
-const transaction = await rhinestoneAccount.prepareTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [
     // …
@@ -89,20 +91,11 @@ This lets you get a quote before getting the funds ready on the account.
 
 ## Wait for Execution
 
-`sendTransaction` returns a pending intent. To wait until it gets executed, use `waitForExecution`:
+`submitTransaction` returns once the intent has been accepted by the orchestrator. To wait until it actually settles onchain, use `waitForExecution`:
 
 ```ts
-const transaction = await rhinestoneAccount.sendTransaction({
-  // …
-})
+const transaction = await rhinestoneAccount.submitTransaction(signed)
 const transactionResult = await rhinestoneAccount.waitForExecution(transaction)
-```
-
-By default, intents are pre-confirmed by a relayer to be executed before they actually land onchain. You can opt out of this by waiting for onchain execution:
-
-```ts
-const acceptPreconfirmations = false;
-const transactionResult = await rhinestoneAccount.waitForExecution(transaction, acceptPreconfirmations)
 ```
 
 ## Get Intent Status
@@ -110,8 +103,6 @@ const transactionResult = await rhinestoneAccount.waitForExecution(transaction, 
 You can also fetch the intent status directly to implement a custom polling logic:
 
 ```ts
-const transaction = await rhinestoneAccount.sendTransaction({
-  // …
-})
+const transaction = await rhinestoneAccount.submitTransaction(signed)
 const transactionResult = await rhinestone.getIntentStatus(transaction.id)
 ```

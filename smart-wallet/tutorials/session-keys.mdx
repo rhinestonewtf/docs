@@ -47,7 +47,7 @@ If the account is already deployed, you can install the module in a separate tra
 ```ts
 import { experimental_enable } from '@rhinestone/sdk/actions/smart-sessions'
 
-await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [experimental_enable()],
 })
@@ -73,35 +73,41 @@ const sessionOwnerAccount = privateKeyToAccount(sessionPrivateKey)
 Specify what the session key is allowed to do. Here we restrict it to USDC transfers only, with a 100 USDC spending limit:
 
 ```ts
-import { type Session, toFunctionSelector, getAbiItem, erc20Abi } from '@rhinestone/sdk'
-import { parseUnits } from 'viem'
+import { toSession } from '@rhinestone/sdk/smart-sessions'
+import { erc20Abi, parseUnits } from 'viem'
+import { base } from 'viem/chains'
 
 const usdcAddress = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // USDC on Base
 
-const session: Session = {
+const session = toSession({
+  chain: base,
   owners: {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-  actions: [
+  permissions: [
     {
-      target: usdcAddress,
-      selector: toFunctionSelector(
-        getAbiItem({ abi: erc20Abi, name: 'transfer' }),
-      ),
-      policies: [
-        {
-          type: 'spending-limit',
-          limit: parseUnits('100', 6), // 100 USDC
+      abi: erc20Abi,
+      address: usdcAddress,
+      functions: {
+        transfer: {
+          policies: [
+            {
+              type: 'spending-limits',
+              limits: [
+                { token: usdcAddress, amount: parseUnits('100', 6) }, // 100 USDC
+              ],
+            },
+          ],
         },
-      ],
+      },
     },
   ],
-}
+})
 ```
 
 <Note>
-  By default, a session with no actions allows **any** transaction. Always restrict sessions to the minimum necessary permissions.
+  By default, a session with no permissions allows **any** transaction. Always restrict sessions to the minimum necessary permissions.
 </Note>
 
 </Step>
@@ -118,7 +124,7 @@ const sessionDetails = await rhinestoneAccount.experimental_getSessionDetails(se
 const enableSignature = await rhinestoneAccount.experimental_signEnableSession(sessionDetails)
 const sessionIndex = 0
 
-await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [
     experimental_enableSession(
@@ -143,7 +149,7 @@ import { encodeFunctionData, erc20Abi } from 'viem'
 const recipient = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 const amount = parseUnits('10', 6) // 10 USDC
 
-const result = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [
     {
@@ -160,6 +166,8 @@ const result = await rhinestoneAccount.sendTransaction({
     session,
   },
 })
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const result = await rhinestoneAccount.submitTransaction(signed)
 
 const status = await rhinestoneAccount.waitForExecution(result)
 console.log('Executed without user prompt:', status)

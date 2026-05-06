@@ -21,35 +21,35 @@ While this guide focuses on multi-chain usage, you can also use this pattern on 
 <Steps>
 <Step title="Create the Sessions">
 
-First, define your sessions for different chains. Each session can have different owners, policies, and actions depending on your use case:
+First, define your sessions for different chains. Each session can have different owners, policies, and permissions depending on your use case:
 
 ```ts
 import { baseSepolia, optimismSepolia } from 'viem/chains'
-import { Session } from '@rhinestone/sdk'
+import { toSession } from '@rhinestone/sdk/smart-sessions'
 
-const sessions: Session[] = [
-  {
+const sessions = [
+  toSession({
     chain: baseSepolia,
     owners: {
       type: 'ecdsa',
       accounts: [sessionOwnerAccountA],
     },
-    // Add specific policies and actions as needed
-  },
-  {
+    // Add specific policies and permissions as needed
+  }),
+  toSession({
     chain: baseSepolia,
     owners: {
       type: 'ecdsa',
       accounts: [sessionOwnerAccountB],
     },
-  },
-  {
+  }),
+  toSession({
     chain: optimismSepolia,
     owners: {
       type: 'ecdsa',
       accounts: [sessionOwnerAccountB],
     },
-  },
+  }),
 ]
 ```
 
@@ -118,10 +118,8 @@ await rhinestoneAccount.submitTransaction(signedData)
 Here's a complete working example that demonstrates the full multi-chain session workflow:
 
 ```ts
-import {
-  RhinestoneSDK,
-  type Session
-} from '@rhinestone/sdk'
+import { RhinestoneSDK } from '@rhinestone/sdk'
+import { toSession } from '@rhinestone/sdk/smart-sessions'
 import { zeroAddress } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { baseSepolia, optimismSepolia } from 'viem/chains'
@@ -140,21 +138,21 @@ const rhinestoneAccount = await rhinestone.createAccount({
 })
 
 // Define the sessions, one per chain
-const sessions: Session[] = [
-  {
+const sessions = [
+  toSession({
     chain: baseSepolia,
     owners: {
       type: 'ecdsa',
       accounts: [sessionOwnerAccount],
     },
-  },
-  {
+  }),
+  toSession({
     chain: optimismSepolia,
     owners: {
       type: 'ecdsa',
       accounts: [sessionOwnerAccount],
     },
-  },
+  }),
 ]
 
 // Get the session details and sign once

@@ -3,7 +3,7 @@ title: "Set account type"
 description: "Configure which account type to use with Rhinestone intents: smart account, EOA, or EIP-7702."
 ---
 
-Rhinestone supports three account types. All of them use the same `sendTransaction` API — the orchestrator abstracts the differences at the transport layer.
+Rhinestone supports three account types. All of them share the same transaction API — the orchestrator abstracts the differences at the transport layer.
 
 - **Smart account** — new users, full feature set (modules, session keys, gas sponsorship)
 - **EOA** — existing EOA users, no migration required, basic intent support
@@ -34,7 +34,7 @@ const account = await rhinestone.createAccount({
 
 const recipientAddress = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 
-const result = await account.sendTransaction({
+const prepared = await account.prepareTransaction({
   sourceChains: [arbitrum],
   targetChain: base,
   calls: [
@@ -54,6 +54,8 @@ const result = await account.sendTransaction({
     },
   ],
 })
+const signed = await account.signTransaction(prepared)
+const result = await account.submitTransaction(signed)
 
 const status = await account.waitForExecution(result)
 ```
@@ -83,7 +85,7 @@ const account = await rhinestone.createAccount({
 
 const recipientAddress = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 
-const result = await account.sendTransaction({
+const prepared = await account.prepareTransaction({
   sourceChains: [arbitrum],
   targetChain: base,
   calls: [
@@ -103,6 +105,8 @@ const result = await account.sendTransaction({
     },
   ],
 })
+const signed = await account.signTransaction(prepared)
+const result = await account.submitTransaction(signed)
 
 const status = await account.waitForExecution(result)
 ```
@@ -193,7 +197,7 @@ Sending a transaction with an EIP-7702 account requires two additional signing s
   </Step>
   <Step title="Submit and wait">
     ```ts
-    const result = await account.submitTransaction(signedTx, authorizations)
+    const result = await account.submitTransaction(signedTx, { authorizations })
     const status = await account.waitForExecution(result)
     ```
   </Step>

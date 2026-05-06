@@ -9,7 +9,7 @@ This can be helpful if you want to limit the amount of tokens to bridge, or if y
 To bridge a specific amount of tokens:
 
 ```ts  {4-10}
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [optimism],
   targetChain: base,
   sourceAssets: [
@@ -34,24 +34,23 @@ This will bridge 10 USDC from Optimism to Base.
 
 To bridge the entire balance of a token:
 
-```ts {10-15,24}
-import { getTokenAddress } from '@rhinestone/sdk'
-
+```ts {8-13,22}
 const sourceChain = optimism
 const targetChain = base
+const usdcOnOptimism = '0x0b2c639c533813F4AA9D7837CAF62653d097Ff85'
 
 const publicClient = createPublicClient({
   chain: sourceChain,
   transport: http(),
 })
 const usdcBalance = await publicClient.readContract({
-  address: getTokenAddress('USDC', sourceChain.id),
+  address: usdcOnOptimism,
   abi: erc20Abi,
   functionName: 'balanceOf',
   args: [address],
 })
 
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [sourceChain],
   targetChain,
   sourceAssets: [
@@ -76,7 +75,7 @@ This will sweep the user's USDC balance on Optimism to Base.
 You can specify exact source amounts from multiple source chains:
 
 ```ts {4-15}
-const transaction = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [optimism, base],
   targetChain: arbitrum,
   sourceAssets: [

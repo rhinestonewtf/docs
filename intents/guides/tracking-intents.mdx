@@ -51,7 +51,6 @@ An intent moves through the following statuses:
 | Status | Meaning |
 |---|---|
 | `PENDING` | Submitted and in progress |
-| `PRECONFIRMED` | Accepted by a solver, waiting for onchain execution |
 | `CLAIMED` | Source funds claimed by the solver, destination execution pending |
 | `FILLED` | Executed on the destination chain, source funds not yet claimed |
 | `COMPLETED` | Fully executed and settled onchain |
@@ -62,10 +61,11 @@ An intent moves through the following statuses:
 
 ## SDK shorthand
 
-If you're using the Rhinestone SDK, `sendTransaction` handles polling internally and resolves when the intent completes:
+If you're using the Rhinestone SDK, `waitForExecution` handles polling internally and resolves when the intent completes:
 
 ```ts
-const result = await rhinestone.sendTransaction({ ... });
+const result = await rhinestoneAccount.submitTransaction(signed);
+const status = await rhinestoneAccount.waitForExecution(result);
 // resolves only after COMPLETED
 ```
 

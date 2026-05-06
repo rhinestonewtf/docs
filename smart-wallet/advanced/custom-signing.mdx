@@ -10,27 +10,32 @@ Custom signing is useful when you need to implement custom signing flows (e.g. s
 ## Example
 
 ```ts
-import { signTypedData } from "viem/accounts";
-
 // 1. Prepare the transaction
 const transactionData = await rhinestoneAccount.prepareTransaction({
   // …
 });
 
-// 2. Extract messages
+// 2. Pick a quote (default: the best one)
+const quote = transactionData.quotes.best;
+
+// 3. Extract messages
 const { origin, destination } =
   rhinestoneAccount.getTransactionMessages(transactionData);
 
-// 3. Sign each message
+// 4. Sign each message
 const originSignatures = await Promise.all(
   origin.map((message) => sign(message)),
 );
 const destinationSignature = await sign(destination);
 
-// 4. Submit the transaction
+// 5. Submit the transaction
 const transaction = await rhinestoneAccount.submitTransaction({
   ...transactionData,
+  quote,
   originSignatures,
   destinationSignature,
+  targetExecutionSignature: undefined,
 });
 ```
+
+To sign a non-default quote, pass the chosen quote's `intentId` to `getTransactionMessages` and use the matching entry from `transactionData.quotes.all` as the `quote` field.

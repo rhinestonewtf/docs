@@ -28,10 +28,10 @@ This tutorial builds on the [Quickstart](../quickstart). You'll need a working s
 
   <Step title="Send a sponsored transaction">
 
-    Add `sponsored: true` to your `sendTransaction` call:
+    Add `sponsored: true` when preparing the transaction:
 
     ```ts
-    const result = await account.sendTransaction({
+    const prepared = await account.prepareTransaction({
       sourceChains: [arbitrum],
       targetChain: base,
       calls: [
@@ -43,6 +43,8 @@ This tutorial builds on the [Quickstart](../quickstart). You'll need a working s
       ],
       sponsored: true,
     })
+    const signed = await account.signTransaction(prepared)
+    const result = await account.submitTransaction(signed)
 
     const status = await account.waitForExecution(result)
     console.log('Transaction settled:', status)
@@ -57,7 +59,7 @@ This tutorial builds on the [Quickstart](../quickstart). You'll need a working s
     You can choose which fee types to cover:
 
     ```ts
-    const result = await account.sendTransaction({
+    const prepared = await account.prepareTransaction({
       sourceChains: [arbitrum],
       targetChain: base,
       calls: [...],
@@ -79,7 +81,7 @@ This tutorial builds on the [Quickstart](../quickstart). You'll need a working s
 
     const calls = [{ to: '0xYourContractAddress', value: 0n, data: encodedCalldata }]
 
-    const result = await account.sendTransaction({
+    const prepared = await account.prepareTransaction({
       sourceChains: [arbitrum],
       targetChain: base,
       calls,

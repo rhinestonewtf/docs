@@ -104,7 +104,7 @@ Sending a transaction with an EIP-7702 account requires two additional signing s
   </Step>
   <Step title="Submit and wait">
     ```ts
-    const result = await account.submitTransaction(signedTx, authorizations)
+    const result = await account.submitTransaction(signedTx, { authorizations })
     const status = await account.waitForExecution(result)
     ```
   </Step>
