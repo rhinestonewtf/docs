@@ -1,49 +1,40 @@
 ---
 title: "Submitting the intent"
-description: "Submit the signed operations to the Orchestrator"
+description: "Submit the signed intent to the Orchestrator"
 ---
 
-Once you've [signed](./signing) the intent operations, you can submit them to the Orchestrator for execution.
+Once you've [signed](./signing) the intent, submit it to the Orchestrator for execution.
 
-Use the `/intent-operations` endpoint:
+Use the `/intents` endpoint. Pass the `intentId` from the quote and the signatures you collected:
 
-```ts Submit Intent
+```ts
 const baseUrl = "https://v1.orchestrator.rhinestone.dev";
-const endpoint = `${baseUrl}/intent-operations`;
 const apiKey = "YOUR_RHINESTONE_API_KEY";
 
-const payload = {
-  signedIntentOp: {
-    ...intentOp,
-    originSignatures,
-    destinationSignature,
-  },
-};
-
-const res = await fetch(endpoint, {
+const res = await fetch(`${baseUrl}/intents`, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
     "x-api-key": apiKey,
-    Accept: "application/json",
+    "x-api-version": "2026-04.blanc",
   },
-  body: JSON.stringify(payload, (_, value) =>
-    typeof value === "bigint" ? value.toString() : value,
-  ),
+  body: JSON.stringify({
+    intentId,
+    signatures: {
+      origin: originSignatures,
+      destination: destinationSignature,
+    },
+  }),
 });
 
-if (!res.ok) {
-  const errorBody = await res.text().catch(() => "");
-  throw new Error(
-    `Request failed: ${res.status} ${res.statusText}${errorBody ? ` - ${errorBody}` : ""}`
-  );
-}
-
-const data = await res.json();
-console.log("Result:", data);
+const { intentId: submittedId } = await res.json();
 ```
 
-The response includes an operation ID. Use it to track execution status.
+The response contains only the `intentId` — use it to poll for execution status.
+
+<Note>
+If the quote has expired before you submit, `POST /intents` returns 404. Re-quote and re-sign — don't retry the submit.
+</Note>
 
 <Card title="Tracking intents" icon="radar" href="./tracking-intents">
   Poll for status and understand the full intent lifecycle.

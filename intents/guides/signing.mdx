@@ -1,198 +1,34 @@
 ---
 title: "Signing the intent"
 sidebarTitle: "Signing the intent"
-description: "Sign each element of the intent using EIP-712."
+description: "Sign each entry in signData using EIP-712."
 ---
 
-<Info>
-  Always fetch a fresh quote immediately before signing. Submitting signatures built from a stale quote will result in an expiry error.
-</Info>
+The quote response includes everything needed to sign. Forward `signData.origin[]` and `signData.destination` directly to your wallet's `signTypedData()` — don't reconstruct the EIP-712 types client-side.
 
-Warp uses [EIP-712](https://eips.ethereum.org/EIPS/eip-712) for typed, human-readable signing. The signature scheme depends on the settlement layer used for each bundle element.
+## Origin signatures
 
-## Signature types
-
-**Permit2 signatures** are used for standard crosschain intents. Each source chain element requires a unique signature. The index of the signature must correspond to the index of the element it signs.
-
-**Intent Executor signatures** are used when the bundle uses the Intent Executor settlement layer (i.e. the user has an ERC-7579 smart account with the Intent Executor installed). These use a different EIP-712 domain — not the standard Permit2 domain. The `getTypedData` function below handles this automatically based on the `settlementLayer` field in the element.
-
-## Recipient signatures
-
-If the recipient is different from the sender, the recipient is a smart account, and there are destination executions to run, the recipient must also sign. Their signature is attached as the `destinationSignature`.
-
-## Preparing the typed data
+`signData.origin` has one entry per source chain. Sign each entry in order. The signature index must match the entry index.
 
 ```ts
-interface TokenPermissions {
-  token: Address;
-  amount: bigint;
-}
-
-interface Ops {
-  to: Address;
-  value: string;
-  data: Hex;
-}
-
-interface Op {
-  vt: Hex;
-  ops: Ops[];
-}
-
-interface IntentOpElementMandate {
-  recipient: Address;
-  tokenOut: [[string, string]];
-  destinationChainId: string;
-  fillDeadline: string;
-  destinationOps: Op;
-  preClaimOps: Op;
-  qualifier: {
-    settlementContext: {
-      settlementLayer: string;
-      usingJIT: boolean;
-      using7579: boolean;
-    };
-    encodedVal: Hex;
-  };
-  minGas: string;
-}
-
-interface IntentOpElement {
-  arbiter: Address;
-  chainId: string;
-  idsAndAmounts: [[string, string]];
-  spendTokens: [[string, string]];
-  beforeFill: boolean;
-  smartAccountStatus: {
-    accountType: string;
-    isDeployed: boolean;
-    isERC7579: boolean;
-    erc7579AccountType: string;
-    erc7579AccountVersion: string;
-  };
-  mandate: IntentOpElementMandate;
-}
-
-function toToken(id: bigint): Address {
-  return `0x${(id & ((1n << 160n) - 1n)).toString(16).padStart(40, "0")}`;
-}
-
-function getTypedData(
-  element: IntentOpElement,
-  nonce: bigint,
-  expires: bigint,
-) {
-  const PERMIT2_ADDRESS = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
-
-  const tokens = element.idsAndAmounts.map(([id, amount]) => [
-    BigInt(id),
-    BigInt(amount),
-  ]);
-  const tokenPermissions = tokens.reduce<TokenPermissions[]>(
-    (permissions, [id, amountIn]) => {
-      const token = toToken(BigInt(id));
-      const amount = BigInt(amountIn);
-      permissions.push({ token, amount });
-      return permissions;
-    },
-    [],
-  );
-
-  const spender = element.arbiter;
-  const mandate = element.mandate;
-
-  return {
-    domain: {
-      name: "Permit2",
-      chainId: Number(element.chainId),
-      verifyingContract: PERMIT2_ADDRESS,
-    },
-    types: {
-      TokenPermissions: [
-        { name: "token", type: "address" },
-        { name: "amount", type: "uint256" },
-      ],
-      Token: [
-        { name: "token", type: "address" },
-        { name: "amount", type: "uint256" },
-      ],
-      Target: [
-        { name: "recipient", type: "address" },
-        { name: "tokenOut", type: "Token[]" },
-        { name: "targetChain", type: "uint256" },
-        { name: "fillExpiry", type: "uint256" },
-      ],
-      Ops: [
-        { name: "to", type: "address" },
-        { name: "value", type: "uint256" },
-        { name: "data", type: "bytes" },
-      ],
-      Op: [
-        { name: "vt", type: "bytes32" },
-        { name: "ops", type: "Ops[]" },
-      ],
-      Mandate: [
-        { name: "target", type: "Target" },
-        { name: "minGas", type: "uint128" },
-        { name: "originOps", type: "Op" },
-        { name: "destOps", type: "Op" },
-        { name: "q", type: "bytes32" },
-      ],
-      PermitBatchWitnessTransferFrom: [
-        { name: "permitted", type: "TokenPermissions[]" },
-        { name: "spender", type: "address" },
-        { name: "nonce", type: "uint256" },
-        { name: "deadline", type: "uint256" },
-        { name: "mandate", type: "Mandate" },
-      ],
-    },
-    primaryType: "PermitBatchWitnessTransferFrom",
-    message: {
-      permitted: tokenPermissions,
-      spender,
-      nonce,
-      deadline: expires,
-      mandate: {
-        target: {
-          recipient: mandate.recipient,
-          tokenOut: mandate.tokenOut.map((token) => ({
-            token: toToken(BigInt(token[0])),
-            amount: BigInt(token[1]),
-          })),
-          targetChain: BigInt(mandate.destinationChainId),
-          fillExpiry: BigInt(mandate.fillDeadline),
-        },
-        minGas: BigInt(mandate.minGas),
-        originOps: mandate.preClaimOps,
-        destOps: mandate.destinationOps,
-        q: keccak256(mandate.qualifier.encodedVal),
-      },
-    },
-  } as const;
-}
+const originSignatures = await Promise.all(
+  signData.origin.map((typedData) =>
+    walletClient.signTypedData(typedData),
+  ),
+);
 ```
 
-## Signing each element
+## Destination signature
 
-One signature per element, in order:
+`signData.destination` is a single typed-data object. It's used when the recipient differs from the sender (a smart account receiving tokens, for example, or destination executions that touch the recipient's account).
 
 ```ts
-const signatures: Hex[] = [];
-
-for (const element of intentOp.elements) {
-  const typedData = getTypedData(
-    element,
-    BigInt(intentOp.nonce),
-    BigInt(intentOp.expires),
-  );
-
-  const signature = await signTypedData(wagmiConfig, { ...typedData });
-  signatures.push(signature);
-}
-
-const originSignatures = signatures;
-const destinationSignature = signatures.at(-1); // last signature doubles as destination
+const destinationSignature = await walletClient.signTypedData(
+  signData.destination,
+);
 ```
+
+If the destination doesn't require a signature, this slot can still be sent — the orchestrator ignores it.
 
 ## Next steps
 

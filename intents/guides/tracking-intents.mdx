@@ -4,7 +4,7 @@ sidebarTitle: "Tracking intents"
 description: "Poll for intent status and understand the intent lifecycle."
 ---
 
-After [submitting an intent](./submitting-the-intent), you receive an operation ID. Use it to poll the Orchestrator until the intent reaches a terminal state.
+After [submitting an intent](./submitting-the-intent), you receive an `intentId`. Use it to poll the Orchestrator until the intent reaches a terminal state.
 
 ## Poll for status
 
@@ -12,11 +12,11 @@ After [submitting an intent](./submitting-the-intent), you receive an operation 
 const baseUrl = "https://v1.orchestrator.rhinestone.dev";
 const apiKey = "YOUR_RHINESTONE_API_KEY";
 
-async function getIntentStatus(operationId: string) {
-  const res = await fetch(`${baseUrl}/intent-operation/${operationId}`, {
+async function getIntentStatus(intentId: string) {
+  const res = await fetch(`${baseUrl}/intents/${intentId}`, {
     headers: {
       "x-api-key": apiKey,
-      Accept: "application/json",
+      "x-api-version": "2026-04.blanc",
     },
   });
 
@@ -31,11 +31,11 @@ async function getIntentStatus(operationId: string) {
 }
 
 // Poll every 2 seconds until terminal
-async function waitForCompletion(operationId: string) {
+async function waitForCompletion(intentId: string) {
   const terminal = new Set(["COMPLETED", "FAILED", "EXPIRED"]);
 
   while (true) {
-    const data = await getIntentStatus(operationId);
+    const data = await getIntentStatus(intentId);
     console.log("Status:", data.status);
 
     if (terminal.has(data.status)) return data;
@@ -64,8 +64,8 @@ An intent moves through the following statuses:
 If you're using the Rhinestone SDK, `waitForExecution` handles polling internally and resolves when the intent completes:
 
 ```ts
-const result = await rhinestoneAccount.submitTransaction(signed);
-const status = await rhinestoneAccount.waitForExecution(result);
+const transaction = await rhinestoneAccount.submitTransaction(signed);
+const status = await rhinestoneAccount.waitForExecution(transaction);
 // resolves only after COMPLETED
 ```
 
