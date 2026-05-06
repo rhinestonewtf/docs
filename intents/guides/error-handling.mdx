@@ -14,7 +14,7 @@ Every non-2xx response shares the same shape:
 }
 ```
 
-Switch on `code`, not `message`. The full code/HTTP table lives in the [versioning guide](./api-versioning#deprecation-lifecycle).
+Switch on `code`, not `message`. The full code/HTTP table lives in the [versioning guide](./api-versioning#error-codes).
 
 ```ts
 switch (err.code) {
