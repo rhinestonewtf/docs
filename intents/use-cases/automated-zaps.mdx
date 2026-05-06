@@ -46,6 +46,7 @@ Define multi-chain sessions scoped to the vault contracts your app supports. The
 
 ```ts
 import { toSession } from "@rhinestone/sdk/smart-sessions";
+import { erc20Abi } from "viem";
 import { arbitrum, optimism } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 
@@ -60,7 +61,27 @@ const sessions = [
       accounts: [sessionOwnerAccount],
     },
     permissions: [
-      { abi: vaultAbi, address: ARBITRUM_VAULT_ADDRESS, functions: {} },
+      {
+        abi: vaultAbi,
+        address: ARBITRUM_VAULT_ADDRESS,
+        functions: { deposit: {} },
+      },
+      // Pulling USDC from the user and returning vault shares also flow
+      // through this session — scope them too.
+      {
+        abi: erc20Abi,
+        address: USDC_ADDRESS,
+        functions: {
+          // ...
+        },
+      },
+      {
+        abi: erc20Abi,
+        address: ARBITRUM_VAULT_TOKEN_ADDRESS,
+        functions: {
+          // ...
+        },
+      },
     ],
   }),
   toSession({
@@ -70,8 +91,17 @@ const sessions = [
       accounts: [sessionOwnerAccount],
     },
     permissions: [
-      { abi: vaultAbi, address: OPTIMISM_VAULT_A_ADDRESS, functions: {} },
-      { abi: vaultAbi, address: OPTIMISM_VAULT_B_ADDRESS, functions: {} },
+      {
+        abi: vaultAbi,
+        address: OPTIMISM_VAULT_A_ADDRESS,
+        functions: { deposit: {} },
+      },
+      {
+        abi: vaultAbi,
+        address: OPTIMISM_VAULT_B_ADDRESS,
+        functions: { deposit: {} },
+      },
+      // Plus the ERC-20 permissions, as above.
     ],
   }),
 ];
