@@ -1,101 +1,98 @@
 ---
 title: "Swaps"
-description: "Bridge and swap in a single transaction. Use Warp's built-in swaps or supply your own swap calldata."
+description: "Send and receive any token across chains. The orchestrator handles swaps automatically when needed."
 ---
 
-Rhinestone supports two swap modes:
+Warp supports arbitrary input and output tokens. You don't need to configure anything — if the token a user wants to send or receive isn't a settlement token, the orchestrator automatically routes through a swap as part of the intent.
 
-- **Swaps**: Warp handles the swap using solver liquidity. Simpler to integrate, best for common tokens.
-- **Injected swaps**: you supply the calldata for a swap from an external API (1inch, 0x, etc.). More setup, but full token coverage and best-price routing.
+**Settlement tokens** (the tokens Warp bridges natively) are: ETH, WETH, USDC, USDT, USDT0.
+
+- If the user is spending a non-settlement token on the origin chain, the orchestrator swaps it to a settlement token before bridging.
+- If the destination token is a non-settlement token, the orchestrator swaps the bridged settlement token to the requested token on arrival.
+
+<Note>
+  Swaps are only available on chains where the orchestrator has quoter support. On settlement-only chains (Plasma, HyperEVM, Soneium), input and output tokens must be settlement tokens.
+</Note>
 
 <Tabs>
 
 <Tab title="SDK">
 
-## Swaps
+## Automatic swaps
 
-Specify the token you want on the destination chain. If it differs from what the user holds, Warp handles the bridge and swap automatically.
+Specify any token as the destination token. If it isn't a settlement token, the swap is handled automatically.
+
+The example below sends DEGEN (Base) and receives OP (Optimism) — neither is a settlement token.
 
 ```ts
-import { getTokenAddress } from '@rhinestone/sdk'
-import { baseSepolia, arbitrumSepolia } from 'viem/chains'
+import { base, optimism } from 'viem/chains'
+import { parseUnits } from 'viem'
 
-const ethTarget = getTokenAddress('ETH', arbitrumSepolia.id)
-const ethAmount = 2n
-const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
+// DEGEN on Base
+const degenBase = '0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed'
+const degenAmount = parseUnits('1000', 18)
+
+// OP token on Optimism
+const opOptimism = '0x4200000000000000000000000000000000000042'
+const opAmount = parseUnits('10', 18)
+
+const receiver = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 
 const transaction = await rhinestoneAccount.sendTransaction({
-  sourceChains: [baseSepolia],
-  targetChain: arbitrumSepolia,
+  sourceChains: [base],
+  targetChain: optimism,
   calls: [
     {
-      to: receiver,
-      value: ethAmount,
+      to: opOptimism,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [receiver, opAmount],
+      }),
     },
   ],
   tokenRequests: [
     {
-      address: ethTarget,
-      amount: ethAmount,
+      address: opOptimism,
+      amount: opAmount,
     },
   ],
 })
 ```
 
-If the user has USDC on Base Sepolia, Warp will swap it to ETH, bridge to Arbitrum Sepolia, and execute the transfer.
+The orchestrator will:
+1. Swap the user's input token to a settlement token on the source chain
+2. Bridge the settlement token to the destination chain
+3. Swap to the requested output token on arrival
 
-<Note>The token address in `calls` and `tokenRequests` must correspond to the _target_ chain.</Note>
+<Note>The token address in `tokenRequests` must be the address on the _target_ chain.</Note>
 
-## Injected swaps
+## Custom swap calldata
 
-For full token coverage or best-price routing, supply swap calldata from a DEX aggregator and include it as destination chain calls.
+For specific routing logic on the destination chain, you can supply your own swap calldata. Fetch it from a DEX aggregator and include it as calls on the destination chain.
 
-The example below makes a WETH to cbBTC swap on Base using funds from Arbitrum, via 1inch.
+**Constraint:** the final token received from your custom swap must be a settlement token. The orchestrator needs to settle in a token it recognises — if your swap outputs an arbitrary token, the intent cannot be fulfilled.
 
-**1. Initialize the 1inch client:**
+The example below bridges to Base and executes a custom swap from WETH to cbBTC using an external aggregator.
+
+**1. Fetch approval and swap calldata from your aggregator:**
 
 ```ts
 const walletAddress = rhinestoneAccount.getAddress()
 const wethBase = '0x4200000000000000000000000000000000000006'
 const wethAmount = parseEther('0.1')
 const cbbtcBase = '0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf'
-const oneInchApiKey = 'YOUR_1INCH_API_KEY'
-const baseUrl = 'https://api.1inch.dev/swap/v6.0/8453'
 
-async function call1inchAPI<T>(
-  endpointPath: string,
-  queryParams: Record<string, string>
-): Promise<T> {
-  const url = new URL(baseUrl + endpointPath)
-  url.search = new URLSearchParams(queryParams).toString()
-  const response = await fetch(url.toString(), {
-    headers: { Accept: 'application/json', Authorization: `Bearer ${oneInchApiKey}` },
-  })
-  if (!response.ok) throw new Error(`1inch API error ${response.status}`)
-  return response.json() as Promise<T>
-}
-```
-
-**2. Fetch approval and swap data:**
-
-```ts
-const approveTx = await call1inchAPI<ApproveTransactionResponse>('/approve/transaction', {
-  tokenAddress: wethBase,
-  amount: wethAmount.toString(),
-})
-
-const swapTx = await call1inchAPI<TxResponse>('/swap', {
+// Fetch from your preferred DEX aggregator API
+const { approveTx, swapTx } = await fetchSwapCalldata({
   src: wethBase,
   dst: cbbtcBase,
-  amount: wethAmount.toString(),
+  amount: wethAmount,
   from: walletAddress,
-  slippage: '1',
-  disableEstimate: 'false',
-  allowPartialFill: 'false',
 })
 ```
 
-**3. Submit as a crosschain transaction:**
+**2. Submit as a crosschain transaction:**
 
 ```ts
 const transaction = await rhinestoneAccount.sendTransaction({
@@ -103,7 +100,7 @@ const transaction = await rhinestoneAccount.sendTransaction({
   targetChain: base,
   calls: [
     { to: approveTx.to, data: approveTx.data, value: approveTx.value },
-    { to: swapTx.tx.to, data: swapTx.tx.data, value: swapTx.tx.value },
+    { to: swapTx.to, data: swapTx.data, value: swapTx.value },
   ],
   tokenRequests: [
     { address: wethBase, amount: wethAmount },
@@ -111,17 +108,17 @@ const transaction = await rhinestoneAccount.sendTransaction({
 })
 ```
 
-This bridges from Arbitrum to get 0.1 WETH on Base, then executes the 1inch swap to cbBTC.
+This bridges from Arbitrum to get WETH on Base, then executes your custom swap to cbBTC.
 
 </Tab>
 
 <Tab title="API">
 
-## Swaps
+## How swaps appear in the API response
 
-When you request a token on the destination chain that differs from the user's source token, Warp routes through the solver market to bridge and swap in a single operation. No additional parameters are required — the quote response tells you what will be spent and what will be received.
+When the input or output token differs from a settlement token, the orchestrator automatically includes a swap in the intent. No extra parameters are needed — the quote response reflects what will actually be spent and received.
 
-In a swap, the `tokensSpent` and `tokensReceived` will show different tokens:
+A swap intent will show different tokens in `tokensSpent` and `tokensReceived`:
 
 ```json
 {
