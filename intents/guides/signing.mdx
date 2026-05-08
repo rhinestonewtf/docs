@@ -8,6 +8,10 @@ description: "Sign each element of the intent using EIP-712."
   Always fetch a fresh quote immediately before signing. Submitting signatures built from a stale quote will result in an expiry error.
 </Info>
 
+<Warning>
+  Treat `preClaimOps` and other route-derived fields as immutable once the quote is returned. If you need additional pre-claim executions for session enablement or similar flows, include them in the route request via the SDK or orchestrator request rather than mutating the returned route. Mutating these fields after quoting can invalidate the checksum signature.
+</Warning>
+
 Warp uses [EIP-712](https://eips.ethereum.org/EIPS/eip-712) for typed, human-readable signing. The signature scheme depends on the settlement layer used for each bundle element.
 
 ## Signature types

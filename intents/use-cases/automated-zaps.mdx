@@ -167,11 +167,15 @@ await companionAccount.sendTransaction({
     enableData: {
       userSignature: enableSignature,
       hashesAndChainIds: sessionDetails.hashesAndChainIds,
-      sessionIndex: 0,
+      sessionToEnableIndex: 0,
     },
   },
 });
 ```
+
+<Note>
+The SDK handles the session enable pre-claim plumbing during route construction. Do not mutate route-derived pre-claim operations after quoting.
+</Note>
 
 <Note>
 After submitting the intent, poll the intent status until it reaches a terminal state (`COMPLETED`, `FILLED`, `FAILED`, or `EXPIRED`). This typically takes a few seconds for cross-chain settlements.
