@@ -102,7 +102,8 @@ Create a custom hook that integrates Privy authentication with Rhinestone accoun
 import { useState, useEffect } from 'react'
 import { usePrivy, useWallets } from "@privy-io/react-auth"
 import { useWalletClient, useAccount } from "wagmi"
-import { RhinestoneSDK, walletClientToAccount } from "@rhinestone/sdk"
+import { RhinestoneSDK } from "@rhinestone/sdk"
+import { walletClientToAccount } from "@rhinestone/sdk/utils"
 
 interface PrivyWalletState {
   rhinestoneAccount: any | null
@@ -228,7 +229,7 @@ import { erc20Abi } from 'viem'
 import { baseSepolia, arbitrumSepolia } from 'viem/chains'
 
 async function handleCrossChainTransfer(rhinestoneAccount) {
-  const transaction = await rhinestoneAccount.sendTransaction({
+  const prepared = await rhinestoneAccount.prepareTransaction({
     sourceChains: [baseSepolia],
     targetChain: arbitrumSepolia,
     calls: [
@@ -248,6 +249,8 @@ async function handleCrossChainTransfer(rhinestoneAccount) {
       },
     ],
   })
+  const signed = await rhinestoneAccount.signTransaction(prepared)
+  const transaction = await rhinestoneAccount.submitTransaction(signed)
 }
 ```
 

@@ -5,7 +5,7 @@ description: "Use a plain EOA with the Rhinestone SDK to send intents without de
 
 If your users already have an EOA, you can connect it directly to the Rhinestone SDK and start sending intents straight away. No deployment, no migration, no smart account setup required.
 
-The SDK handles the orchestration layer for you — you write the same `sendTransaction` call as any other account type, and the Rhinestone Orchestrator takes care of routing, bridging, and settlement. The result is significantly better DX than calling the raw API yourself.
+The SDK handles the orchestration layer for you — the transaction API is identical to any other account type, and the Rhinestone Orchestrator takes care of routing, bridging, and settlement. The result is significantly better DX than calling the raw API yourself.
 
 This is the right choice when:
 - Your users have existing EOAs with assets they want to keep at their current address
@@ -45,7 +45,7 @@ Once the account is created, the transaction API is identical to any other accou
 ```ts
 const recipientAddress = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 
-const result = await account.sendTransaction({
+const prepared = await account.prepareTransaction({
   sourceChains: [arbitrum],
   targetChain: base,
   calls: [
@@ -65,6 +65,8 @@ const result = await account.sendTransaction({
     },
   ],
 })
+const signed = await account.signTransaction(prepared)
+const result = await account.submitTransaction(signed)
 
 const status = await account.waitForExecution(result)
 ```

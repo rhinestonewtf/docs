@@ -5,20 +5,20 @@ description: "Key addresses, endpoints, chain IDs, and common error codes for qu
 
 ## API endpoints
 
-| Environment | Base URL |
+| Service | Base URL |
 |---|---|
-| Mainnet | `https://orchestrator.rhinestone.wtf` |
-| Staging | `https://orchestrator-staging.rhinestone.wtf` |
+| Orchestrator | `https://v1.orchestrator.rhinestone.dev` |
+| Deposit Service | `https://v1.orchestrator.rhinestone.dev/deposit-processor` |
 
-Authentication: pass your API key in the `x-api-key` header. [Request a key](https://tally.so/r/wg22x4).
+Authentication: pass your API key in the `x-api-key` header. [Request a key](https://tally.so/r/wg22x4). Pin a version with `x-api-version: 2026-04.blanc` — see [API versioning](/intents/guides/api-versioning).
 
 ## Key endpoints
 
 | Endpoint | Method | Purpose |
 |---|---|---|
-| `/intents/route` | POST | Get a quote for an intent |
-| `/intents/submit` | POST | Submit a signed intent |
-| `/intents/status/{id}` | GET | Track intent status |
+| `/quotes` | POST | Get a quote for an intent |
+| `/intents` | POST | Submit a signed intent |
+| `/intents/{id}` | GET | Track intent status |
 | `/accounts/{address}/portfolio` | GET | Fetch user token balances across chains |
 
 ## Supported chains
@@ -44,20 +44,23 @@ The default transaction path is **Warp** (native relay). ERC-4337 userops are op
 
 ## Common error codes
 
-| Code | Meaning | Fix |
-|---|---|---|
-| `INSUFFICIENT_BALANCE` | User lacks sufficient funds on source chain | Check balance before quoting |
-| `Bundle simulation failed` | Onchain simulation of the intent execution failed | Make sure the signature and the execution calldata are valid |
-| `Authorization header with Bearer token is required` | Missing or malformed auth header | Pass your API key in the `Authorization: Bearer <key>` header |
+All non-2xx responses share the envelope `{ code, message, traceId, details? }`. Switch on `code`.
 
-See [Error handling](/intents/guides/error-handling) for the full list.
+| Code | HTTP | Meaning | Fix |
+|---|---|---|---|
+| `VALIDATION_ERROR` | 400 | Request didn't validate (bad chain id, missing version header, unsupported token, etc.) | Inspect `details[]` and correct the payload |
+| `UNAUTHORIZED` | 401 | API key missing or invalid | Pass your key in `x-api-key` |
+| `NOT_FOUND` | 404 | Quote TTL elapsed before submit | Re-quote and re-sign — don't retry the submit |
+| `INSUFFICIENT_LIQUIDITY` | 422 | Account can't cover the intent given gas and fees | Check balance; see `details.availableIntents` for fallbacks |
+| `TOO_MANY_REQUESTS` | 429 | Rate limited | Honour `Retry-After` |
+
+See [Error handling](/intents/guides/error-handling) and the [versioning guide](/intents/guides/api-versioning) for the full list.
 
 ## Intent status values
 
 | Status | Meaning |
 |---|---|
 | `PENDING` | Submitted and in progress |
-| `PRECONFIRMED` | Accepted by a solver, waiting for onchain execution |
 | `CLAIMED` | Source funds claimed by the solver, destination execution pending |
 | `FILLED` | Executed on the destination chain, source funds not yet claimed |
 | `COMPLETED` | Fully executed and settled onchain |

@@ -3,27 +3,32 @@ title: "Usage limit"
 sidebarTitle: "Usage limit"
 ---
 
-You can limit the number of times the session can be used.
+Limit how many times a session function can be called.
 
-To enable the policy:
-
-```ts {6-15}
-const session: Session = {
+```ts {14-17}
+const session = toSession({
+  chain: base,
   owners: {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-  actions: [
+  permissions: [
     {
-      policies: [
-        {
-          type: 'usage-limit',
-          limit: 10n,
+      abi: erc20Abi,
+      address: usdcAddress,
+      functions: {
+        transfer: {
+          policies: [
+            {
+              type: 'usage-limit',
+              limit: 10n,
+            },
+          ],
         },
-      ],
+      },
     },
   ],
-}
+})
 ```
 
-This will create a session that can only be used 10 times.
+This caps the function at 10 calls.

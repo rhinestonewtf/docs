@@ -23,7 +23,7 @@ Key example use cases include:
 
 ## How it works
 
-[Smart Sessions](https://github.com/erc7579/smartsessions) is built around three concepts: **owners** (who can sign), **actions** (what they can do), and **policies** (under what conditions).
+[Smart Sessions](https://github.com/erc7579/smartsessions) is built around three concepts: **owners** (who can sign), **permissions** (what they can do), and **policies** (under what conditions).
 
 ## Owners
 
@@ -35,17 +35,17 @@ Smart Sessions support a wide range of signing mechanisms out of the box:
 
 You can also use custom validators to validate sessions, as long as they are [ERC-7780](https://eips.ethereum.org/EIPS/eip-7780) compatible.
 
-## Actions
+## Permissions
 
-Actions define what transactions (calls) you can make within a session. An action is defined by the _target address_ and the _function selector_.
+Permissions define what calls a session is allowed to make. A permission is defined by an _ABI_ and a target _address_, and lists the _functions_ on that contract the session can call. The SDK derives selectors and parameter offsets from the ABI and checks parameter value types against ABI input types.
 
-When defining multiple actions within a session, a transaction that matches **any** specified action is considered valid. If no actions are specified, **any** transaction will pass.
+When defining multiple permissions within a session, a transaction that matches **any** specified permission is considered valid. If no permissions are specified, **any** transaction will pass.
 
-<Info>When using smart contracts directly, you need to explicitly provide a list of valid actions.</Info>
+<Info>When using smart contracts directly, you need to explicitly provide a list of valid permissions.</Info>
 
 ## Policies
 
-Policies let you restrict the session to hit specific conditions. You can define policies at the _session_ (affects the entire session) or _action_ (affects a single action within a session) level.
+Policies let you restrict the session to hit specific conditions. You can define policies at the _session_ (affects the entire session) or _function_ (affects a single function within a permission) level.
 
 Supported policies include:
 
@@ -56,9 +56,9 @@ Supported policies include:
 - [Usage limit](./policies/usage-limit): allows a limited number of transactions
 - Value limit: allows a limited ETH value transferred
 
-When defining multiple policies within an action, a transaction that passes **every** specified policy is considered valid. If no policies are specified, **any** transaction will pass (i.e., the sudo policy is applied).
+When defining multiple policies within a function, a transaction that passes **every** specified policy is considered valid. If no policies are specified, **any** transaction will pass (i.e., the sudo policy is applied).
 
-<Info>Policies work like a logical AND. If an action has two policies, the transaction must pass both policies to be valid.</Info>
+<Info>Policies work like a logical AND. If a function has two policies, the transaction must pass both policies to be valid.</Info>
 
 ## Usage
 
@@ -85,7 +85,7 @@ You can also install it when the account is already deployed:
 ```ts
 import { experimental_enable } from '@rhinestone/sdk/actions/smart-sessions'
 
-const transactionData = await rhinestoneAccount.sendTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [experimental_enable()],
 })
@@ -96,7 +96,7 @@ To uninstall the validator:
 ```ts
 import { experimental_disable } from '@rhinestone/sdk/actions/smart-sessions'
 
-const transactionData = await rhinestoneAccount.sendTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [experimental_disable()],
 })
@@ -104,71 +104,65 @@ const transactionData = await rhinestoneAccount.sendTransaction({
 
 ### Creating Sessions
 
-To create an account with a session key:
+To create a session, use `toSession`:
 
 ```ts
-const session: Session = {
+import { toSession } from '@rhinestone/sdk/smart-sessions'
+
+const session = toSession({
+  chain: base,
   owners: {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-}
+})
 ```
 
-You can also limit the session to specific allowed actions:
+You can also limit the session to specific allowed permissions:
 
-```ts {6-16}
-const session: Session = {
+```ts {7-13}
+const session = toSession({
+  chain: base,
   owners: {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-  actions: [
+  permissions: [
     {
-      target: usdcAddress,
-      selector: toFunctionSelector(
-        getAbiItem({
-          abi: erc20Abi,
-          name: 'transfer',
-        }),
-      ),
+      abi: erc20Abi,
+      address: usdcAddress,
+      functions: { transfer: {} },
     },
   ],
-}
+})
 ```
 
-Finally, you can specify action-level policies:
+Finally, you can constrain function parameters. The SDK derives the selector and parameter offsets from the ABI, so you reference parameters by name:
 
-```ts {15-26}
-const session: Session = {
+```ts {12-16}
+const session = toSession({
+  chain: base,
   owners: {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-  actions: [
+  permissions: [
     {
-      target: usdcAddress,
-      selector: toFunctionSelector(
-        getAbiItem({
-          abi: erc20Abi,
-          name: 'transfer',
-        }),
-      ),
-      policies: [
-        {
-          type: 'universal-action',
-          rules: [
-            {
+      abi: erc20Abi,
+      address: usdcAddress,
+      functions: {
+        transfer: {
+          params: {
+            recipient: {
               condition: 'equal',
-              calldataOffset: 0n,
-              referenceValue: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+              value: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
             },
-          ],
+          },
         },
-      ],
+      },
     },
   ],
-}
+})
 ```
 
 ### Installing sessions
@@ -185,7 +179,7 @@ const enableSignature =
   await rhinestoneAccount.experimental_signEnableSession(sessionDetails)
 const sessionIndex = 0
 
-const transactionResult = await rhinestoneAccount.sendTransaction({
+const transaction = await rhinestoneAccount.prepareTransaction({
   chain,
   calls: [
     experimental_enableSession(
@@ -213,7 +207,7 @@ const isEnabled = await rhinestoneAccount.experimental_isSessionEnabled(session)
 To authorize a transaction with a session key you've enabled before:
 
 ```ts {13-16}
-const transactionResult = await rhinestoneAccount.sendTransaction({
+const prepared = await rhinestoneAccount.prepareTransaction({
   chain,
   calls: [
     {
@@ -230,6 +224,8 @@ const transactionResult = await rhinestoneAccount.sendTransaction({
     session,
   },
 })
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const transactionResult = await rhinestoneAccount.submitTransaction(signed)
 ```
 
 This will prompt the signature request from the session owner(s) and submit the transaction on their behalf.
@@ -245,6 +241,6 @@ Smart Sessions is a powerful tool that unlocks a bunch of new opportunities and 
 * Guard your smart session with granular policies (e.g., restrict the amount of ETH that can be transacted through the session)  
 * If possible, timebox your session (e.g., make it valid for only 1 week)
 
-<Warning>By default, the SDK creates a session that allows any transaction. Make sure you restrict it with relevant actions and policies.</Warning>
+<Warning>By default, the SDK creates a session that allows any transaction. Make sure you restrict it with relevant permissions and policies.</Warning>
 
 [Reach out to us](http://t.me/kurt_larsen) if you need any help!

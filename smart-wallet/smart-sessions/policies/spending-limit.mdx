@@ -3,36 +3,41 @@ title: "Spending limit"
 sidebarTitle: "Spending limit"
 ---
 
-You can limit the amount of ERC20 tokens transferable with the policy.
+You can limit the amount of ERC20 tokens transferable through a session function. Attach the policy at the function level — it caps the cumulative amount across all uses of that function.
 
-To enable the policy:
-
-```ts {6-24}
-const session: Session = {
+```ts {15-23}
+const session = toSession({
+  chain: base,
   owners: {
     type: 'ecdsa',
     accounts: [sessionOwnerAccount],
   },
-  actions: [
+  permissions: [
     {
-      policies: [
-        {
-          type: 'spending-limits',
-          limits: [
+      abi: erc20Abi,
+      address: usdcAddress,
+      functions: {
+        transfer: {
+          policies: [
             {
-              token: usdcAddress,
-              amount: parseUnits('10', 6),
-            },
-            {
-              token: wethAddress,
-              amount: parseUnits('0.1', 18),
+              type: 'spending-limits',
+              limits: [
+                {
+                  token: usdcAddress,
+                  amount: parseUnits('10', 6),
+                },
+                {
+                  token: wethAddress,
+                  amount: parseUnits('0.1', 18),
+                },
+              ],
             },
           ],
         },
-      ],
+      },
     },
   ],
-}
+})
 ```
 
-This will cap all transfers within the session to 10 USDC and 0.1 WETH in total.
+This caps total transfers within the session to 10 USDC and 0.1 WETH combined.

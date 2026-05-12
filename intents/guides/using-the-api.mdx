@@ -4,34 +4,51 @@ sidebarTitle: "Using the API"
 description: "How the Rhinestone Orchestrator API works and what to keep in mind when integrating."
 ---
 
-The Rhinestone Orchestrator API follows a quote-sign-submit flow. Each step is covered in the API guides section, but there are a few key rules that apply across the entire integration.
+The Rhinestone Orchestrator API follows a quote-sign-submit flow. Each step is covered in the API guides section, but there are a few rules that apply across the entire integration.
 
-## Submit the full path response
+## Pin a version
 
-When you call `/intents/route` you receive a full `intentOp` object. This object is HMAC signed by the Orchestrator. When you submit the signed intent to `/intent-operations`, you must include the **complete, unmodified** `intentOp` alongside your signatures.
-
-Any modification or omission of fields from the original response will produce an invalid HMAC error and the submission will be rejected.
+Send `x-api-version: 2026-04.blanc` on every request:
 
 ```ts
-// Correct: spread the full intentOp, then add signatures
-const body = {
-  signedIntentOp: {
-    ...freshIntentOp,         // full unmodified response
-    originSignatures,         // your signatures
-    destinationSignature,
-  },
+const headers = {
+  "Content-Type": "application/json",
+  "x-api-key": apiKey,
+  "x-api-version": "2026-04.blanc",
 };
 ```
 
-Do not cherry-pick fields from the response or reconstruct the object manually.
+Requests without the header fall back to the deprecated `2026-01.alps` shape. See [API versioning](./api-versioning) for the full versioning policy.
 
-## Refresh before signing
+## Server-stored intents
 
-Quotes expire. Always fetch a fresh quote immediately before asking the user to sign. Submitting a signed intent built from a stale quote will result in an expiry error.
+Quote responses are stored server-side. `POST /quotes` returns an `intentId` and the typed data needed for signing — you don't round-trip the full intent through the client. Submit by id:
+
+```ts
+const { routes } = await post("/quotes", body);
+const { intentId, signData } = routes[0];
+
+const signatures = {
+  origin: await Promise.all(signData.origin.map(signTypedData)),
+  destination: await signTypedData(signData.destination),
+};
+
+await post("/intents", { intentId, signatures });
+```
+
+Pick `routes[0]` unless you have your own ranking — the array is server-ranked by a cost/speed tradeoff.
+
+## Quote expiry
+
+Quotes have a short server-side TTL. If a quote expires (or the quote store restarts) before you submit, `POST /intents` returns a 404. Re-quote and re-sign — don't retry the submit.
 
 ## One signature per origin chain
 
-The `intentOp.elements` array contains one element per source chain involved. Each element requires a separate signature. The index of each signature must match the index of the element it signs.
+`signData.origin` is one entry per source chain. Sign each one in order. If the recipient differs from the sender and the destination has executions, sign `signData.destination` too — this slot is used for ownership of any received tokens.
+
+## Forward typed data verbatim
+
+Don't reconstruct EIP-712 types client-side. Forward the server's typed data directly to `wallet.signTypedData()`. Hand-rolled type libraries break on additive schema changes.
 
 ## Next steps
 

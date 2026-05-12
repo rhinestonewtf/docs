@@ -47,7 +47,8 @@ npm install @reown/appkit @reown/appkit-adapter-wagmi wagmi viem
 import { createAppKit } from '@reown/appkit'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 import { mainnet, arbitrum, base } from '@reown/appkit/networks'
-import { RhinestoneSDK, walletClientToAccount } from '@rhinestone/sdk'
+import { RhinestoneSDK } from '@rhinestone/sdk'
+import { walletClientToAccount } from '@rhinestone/sdk/utils'
 import { useAccount, useWalletClient } from 'wagmi'
 
 // 1. Get projectId from https://dashboard.reown.com
@@ -120,7 +121,7 @@ export function WalletConnector() {
 
 ```tsx
 async function sendCrossChainTransaction(rhinestoneAccount) {
-  const transaction = await rhinestoneAccount.sendTransaction({
+  const prepared = await rhinestoneAccount.prepareTransaction({
     sourceChains: [arbitrumSepolia],
     targetChain: baseSepolia,
     calls: [
@@ -140,7 +141,9 @@ async function sendCrossChainTransaction(rhinestoneAccount) {
       },
     ],
   })
-  
+  const signed = await rhinestoneAccount.signTransaction(prepared)
+  const transaction = await rhinestoneAccount.submitTransaction(signed)
+
   console.log('Transaction submitted:', transaction.id)
 }
 ```

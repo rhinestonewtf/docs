@@ -10,7 +10,8 @@ A Rhinestone smart account is a smart contract wallet. It doesn't hold keys. Ins
 Pass the owner signer when calling `createAccount`. Here's an example using an external wallet (MetaMask) via Viem:
 
 ```ts
-import { RhinestoneSDK, walletClientToAccount } from '@rhinestone/sdk'
+import { RhinestoneSDK } from '@rhinestone/sdk'
+import { walletClientToAccount } from '@rhinestone/sdk/utils'
 import { createWalletClient, custom } from 'viem'
 import { sepolia } from 'viem/chains'
 

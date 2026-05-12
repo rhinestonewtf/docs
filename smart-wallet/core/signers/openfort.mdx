@@ -98,7 +98,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useUser, useWallets, useOpenfort } from '@openfort/react'
 import { createWalletClient, custom } from 'viem'
 import { sepolia } from 'viem/chains'
-import { RhinestoneSDK, walletClientToAccount } from '@rhinestone/sdk'
+import { RhinestoneSDK } from '@rhinestone/sdk'
+import { walletClientToAccount } from '@rhinestone/sdk/utils'
 
 interface OpenfortWalletState {
   rhinestoneAccount: any | null
@@ -300,7 +301,7 @@ function CrossChainTransfer({ rhinestoneAccount }) {
     setTxResult(null)
 
     try {
-      const transaction = await rhinestoneAccount.sendTransaction({
+      const prepared = await rhinestoneAccount.prepareTransaction({
         sourceChains: [baseSepolia],
         targetChain: arbitrumSepolia,
         calls: [
@@ -320,6 +321,8 @@ function CrossChainTransfer({ rhinestoneAccount }) {
           },
         ],
       })
+      const signed = await rhinestoneAccount.signTransaction(prepared)
+      const transaction = await rhinestoneAccount.submitTransaction(signed)
 
       // Wait for transaction execution
       const result = await rhinestoneAccount.waitForExecution(transaction)

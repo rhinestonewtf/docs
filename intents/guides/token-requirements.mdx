@@ -19,7 +19,7 @@ If `tokenRequirements` is present in the quote response, the user must complete 
 
 ```json
 {
-  "8453": {
+  "eip155:8453": {
     "0x0000000000000000000000000000000000000000": {
       "type": "wrap",
       "amount": "102656447694688542"
@@ -80,18 +80,19 @@ await writeContract(wagmiConfig, {
   Approvals are always to [Permit2](https://github.com/Uniswap/permit2) — one of the most widely deployed and audited contracts in the ecosystem. Setting max approval here does not grant Rhinestone any direct access to your funds.
 </Info>
 
-If you prefer exact approvals, inspect the `tokensSpent` field in the quote response. This shows the exact amount that will be used, so approving that amount will be sufficient:
+If you prefer exact approvals, inspect `cost.input` on the route. It lists each token spent with its exact amount:
 
 ```ts
-// Use tokensSpent amount instead of maxUint256 for exact approvals
-const chainSpend = intentCost.tokensSpent[chainId];
-const tokenAmount = chainSpend[tokenAddress]?.unlocked;
+// Use cost.input amount instead of maxUint256 for exact approvals
+const entry = route.cost.input.find(
+  (i) => i.chainId === chainId && i.tokenAddress === tokenAddress,
+);
 
 await writeContract(wagmiConfig, {
   address: tokenAddress,
   abi: erc20Abi,
   functionName: "approve",
-  args: [requirement.spender, BigInt(tokenAmount)],
+  args: [requirement.spender, BigInt(entry.amount)],
 });
 ```
 

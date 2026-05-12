@@ -14,7 +14,7 @@ You can also influence the routing by specifying input tokens and chains via `ac
 ```json
 {
   "accountAccessList": {
-    "chainIds": [10, 8453],
+    "chainIds": ["eip155:10", "eip155:8453"],
     "tokens": ["USDC"]
   }
 }
@@ -24,45 +24,45 @@ Learn more about choosing the inputs in the ["Getting a Quote" guide](../guides/
 
 ## Response
 
-In the case of multi-input bridging, you will get a route with multiple elements (one for each input chain) and/or multiple spent tokens.
+In the case of multi-input bridging, you will get a route whose `cost.input` lists multiple entries (one per source chain and/or token), and `signData.origin[]` carries one entry per source chain.
 
 ```json Multi-Input Intent
 {
-  "intentOp": {
-    // …
-    "elements": [
-      {
-        "chainId": "8453",
-        // …
+  "routes": [
+    {
+      "intentId": "...",
+      "cost": {
+        "input": [
+          {
+            "chainId": "eip155:8453",
+            "tokenAddress": "0x4200000000000000000000000000000000000006",
+            "symbol": "WETH",
+            "decimals": 18,
+            "price": { "usd": 2412.37 },
+            "amount": "22291303013436002"
+          },
+          {
+            "chainId": "eip155:10",
+            "tokenAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+            "symbol": "USDC",
+            "decimals": 6,
+            "price": { "usd": 0.99 },
+            "amount": "8370380"
+          }
+        ]
       },
-      {
-        "chainId": "10",
-        // …
-      }
-    ],
-  },
-  "intentCost": {
-    // …
-    "tokensSpent": {
-      "8453": {
-        "0x4200000000000000000000000000000000000006": {
-          "locked": "0",
-          "unlocked": "22291303013436002",
-          "version": 0
-        }
-      },
-      "10": {
-        "0x0b2c639c533813f4aa9d7837caf62653d097ff85": {
-          "locked": "0",
-          "unlocked": "8370380",
-          "version": 0
-        }
+      "signData": {
+        "origin": [
+          { /* typed data for eip155:8453 */ },
+          { /* typed data for eip155:10 */ }
+        ],
+        "destination": { /* typed data for the destination */ }
       }
     }
-  }
+  ]
 }
 ```
 
 If the user doesn't have outstanding Permit2 approvals, they will need to approve multiple input tokens.
 
-The user will also need to sign each element separately, i.e., one signature per input chain.
+The user will also need to sign each entry in `signData.origin[]` separately — one signature per input chain.
