@@ -37,6 +37,8 @@ await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
 
 When a `webhookSecret` is set, every webhook request includes an `X-Webhook-Signature` header you can verify. See [status tracking](/deposits/api/status-tracking#webhooks) for event types, payload format, and verification examples.
 
+Once your endpoint is live, fire a single fixture event with `POST /webhooks/test` to confirm signature handling and parsing before real deposits arrive. The envelope carries `"test": true` so receivers can filter it.
+
 ## Sponsor fees
 
 Cover gas, bridging, and swap fees on behalf of your users so they receive the full deposit amount. Sponsorship is configured per source chain using [CAIP-2](https://chainagnostic.org/CAIPs/caip-2) identifiers. Chains without explicit config default to no sponsorship.

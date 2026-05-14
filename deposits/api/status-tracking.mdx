@@ -108,6 +108,7 @@ Every webhook request body follows the same envelope structure:
 {
   "version": "1.0",
   "type": "<event-type>",
+  "eventId": "12345",
   "time": "2025-01-15T12:00:00.000Z",
   "data": { ... }
 }
@@ -117,7 +118,9 @@ Every webhook request body follows the same envelope structure:
 |---|---|---|
 | `version` | `string` | Protocol version. Currently `"1.0"` |
 | `type` | `string` | Event type identifier |
+| `eventId` | `string` | Stable identifier for this delivery. Use it as the canonical dedupe key |
 | `time` | `string` | ISO 8601 timestamp of when the event was sent |
+| `test` | `boolean \| undefined` | Present and `true` only for events dispatched via the test endpoint |
 | `data` | `object` | Event-specific payload (see below) |
 
 ### Event types
@@ -128,9 +131,11 @@ Every webhook request body follows the same envelope structure:
 | [`bridge-started`](#bridge-started) | Bridging intent created and submitted to the Orchestrator |
 | [`bridge-progress`](#bridge-progress) | Bridge transaction progressed to a new stage (LayerZero OFT routes only) |
 | [`bridge-complete`](#bridge-complete) | Tokens arrived on the target chain |
+| [`bridge-delayed`](#bridge-delayed) | Bridge provider did not fill within the expected window; a refund is expected |
 | [`bridge-failed`](#bridge-failed) | Bridging failed |
 | [`post-bridge-swap-complete`](#post-bridge-swap-complete) | Post-bridge token swap completed |
 | [`post-bridge-swap-failed`](#post-bridge-swap-failed) | Post-bridge token swap failed |
+| [`deposit-refunded`](#deposit-refunded) | Deposit funds returned to a recipient on the source chain |
 
 #### `deposit-received`
 
@@ -149,6 +154,7 @@ Sent when an incoming token transfer is detected on a registered account.
 {
   "version": "1.0",
   "type": "deposit-received",
+  "eventId": "12345",
   "time": "2025-01-15T12:00:00.000Z",
   "data": {
     "chain": "eip155:8453",
@@ -179,7 +185,8 @@ Sent when a bridging intent is created and submitted to the Orchestrator.
 | `deposit.asset` | `string` | Deposit asset address |
 | `deposit.amount` | `string` | Deposit amount |
 | `deposit.sender` | `string` | Sender address |
-| `settlementLayer` | `string \| undefined` | Settlement layer used (e.g. `"layerzero"`) |
+| `settlementLayer` | `string` | Settlement layer used (e.g. `"layerzero"`) |
+| `estimatedFillTime.seconds` | `number \| undefined` | Estimated time to fill, in seconds, when the route provides one |
 
 #### `bridge-progress`
 
@@ -228,6 +235,7 @@ Sent when tokens have arrived on the target chain.
 {
   "version": "1.0",
   "type": "bridge-complete",
+  "eventId": "12346",
   "time": "2025-01-15T12:01:30.000Z",
   "data": {
     "deposit": {
@@ -254,6 +262,21 @@ Sent when tokens have arrived on the target chain.
 }
 ```
 
+#### `bridge-delayed`
+
+Sent when the bridge provider has not filled the intent within the expected window. A refund is expected on the source chain; the subsequent [`deposit-refunded`](#deposit-refunded) event confirms the funds returned.
+
+| Field | Type | Description |
+|---|---|---|
+| `reason` | `string` | Human-readable explanation of the delay |
+| `estimatedDelayTime.seconds` | `number \| undefined` | Additional time the refund is expected to take, when available |
+| `account` | `string` | Account address |
+| `deposit.transactionHash` | `string` | Deposit transaction hash |
+| `deposit.chain` | `string` | Deposit chain (CAIP-2) |
+| `deposit.token` | `string` | Deposit token address |
+| `deposit.amount` | `string` | Deposit amount |
+| `deposit.sender` | `string` | Sender address |
+
 #### `bridge-failed`
 
 Sent when a bridging operation fails. See [error codes](/deposits/api/deposit-processing#error-codes) for the full list and retry behavior.
@@ -268,7 +291,6 @@ Sent when a bridging operation fails. See [error codes](/deposits/api/deposit-pr
 | `deposit.token` | `string` | Deposit token address |
 | `deposit.amount` | `string` | Deposit amount |
 | `deposit.sender` | `string` | Sender address |
-| `intentId` | `string \| undefined` | Intent ID, when available |
 
 #### `post-bridge-swap-complete`
 
@@ -314,6 +336,24 @@ Sent when a post-bridge token swap fails.
 | `swap.recipient` | `string` | Intended recipient address |
 | `swap.bridgeTransactionHash` | `string \| undefined` | Bridge transaction hash |
 
+#### `deposit-refunded`
+
+Sent when funds from a deposit are returned to a recipient on the source chain. Typically follows a [`bridge-delayed`](#bridge-delayed) event.
+
+| Field | Type | Description |
+|---|---|---|
+| `account` | `string` | Account address |
+| `deposit.transactionHash` | `string` | Original deposit transaction hash |
+| `deposit.chain` | `string` | Deposit chain (CAIP-2) |
+| `deposit.asset` | `string` | Deposit asset address |
+| `deposit.amount` | `string` | Deposit amount |
+| `deposit.sender` | `string` | Sender address |
+| `refund.transactionHash` | `string` | Refund transaction hash |
+| `refund.chain` | `string` | Refund chain (CAIP-2) |
+| `refund.asset` | `string` | Refund asset address |
+| `refund.amount` | `string` | Refund amount |
+| `refund.recipient` | `string` | Address that received the refund |
+
 ### Signature verification
 
 If you provided a `webhookSecret` during [setup](/deposits/api/initial-setup#configure-a-webhook), every webhook request includes an `X-Webhook-Signature` header:
@@ -355,13 +395,13 @@ Always verify against the **raw request body** string, not a re-serialized versi
 
 ### Delivery behavior
 
-- **Retries** — failed deliveries are retried automatically.
+- **Retries** — failed deliveries are retried multiple times before the event is marked `failed`. Events that exhaust their retries can still be replayed on demand via the `POST /webhooks/events/{id}/resend` endpoint, which reuses the original `eventId`.
 - **Ordering** — events for a single deposit are sent in lifecycle order (`deposit-received` → `bridge-started` → `bridge-complete`), but there is no global ordering guarantee across deposits.
 - **URL validation** — the webhook URL must use HTTPS and must not target internal or private network addresses.
-- **Idempotency** — use `data.deposit.transactionHash` combined with `type` to deduplicate events on your end.
+- **Idempotency** — use `eventId` from the envelope as the canonical dedupe key.
 
 ## Conventions
 
-- All addresses and token addresses are **lowercase**.
+- EVM addresses and token addresses are **lowercase**. Non-EVM addresses (Solana, Tron) preserve their original case.
 - All amounts are **strings** (raw token units, not human-readable).
 - Chains use [CAIP-2](https://chainagnostic.org/CAIPs/caip-2) identifiers (e.g. `"eip155:8453"` for Base).
