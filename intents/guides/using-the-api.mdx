@@ -12,9 +12,9 @@ Send `x-api-version: 2026-04.blanc` on every request:
 
 ```ts
 const headers = {
-  "Content-Type": "application/json",
-  "x-api-key": apiKey,
-  "x-api-version": "2026-04.blanc",
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    "x-api-version": "2026-04.blanc",
 };
 ```
 
@@ -29,8 +29,8 @@ const { routes } = await post("/quotes", body);
 const { intentId, signData } = routes[0];
 
 const signatures = {
-  origin: await Promise.all(signData.origin.map(signTypedData)),
-  destination: await signTypedData(signData.destination),
+    origin: await Promise.all(signData.origin.map(signTypedData)),
+    destination: await signTypedData(signData.destination),
 };
 
 await post("/intents", { intentId, signatures });
@@ -54,23 +54,32 @@ Don't reconstruct EIP-712 types client-side. Forward the server's typed data dir
 
 Each API key can be scoped to bound its blast radius. Three scopes apply: `allowMainnet`, `intents`, and `deposits`. All default to unrestricted: the keys are "allow all" by default. Edit scopes from the [Dashboard](https://dashboard.rhinestone.dev) on the key detail screen (`OWNER` or `ADMIN` only). Denials return HTTP 403 with the failed scope and the required/actual levels in the error body.
 
-| Scope          | Values                       | What it allows                                                                                            |
-| -------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `allowMainnet` | `true` / `false`             | When `false`, restricts the key to testnet chains.                                                        |
-| `intents`      | `none` / `read` / `write`    | Gates the intent flow. `none` blocks it; `read` permits non-mutating calls (quoting, status); `write` adds intent submission. |
-| `deposits`     | `none` / `read` / `write`    | Gates the deposit lifecycle. `none` blocks it; `read` permits non-mutating calls; `write` adds account setup and state mutations. |
+| Scope          | Values                    | What it allows                                                                                                                    |
+| -------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `allowMainnet` | `true` / `false`          | When `false`, restricts the key to testnet chains.                                                                                |
+| `intents`      | `none` / `read` / `write` | Gates the intent flow. `none` blocks it; `read` permits non-mutating calls (quoting, status); `write` adds intent submission.     |
+| `deposits`     | `none` / `read` / `write` | Gates the deposit lifecycle. `none` blocks it; `read` permits non-mutating calls; `write` adds account setup and state mutations. |
 
 Account introspection endpoints (portfolio, liquidity) are not gated by `intents` or `deposits` — they stay accessible at any level, which is useful for monitoring keys.
 
-<Info>Scopes only gate the customer API. On-chain deposits into already-registered accounts continue to flow through inbound provider webhooks regardless of scope — neither `deposits: 'none'` nor `intents: 'none'` stops webhook ingestion, though `intents: 'none'` (like key revocation) will cause the downstream bridge submission to fail and the deposit to end up in an errored state.</Info>
+<Info>
+    Scopes only gate the customer API. On-chain deposits into already-registered
+    accounts continue to flow through inbound provider webhooks regardless of
+    scope. Set `intents: 'none'` (or revoke the key) to block intent submission
+    for existing users.
+</Info>
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Setting up approvals" icon="list-check" href="./token-requirements">
-    Handle token approvals and ETH wrapping before signing.
-  </Card>
-  <Card title="Signing the intent" icon="signature" href="./signing">
-    Sign each element of the intent with EIP-712.
-  </Card>
+    <Card
+        title="Setting up approvals"
+        icon="list-check"
+        href="./token-requirements"
+    >
+        Handle token approvals and ETH wrapping before signing.
+    </Card>
+    <Card title="Signing the intent" icon="signature" href="./signing">
+        Sign each element of the intent with EIP-712.
+    </Card>
 </CardGroup>
