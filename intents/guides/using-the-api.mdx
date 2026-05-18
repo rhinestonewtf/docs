@@ -50,6 +50,20 @@ Quotes have a short server-side TTL. If a quote expires (or the quote store rest
 
 Don't reconstruct EIP-712 types client-side. Forward the server's typed data directly to `wallet.signTypedData()`. Hand-rolled type libraries break on additive schema changes.
 
+## API key scopes
+
+Each API key can be scoped to bound its blast radius. Three scopes apply: `allowMainnet`, `intents`, and `deposits`. All default to unrestricted: the keys are "allow all" by default. Edit scopes from the [Dashboard](https://dashboard.rhinestone.dev) on the key detail screen (`OWNER` or `ADMIN` only). Denials return HTTP 403 with the failed scope and the required/actual levels in the error body.
+
+| Scope          | Values                       | What it allows                                                                                            |
+| -------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `allowMainnet` | `true` / `false`             | When `false`, restricts the key to testnet chains.                                                        |
+| `intents`      | `none` / `read` / `write`    | Gates the intent flow. `none` blocks it; `read` permits non-mutating calls (quoting, status); `write` adds intent submission. |
+| `deposits`     | `none` / `read` / `write`    | Gates the deposit lifecycle. `none` blocks it; `read` permits non-mutating calls; `write` adds account setup and state mutations. |
+
+Account introspection endpoints (portfolio, liquidity) are not gated by `intents` or `deposits` — they stay accessible at any level, which is useful for monitoring keys.
+
+<Info>Scopes only gate the customer API. On-chain deposits into already-registered accounts continue to flow through inbound provider webhooks regardless of scope — neither `deposits: 'none'` nor `intents: 'none'` stops webhook ingestion, though `intents: 'none'` (like key revocation) will cause the downstream bridge submission to fail and the deposit to end up in an errored state.</Info>
+
 ## Next steps
 
 <CardGroup cols={2}>
