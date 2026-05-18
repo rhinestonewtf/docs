@@ -12,9 +12,9 @@ Send `x-api-version: 2026-04.blanc` on every request:
 
 ```ts
 const headers = {
-    "Content-Type": "application/json",
-    "x-api-key": apiKey,
-    "x-api-version": "2026-04.blanc",
+  "Content-Type": "application/json",
+  "x-api-key": apiKey,
+  "x-api-version": "2026-04.blanc",
 };
 ```
 
@@ -29,8 +29,8 @@ const { routes } = await post("/quotes", body);
 const { intentId, signData } = routes[0];
 
 const signatures = {
-    origin: await Promise.all(signData.origin.map(signTypedData)),
-    destination: await signTypedData(signData.destination),
+  origin: await Promise.all(signData.origin.map(signTypedData)),
+  destination: await signTypedData(signData.destination),
 };
 
 await post("/intents", { intentId, signatures });
@@ -62,24 +62,15 @@ Each API key can be scoped to bound its blast radius. Three scopes apply: `allow
 
 Account introspection endpoints (portfolio, liquidity) are not gated by `intents` or `deposits` — they stay accessible at any level, which is useful for monitoring keys.
 
-<Info>
-    Scopes only gate the customer API. On-chain deposits into already-registered
-    accounts continue to flow through inbound provider webhooks regardless of
-    scope. Set `intents: 'none'` (or revoke the key) to block intent submission
-    for existing users.
-</Info>
+<Info>Scopes only gate the customer API. On-chain deposits into already-registered accounts continue to flow through inbound provider webhooks regardless of scope. Set `intents: 'none'` (or revoke the key) to block intent submission for existing users.</Info>
 
 ## Next steps
 
 <CardGroup cols={2}>
-    <Card
-        title="Setting up approvals"
-        icon="list-check"
-        href="./token-requirements"
-    >
-        Handle token approvals and ETH wrapping before signing.
-    </Card>
-    <Card title="Signing the intent" icon="signature" href="./signing">
-        Sign each element of the intent with EIP-712.
-    </Card>
+  <Card title="Setting up approvals" icon="list-check" href="./token-requirements">
+    Handle token approvals and ETH wrapping before signing.
+  </Card>
+  <Card title="Signing the intent" icon="signature" href="./signing">
+    Sign each element of the intent with EIP-712.
+  </Card>
 </CardGroup>
