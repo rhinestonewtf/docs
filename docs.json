@@ -184,56 +184,134 @@
       },
       {
         "tab": "Intents",
-        "pages": [
-          "intents/overview",
-          "intents/quickstart",
+        "versions": [
           {
-            "group": "Tutorial",
+            "version": "2026-04.blanc",
+            "tag": "Latest",
+            "default": true,
             "pages": [
-              "intents/tutorial/end-to-end-intent-flow"
+              "intents/overview",
+              "intents/quickstart",
+              {
+                "group": "Tutorial",
+                "pages": [
+                  "intents/tutorial/end-to-end-intent-flow"
+                ]
+              },
+              {
+                "group": "Sending intents",
+                "pages": [
+                  "smart-wallet/chain-abstraction/single-chain-intent",
+                  "smart-wallet/chain-abstraction/multi-chain-intent",
+                  "smart-wallet/chain-abstraction/unified-balance",
+                  "smart-wallet/chain-abstraction/swaps",
+                  "intents/features/execute-crosschain-calls",
+                  "smart-wallet/chain-abstraction/source-token-amount",
+                  "smart-wallet/chain-abstraction/custom-recipient",
+                  "smart-wallet/chain-abstraction/account-deployment"
+                ]
+              },
+              {
+                "group": "Use cases",
+                "pages": [
+                  "intents/use-cases/automated-zaps",
+                  "intents/use-cases/multi-input-bridge",
+                  "intents/use-cases/vault-deposit"
+                ]
+              },
+              {
+                "group": "API guides",
+                "pages": [
+                  "intents/guides/using-the-api",
+                  "intents/guides/api-versioning",
+                  "intents/guides/getting-a-quote",
+                  "intents/guides/token-requirements",
+                  "intents/guides/signing",
+                  "intents/guides/submitting-the-intent",
+                  "intents/guides/tracking-intents",
+                  "intents/guides/installing-intent-executor",
+                  "intents/guides/portfolio-endpoint",
+                  "intents/guides/error-handling"
+                ]
+              },
+              {
+                "group": "Configuration",
+                "pages": [
+                  "intents/configuration/jwt-authentication",
+                  "smart-wallet/chain-abstraction/local-orchestrator-docker"
+                ]
+              },
+              {
+                "group": "Orchestrator API",
+                "openapi": {
+                  "source": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/orchestrator.json",
+                  "directory": "api-reference/orchestrator/blanc"
+                }
+              }
             ]
           },
           {
-            "group": "Sending intents",
+            "version": "2026-01.alps",
+            "tag": "Deprecated",
             "pages": [
-              "smart-wallet/chain-abstraction/single-chain-intent",
-              "smart-wallet/chain-abstraction/multi-chain-intent",
-              "smart-wallet/chain-abstraction/unified-balance",
-              "smart-wallet/chain-abstraction/swaps",
-              "intents/features/execute-crosschain-calls",
-              "smart-wallet/chain-abstraction/source-token-amount",
-              "smart-wallet/chain-abstraction/custom-recipient",
-              "smart-wallet/chain-abstraction/account-deployment"
-            ]
-          },
-          {
-            "group": "Use cases",
-            "pages": [
-              "intents/use-cases/automated-zaps",
-              "intents/use-cases/multi-input-bridge",
-              "intents/use-cases/vault-deposit"
-            ]
-          },
-          {
-            "group": "API guides",
-            "pages": [
-              "intents/guides/using-the-api",
-              "intents/guides/api-versioning",
-              "intents/guides/getting-a-quote",
-              "intents/guides/token-requirements",
-              "intents/guides/signing",
-              "intents/guides/submitting-the-intent",
-              "intents/guides/tracking-intents",
-              "intents/guides/installing-intent-executor",
-              "intents/guides/portfolio-endpoint",
-              "intents/guides/error-handling"
-            ]
-          },
-          {
-            "group": "Configuration",
-            "pages": [
-              "intents/configuration/jwt-authentication",
-              "smart-wallet/chain-abstraction/local-orchestrator-docker"
+              "intents/overview",
+              "intents/quickstart",
+              {
+                "group": "Tutorial",
+                "pages": [
+                  "intents/tutorial/end-to-end-intent-flow"
+                ]
+              },
+              {
+                "group": "Sending intents",
+                "pages": [
+                  "smart-wallet/chain-abstraction/single-chain-intent",
+                  "smart-wallet/chain-abstraction/multi-chain-intent",
+                  "smart-wallet/chain-abstraction/unified-balance",
+                  "smart-wallet/chain-abstraction/swaps",
+                  "intents/features/execute-crosschain-calls",
+                  "smart-wallet/chain-abstraction/source-token-amount",
+                  "smart-wallet/chain-abstraction/custom-recipient",
+                  "smart-wallet/chain-abstraction/account-deployment"
+                ]
+              },
+              {
+                "group": "Use cases",
+                "pages": [
+                  "intents/use-cases/automated-zaps",
+                  "intents/use-cases/multi-input-bridge",
+                  "intents/use-cases/vault-deposit"
+                ]
+              },
+              {
+                "group": "API guides",
+                "pages": [
+                  "intents/guides/using-the-api",
+                  "intents/guides/api-versioning",
+                  "intents/guides/getting-a-quote",
+                  "intents/guides/token-requirements",
+                  "intents/guides/signing",
+                  "intents/guides/submitting-the-intent",
+                  "intents/guides/tracking-intents",
+                  "intents/guides/installing-intent-executor",
+                  "intents/guides/portfolio-endpoint",
+                  "intents/guides/error-handling"
+                ]
+              },
+              {
+                "group": "Configuration",
+                "pages": [
+                  "intents/configuration/jwt-authentication",
+                  "smart-wallet/chain-abstraction/local-orchestrator-docker"
+                ]
+              },
+              {
+                "group": "Orchestrator API",
+                "openapi": {
+                  "source": "https://raw.githubusercontent.com/rhinestonewtf/openapi/9c2079d10b986c5f88d83817e7a41fdc8565433d/orchestrator.json",
+                  "directory": "api-reference/orchestrator/alps"
+                }
+              }
             ]
           }
         ]
@@ -264,25 +342,9 @@
               "deposits/widget/customization",
               "deposits/widget/status-tracking"
             ]
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "Get started",
-            "pages": ["api-reference/introduction"]
           },
           {
-            "group": "Orchestrator",
-            "openapi": {
-              "source": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/orchestrator.json",
-              "directory": "api-reference/orchestrator"
-            }
-          },
-          {
-            "group": "Deposit Service",
+            "group": "Deposit API",
             "openapi": {
               "source": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/deposit-service.json",
               "directory": "api-reference/deposit-service"
