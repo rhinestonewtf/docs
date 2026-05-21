@@ -145,6 +145,27 @@ await rhinestoneAccount.waitForExecution(result, false)
 await rhinestoneAccount.waitForExecution(result)
 ```
 
+### `verifyExecutions` removed from session signers
+
+`SingleSessionSignerSet`, `PerChainSessionSignerSet`, and `ChainSessionConfig` no longer accept `verifyExecutions`. The SDK now derives it from the session shape — sessions with `permissions` use emissary execution validation, claim-only sessions use the EIP-1271 path — so the flag is redundant. Drop it from your signer set:
+
+```ts
+// Before
+const signers = {
+  type: 'experimental_session',
+  session,
+  verifyExecutions: true,
+  enableData,
+}
+
+// After
+const signers = {
+  type: 'experimental_session',
+  session,
+  enableData,
+}
+```
+
 ### Passport account removed
 
 `account.type: 'passport'` is no longer accepted. The `PassportAccount` type and the `passport` member of `AccountType` / `AccountProviderConfig` are removed.
