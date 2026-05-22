@@ -108,6 +108,44 @@ const transaction = await rhinestoneAccount.prepareTransaction({
 
 <Note>Chain-specific `sourceAssets` take precendence over `sourceChain` parameter.</Note>
 
+## Settlement Layers
+
+Rhinestone routes intents through a settlement layer. By default, the orchestrator picks the best one. Pass `settlementLayers` to constrain the choice — either include a specific set, or exclude one you want to avoid.
+
+Pin to a specific layer (or set of layers):
+
+```ts {10}
+const transaction = await rhinestoneAccount.prepareTransaction({
+  sourceChains: [base],
+  targetChain: arbitrum,
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+  settlementLayers: { include: ['ACROSS'] },
+})
+```
+
+Exclude a layer (e.g. while one is degraded) and let the orchestrator pick from the rest:
+
+```ts {10}
+const transaction = await rhinestoneAccount.prepareTransaction({
+  sourceChains: [base],
+  targetChain: arbitrum,
+  calls: [
+    // …
+  ],
+  tokenRequests: [
+    // …
+  ],
+  settlementLayers: { exclude: ['RELAY'] },
+})
+```
+
+The same filter works on `splitIntents` (see [Liquidity Splitting](#liquidity-splitting)).
+
 ## Auxiliary Funds
 
 In case you have funds not available immediately for an intent (e.g. locked in a vault or sitting in an exchange), you can specify them as auxiliary funds:
@@ -195,6 +233,6 @@ const splits = await rhinestone.splitIntents({
   tokens: {
     [USDC_ADDRESS]: parseUnits('100000', 6),
   },
-  settlementLayers: ['ACROSS', 'ECO'],
+  settlementLayers: { include: ['ACROSS', 'ECO'] },
 })
 ```
