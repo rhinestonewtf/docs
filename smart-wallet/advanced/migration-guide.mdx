@@ -121,6 +121,26 @@ const signed = await rhinestoneAccount.signTransaction(prepared, {
 
 `getTransactionMessages(prepared, { intentId })` accepts the same selection so external signers see the route `signTransaction` will sign.
 
+### Settlement layer filter
+
+`settlementLayers` is no longer a bare array. It's a discriminated union with `include` / `exclude` so you can blacklist a single layer without listing all the others:
+
+```ts
+// Before
+await rhinestoneAccount.prepareTransaction({
+  // …
+  settlementLayers: ['ACROSS', 'ECO'],
+})
+
+// After
+await rhinestoneAccount.prepareTransaction({
+  // …
+  settlementLayers: { include: ['ACROSS', 'ECO'] },
+})
+```
+
+The same shape applies to `splitIntents`. See [Settlement Layers](../chain-abstraction/multi-chain-intent#settlement-layers) for usage patterns.
+
 ### `submitTransaction` options bag
 
 `submitTransaction` now takes an options object instead of positional arguments:
