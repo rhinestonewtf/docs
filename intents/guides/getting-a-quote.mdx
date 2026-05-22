@@ -73,6 +73,30 @@ const gasUSD = route.cost.fees.breakdown.gas.usd;
 const totalFeeUSD = route.cost.fees.total.usd;
 ```
 
+## Choosing a different route
+
+`routes[]` is server-ranked, so `routes[0]` is the default pick. If you want a different one — cheaper, faster, on a specific settlement layer — iterate `routes` and submit the chosen route's `intentId`. No extra parameter is needed; the API selects the quote by `intentId`.
+
+```ts
+// Pick the fastest route under a $1 fee cap.
+const fastest = routes
+  .filter((r) => r.cost.fees.total.usd <= 1)
+  .reduce((a, b) =>
+    a.estimatedFillTime.seconds <= b.estimatedFillTime.seconds ? a : b
+  );
+
+await fetch(`${baseUrl}/intents`, {
+  method: "POST",
+  headers: { /* ... */ },
+  body: JSON.stringify({
+    intentId: fastest.intentId,
+    signatures: { /* signed against fastest.signData */ },
+  }),
+});
+```
+
+Each route carries its own `signData`, so always sign against the route you intend to submit — signatures from one route won't verify against another.
+
 ## Executions (calls)
 
 You can run executions on behalf of the EOA on the destination chain.
