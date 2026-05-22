@@ -106,6 +106,61 @@ const transaction = await rhinestoneAccount.prepareTransaction({
 })
 ```
 
+## Source calls
+
+You can also run executions on the source side, *before* the claim. Source calls are bundled into the intent at routing time and covered by the user's mandate signature.
+
+Use them for pre-bridge actions on the source chain — ERC-20 approvals, ETH→WETH wraps, unstaking, or pulling funds out of a vault you need to spend.
+
+```ts
+import { base, arbitrum } from 'viem/chains'
+import { encodeFunctionData, parseUnits } from 'viem'
+
+const prepared = await rhinestoneAccount.prepareTransaction({
+  sourceChains: [base],
+  targetChain: arbitrum,
+  tokenRequests: [
+    { address: usdcArbitrum, amount: parseUnits('100', 6) },
+  ],
+  sourceCalls: {
+    [base.id]: [
+      {
+        to: USDC_BASE,
+        data: encodeFunctionData({
+          abi: erc20Abi,
+          functionName: 'approve',
+          args: [VAULT_BASE, parseUnits('100', 6)],
+        }),
+      },
+    ],
+  },
+})
+```
+
+### Declaring tokens the source call provides
+
+If the source call hands over tokens (an unwrap, an unstake, withdrawing from a vault), declare them via `provides`. Routing then treats those tokens as available, the same way `auxiliaryFunds` does:
+
+```ts {7-9}
+sourceCalls: {
+  [base.id]: [
+    {
+      to: VAULT_BASE,
+      data: encodeFunctionData({ abi: vaultAbi, functionName: 'withdraw', args: [shares] }),
+      provides: [
+        { token: USDC_BASE, amount: parseUnits('100', 6) },
+      ],
+    },
+  ],
+},
+```
+
+### Caveats
+
+- Source calls only fire when the orchestrator creates an element on that chain. Sponsored or no-op fills with no source movement skip the source element entirely, and the `sourceCalls` keyed on that chain are silently dropped.
+- The chain id must appear in `sourceChains` (cross-chain intents) or equal the same-chain `chain`.
+- For same-chain intents, source calls run before the destination `calls` on the same chain.
+
 ## Next steps
 
 <CardGroup cols={2}>
