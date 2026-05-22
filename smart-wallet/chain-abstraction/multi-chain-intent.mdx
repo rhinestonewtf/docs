@@ -170,7 +170,7 @@ Each quote has its own `signData` — signatures from one quote won't verify aga
 
 ## Auxiliary Funds
 
-`auxiliaryFunds` declares balances that aren't visible to the orchestrator yet but will be available by the time the intent settles. Use it to quote ahead of an inflow — a pending CEX deposit, a vault withdrawal, an unstake, or funds produced by `sourceCalls` (account refill, unwrap, etc.).
+`auxiliaryFunds` declares balances that aren't visible to the orchestrator yet but will be available by the time the intent settles. Use it to quote ahead of an inflow — a pending CEX deposit, a vault withdrawal, an unstake, or any other balance that will arrive before fill.
 
 ```ts {9-14}
 const transaction = await rhinestoneAccount.prepareTransaction({
@@ -194,7 +194,7 @@ const transaction = await rhinestoneAccount.prepareTransaction({
   Don't list funds the account already holds — the orchestrator picks those up automatically, and adding them via `auxiliaryFunds` double-counts the balance and inflates the input amount in the quote.
 </Warning>
 
-If you're using `sourceCalls` to refill the account (pulling from another account, exiting a vault, unwrapping), declare the resulting tokens here so routing treats them as available source liquidity.
+For tokens produced by a [source call](/intents/features/execute-crosschain-calls#source-calls) (a vault exit, unwrap, unstake), declare them via `provides` on the call itself — not here.
 
 ## Wait for Execution
 

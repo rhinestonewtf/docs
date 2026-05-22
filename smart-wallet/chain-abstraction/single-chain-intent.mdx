@@ -67,7 +67,7 @@ const transaction = await rhinestoneAccount.prepareTransaction({
 
 ## Auxiliary Funds
 
-`auxiliaryFunds` declares balances that aren't visible to the orchestrator yet but will be available by the time the intent settles. Use it to quote ahead of an inflow — a pending CEX deposit, a vault withdrawal, an unstake, or funds produced by `sourceCalls` (account refill, unwrap, etc.).
+`auxiliaryFunds` declares balances that aren't visible to the orchestrator yet but will be available by the time the intent settles. Use it to quote ahead of an inflow — a pending CEX deposit, a vault withdrawal, an unstake, or any other balance that will arrive before fill.
 
 ```ts {9-14}
 const transaction = await rhinestoneAccount.prepareTransaction({
