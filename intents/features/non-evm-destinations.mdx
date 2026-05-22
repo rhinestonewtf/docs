@@ -1,0 +1,57 @@
+---
+title: "Non-EVM destinations"
+description: "Send intents to Solana and Tron destination chains."
+---
+
+Warp intents can settle on Solana and Tron, alongside every supported EVM chain. The source side stays the same — origin chains, signing, and submission are unchanged. What differs is the destination shape: the recipient is a base58 or T-prefix string, token addresses are SPL mints or TRC-20 contracts, and there are no destination executions.
+
+## What changes vs. EVM destinations
+
+| | EVM destination | Non-EVM destination |
+|---|---|---|
+| `targetChain` | viem `Chain` | `solanaMainnet` / `tronMainnet` |
+| `recipient` | `Address` | base58 (Solana) / Tron T-prefix string |
+| `tokenRequests[].address` | EVM `Address` or `TokenSymbol` | SPL mint / TRC-20 contract string |
+| Destination `calls` | supported | not supported (claims only) |
+| UserOp path | supported | not supported |
+| `fillTransactionHash` | `Hex` | `string` (base58 / Tron hex) |
+
+## Example: USDC from Base to Solana
+
+```ts
+import { solanaMainnet } from '@rhinestone/sdk'
+import { base } from 'viem/chains'
+
+const SOLANA_USDC = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+const recipient = 'mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN'
+
+const prepared = await rhinestoneAccount.prepareTransaction({
+  sourceChains: [base],
+  targetChain: solanaMainnet,
+  recipient,
+  tokenRequests: [
+    {
+      address: SOLANA_USDC,
+      amount: 5_000_000n, // 5 USDC, 6 decimals
+    },
+  ],
+})
+
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const result = await rhinestoneAccount.submitTransaction(signed)
+const status = await rhinestoneAccount.waitForExecution(result)
+```
+
+Swap `solanaMainnet` for `tronMainnet` and pass a Tron T-prefix recipient and a TRC-20 contract address to bridge to Tron instead.
+
+## Constraints
+
+- **No destination calls.** Solana and Tron destinations are claim-only — you can't pass a `calls` array on a non-EVM intent. If your flow needs onchain logic on the destination, route to an EVM chain.
+- **No UserOp path.** `sendUserOperation` and the UserOp transaction shape remain EVM-only.
+- **No destination-side signing.** Smart-session destination signatures are skipped on non-EVM chains — there's no validator there to verify them. Origin signing is unchanged.
+- **EIP-7702 authorization is a no-op** on non-EVM destinations.
+- **`fillTransactionHash` is a plain string.** Was `Hex` on EVM destinations; widened so base58 and Tron hex round-trip cleanly.
+
+## Tracking the intent
+
+`waitForExecution` and `getIntentStatus` work the same way as for EVM destinations. Inspect `status.operations[]` for per-chain transaction hashes — the destination entry's `fillTransactionHash` will be a base58 (Solana) or hex (Tron) string.
