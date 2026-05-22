@@ -201,6 +201,7 @@
               "smart-wallet/chain-abstraction/unified-balance",
               "smart-wallet/chain-abstraction/swaps",
               "intents/features/execute-crosschain-calls",
+              "intents/features/non-evm-destinations",
               "smart-wallet/chain-abstraction/source-token-amount",
               "smart-wallet/chain-abstraction/custom-recipient",
               "smart-wallet/chain-abstraction/account-deployment"

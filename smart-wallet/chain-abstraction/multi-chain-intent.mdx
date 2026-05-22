@@ -146,6 +146,28 @@ const transaction = await rhinestoneAccount.prepareTransaction({
 
 The same filter works on `splitIntents` (see [Liquidity Splitting](#liquidity-splitting)).
 
+## Choosing a different quote
+
+`prepareTransaction` returns multiple candidate routes via `prepared.quotes`. By default, `signTransaction` picks `prepared.quotes.best` — the orchestrator's recommended route. To pick a different one, iterate `prepared.quotes.all` and pass the chosen quote's `intentId` to `signTransaction`:
+
+```ts
+const prepared = await rhinestoneAccount.prepareTransaction({ /* ... */ })
+
+// e.g. pick the fastest route under a $1 fee cap
+const fastest = prepared.quotes.all
+  .filter((q) => q.cost.fees.total.usd <= 1)
+  .reduce((a, b) =>
+    a.estimatedFillTime.seconds <= b.estimatedFillTime.seconds ? a : b
+  )
+
+const signed = await rhinestoneAccount.signTransaction(prepared, {
+  intentId: fastest.intentId,
+})
+const transaction = await rhinestoneAccount.submitTransaction(signed)
+```
+
+Each quote has its own `signData` — signatures from one quote won't verify against another. Passing `{ intentId }` tells the SDK to sign the matching quote.
+
 ## Auxiliary Funds
 
 In case you have funds not available immediately for an intent (e.g. locked in a vault or sitting in an exchange), you can specify them as auxiliary funds:
