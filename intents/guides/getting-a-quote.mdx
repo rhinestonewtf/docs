@@ -220,6 +220,29 @@ const payload = {
 ```
 </CodeGroup>
 
+## Auxiliary funds
+
+`auxiliaryFunds` declares balances that aren't visible to the orchestrator yet but will be available by the time the intent settles. Use it to quote ahead of an inflow — a pending CEX deposit, a vault withdrawal, an unstake, or funds produced by a source call that refills the account.
+
+<CodeGroup dropdown>
+```ts Declare an Incoming Balance
+const payload = {
+  // …
+  auxiliaryFunds: {
+    "eip155:8453": {
+      "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913": "5000000",
+    },
+  },
+};
+```
+</CodeGroup>
+
+<Warning>
+  Don't list funds the account already holds — the orchestrator picks those up automatically, and adding them via `auxiliaryFunds` double-counts the balance and inflates the input amount in the quote.
+</Warning>
+
+`auxiliaryFunds` and `accountAccessList` solve different problems: `accountAccessList` restricts which **existing** balances the router is allowed to spend, while `auxiliaryFunds` adds **expected** balances the router otherwise can't see. They can be combined.
+
 ## Swaps
 
 If the destination token differs from the user's source token, Warp handles the bridge and swap automatically. No additional parameters are needed — just specify the token you want on the destination chain.
