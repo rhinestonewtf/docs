@@ -276,14 +276,14 @@
             "pages": ["api-reference/introduction"]
           },
           {
-            "group": "Orchestrator",
+            "group": "Intents",
             "openapi": {
               "source": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/orchestrator.json",
               "directory": "api-reference/orchestrator"
             }
           },
           {
-            "group": "Deposit Service",
+            "group": "Deposits",
             "openapi": {
               "source": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/deposit-service.json",
               "directory": "api-reference/deposit-service"
