@@ -129,6 +129,7 @@ Every webhook request body follows the same envelope structure:
 | Type                                                      | Trigger                                                                       |
 | --------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | [`deposit-received`](#deposit-received)                   | Token transfer detected on a registered account                               |
+| [`deposit-rejected`](#deposit-rejected)                   | Detected deposit will not be bridged — deposit whitelist or minimum violation  |
 | [`bridge-started`](#bridge-started)                       | Bridging intent created and submitted to the Orchestrator                     |
 | [`bridge-complete`](#bridge-complete)                     | Tokens arrived on the target chain                                            |
 | [`bridge-delayed`](#bridge-delayed)                       | Bridge provider did not fill within the expected window; a refund is expected |
@@ -163,6 +164,49 @@ Sent when an incoming token transfer is detected on a registered account.
         "account": "0x1234567890abcdef1234567890abcdef12345678",
         "transactionHash": "0xabc123...",
         "sender": "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+    }
+}
+```
+
+#### `deposit-rejected`
+
+Sent when a detected deposit will **not** be bridged because it violates the account's [deposit whitelist](/deposits/api/initial-setup#restrict-accepted-deposits) — the token isn't allowed, or the amount is outside the configured minimum/maximum. It always follows a [`deposit-received`](#deposit-received) event for the same deposit and is terminal: no bridging is attempted and there is no retry. This is a deliberate rejection, not a processing failure — use it to record the outcome on your side. See [error codes](/deposits/api/deposit-processing#error-codes) for the full list.
+
+| Field                     | Type                  | Description                                                                                  |
+| ------------------------- | --------------------- | -------------------------------------------------------------------------------------------- |
+| `errorCode`               | `string`              | Reason — `"BALANCE-4"` (below minimum), `"BALANCE-3"` (above maximum), or `"TOKEN-3"` (token not allowed) |
+| `account`                 | `string`              | Account address                                                                              |
+| `message`                 | `string \| undefined` | Human-readable explanation                                                                   |
+| `limits.minAmount`        | `string \| undefined` | Configured minimum in raw token units — present for `BALANCE-4`                              |
+| `limits.maxAmount`        | `string \| undefined` | Configured maximum in raw token units — present for `BALANCE-3`                              |
+| `deposit.transactionHash` | `string`              | Deposit transaction hash                                                                     |
+| `deposit.chain`           | `string`              | Deposit chain (CAIP-2)                                                                        |
+| `deposit.token`           | `string`              | Deposit token address                                                                        |
+| `deposit.amount`          | `string`              | Actual deposited amount in raw token units                                                   |
+| `deposit.sender`          | `string`              | Sender address                                                                               |
+
+Compare `deposit.amount` (what was deposited) against `limits` (the configured bound) to surface the shortfall or overage to your users.
+
+```json
+{
+    "version": "1.0",
+    "type": "deposit-rejected",
+    "eventId": "12347",
+    "time": "2025-01-15T12:00:01.000Z",
+    "data": {
+        "errorCode": "BALANCE-4",
+        "account": "0x1234567890abcdef1234567890abcdef12345678",
+        "message": "Amount 500000 is below configured minimum 1000000",
+        "limits": {
+            "minAmount": "1000000"
+        },
+        "deposit": {
+            "transactionHash": "0xabc123...",
+            "chain": "eip155:8453",
+            "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+            "amount": "500000",
+            "sender": "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+        }
     }
 }
 ```
@@ -376,7 +420,7 @@ function verifyWebhookSignature(
 ### Delivery behavior
 
 - **Retries** — failed deliveries are retried multiple times before the event is marked `failed`. Events that exhaust their retries can still be replayed on demand via [`POST /webhooks/events/{id}/resend`](/api-reference/deposit-service/webhooks/re-attempt-delivery-of-a-stored-webhook-event), which reuses the original `eventId`.
-- **Ordering** — events for a single deposit are sent in lifecycle order (`deposit-received` → `bridge-started` → `bridge-complete`), but there is no global ordering guarantee across deposits.
+- **Ordering** — events for a single deposit are sent in lifecycle order: `deposit-received` → `bridge-started` → `bridge-complete` when it proceeds, or `deposit-received` → `deposit-rejected` when it won't be bridged. There is no global ordering guarantee across deposits.
 - **URL validation** — the webhook URL must use HTTPS and must not target internal or private network addresses.
 - **Idempotency** — use `eventId` from the envelope as the canonical dedupe key.
 
