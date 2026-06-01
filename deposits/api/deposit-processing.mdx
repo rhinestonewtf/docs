@@ -9,7 +9,8 @@ Once an account is registered, the deposit service handles everything from detec
 
 ```mermaid actions={false}
 flowchart LR
-    D[Detection] --> B[Bridging]
+    D[Detection] -- valid --> B[Bridging]
+    D -- whitelist/min --> X[Rejected]
     B -- success --> S[Settlement]
     B -- failure --> R[Retry]
     R --> B
@@ -22,6 +23,7 @@ The service monitors registered accounts via chain indexer webhooks. When a toke
 - The token and amount are checked against your [deposit whitelist](/deposits/api/initial-setup#restrict-accepted-deposits) (if configured)
 - The transfer is deduplicated by chain, transaction hash, account, and token
 - If valid, the deposit enters the pipeline with status `processing`
+- If the token isn't allowed or the amount is outside your configured min/max, the deposit is **rejected** (not bridged) and a [`deposit-rejected`](/deposits/api/status-tracking#deposit-rejected) webhook is sent after `deposit-received`
 
 ### Bridging
 
@@ -92,11 +94,16 @@ These indicate a configuration or input problem. Check account registration, dep
 | Code | Description |
 |---|---|
 | `BALANCE-1` | Account balance too low for bridging |
-| `BALANCE-3` | Deposit amount outside whitelist range |
+| `BALANCE-3` | Deposit amount above the configured maximum |
+| `BALANCE-4` | Deposit amount below the configured minimum |
 | `TOKEN-1` | Token not supported on this chain |
 | `TOKEN-3` | Token not in deposit whitelist |
 | `ACCOUNT-1` | Account not registered |
 
 <Note>
 Failed deposits with non-retryable errors will not be retried automatically. Resolve the underlying issue (e.g. update your deposit whitelist or register the account) before triggering a manual retry.
+</Note>
+
+<Note>
+Whitelist and minimum rejections (`BALANCE-4`, `BALANCE-3`, `TOKEN-3`) are deposits the service deliberately won't bridge per your configuration. These are surfaced via the [`deposit-rejected`](/deposits/api/status-tracking#deposit-rejected) webhook — not `bridge-failed` — and no bridging is attempted.
 </Note>
