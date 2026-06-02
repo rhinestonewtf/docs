@@ -24,8 +24,10 @@ import "@rhinestone/deposit-modal/styles.css";
   targetChain={10}
   targetToken="0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85"
   reownAppId="YOUR_REOWN_PROJECT_ID"
-  onWithdrawComplete={(data) => {
-    console.log("Withdrawal complete:", data.destinationTxHash);
+  onLifecycle={(event) => {
+    if (event.type === "complete") {
+      console.log("Withdrawal complete:", event.destinationTxHash);
+    }
   }}
 />
 ```
@@ -86,7 +88,6 @@ Safe's `eth_sign` path requires adding 4 to the `v` value of a `personal_sign` s
 | `dappPublicClient` | `PublicClient` | — | Host-provided viem public client |
 | `onSignTransaction` | `(request: SafeTransactionRequest) => Promise<{ signature: Hex }>` | — | Custom Safe transaction signer |
 | `onRequestConnect` | `() => void` | — | Called when wallet connection needed |
-| `connectButtonLabel` | `string` | — | Custom connect button label |
 
 ### Transfer
 
@@ -102,7 +103,6 @@ Safe's `eth_sign` path requires adding 4 to the `v` value of a `personal_sign` s
 |---|---|---|---|
 | `sessionChainIds` | `number[]` | All supported | Chain IDs for session key creation |
 | `forceRegister` | `boolean` | `false` | Force session re-creation |
-| `waitForFinalTx` | `boolean` | `true` | Wait for destination chain confirmation |
 | `signerAddress` | `Address` | Default signer | Session signer address |
 | `rhinestoneApiKey` | `string` | — | API key for account setup |
 
@@ -120,7 +120,6 @@ Safe's `eth_sign` path requires adding 4 to the `v` value of a `personal_sign` s
 | `closeOnOverlayClick` | `boolean` | `true` | Close modal on backdrop click |
 | `className` | `string` | — | CSS class for the modal container |
 | `theme` | `DepositModalTheme` | — | [Theme configuration](/deposits/widget/customization#theme) |
-| `branding` | `DepositModalBranding` | — | [Branding configuration](/deposits/widget/customization#branding) |
 | `uiConfig` | `DepositModalUIConfig` | — | [UI configuration](/deposits/widget/customization#ui-configuration) |
 | `debug` | `boolean` | `false` | Enable debug logging |
 
@@ -129,9 +128,8 @@ Safe's `eth_sign` path requires adding 4 to the `v` value of a `personal_sign` s
 | Prop | Type | Description |
 |---|---|---|
 | `onReady` | `() => void` | Modal initialized |
-| `onConnected` | `(data: ConnectedEventData) => void` | Smart account created |
-| `onWithdrawSubmitted` | `(data: WithdrawSubmittedEventData) => void` | Withdrawal transaction submitted |
-| `onWithdrawComplete` | `(data: WithdrawCompleteEventData) => void` | Tokens arrived on target chain |
-| `onWithdrawFailed` | `(data: WithdrawFailedEventData) => void` | Withdrawal failed |
+| `onLifecycle` | `(event: WithdrawLifecycleEvent) => void` | [Lifecycle event](/deposits/widget/status-tracking#onlifecycle) — switch on `event.type` (`connected`, `submitted`, `complete`, `failed`) |
 | `onError` | `(data: ErrorEventData) => void` | Error at any stage |
-| `onEvent` | `(event: WithdrawEvent) => void` | Analytics event |
+| `onEvent` | `(event: WithdrawAnalyticsEvent) => void` | [Analytics event](/deposits/widget/status-tracking#analytics) |
+
+`WithdrawLifecycleEvent` has no `balance-changed` or `smart-account-changed` variants, and its payload types differ from the deposit union: `txHash` is `Hex`, `sourceChain` is always a `number`, `sourceToken` / `targetToken` are `Address`, and `"submitted"` carries a `safeAddress`.

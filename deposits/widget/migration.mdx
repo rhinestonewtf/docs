@@ -1,0 +1,174 @@
+---
+title: "Migration guide"
+description: "Upgrade @rhinestone/deposit-modal from v0.1.x / v0.2.x to v0.3.0."
+---
+
+v0.3.0 collapses each modal's per-event callbacks into a single `onLifecycle`
+callback, renames the analytics event types, removes the `/reown` and `/safe`
+subpath entry points, and drops `connectButtonLabel`. `<DepositModal>` and
+`<WithdrawModal>` share the same callback shape, but their lifecycle payloads
+are **not identical** — see [Asymmetries](#asymmetries) below.
+
+## Callback collapse — onLifecycle
+
+Both modals replace their individual callbacks with one `onLifecycle` that
+receives a discriminated event. Switch on `event.type`; the payload fields keep
+the same names as before.
+
+| Old prop (`<DepositModal>`) | New `event.type`          | Old prop (`<WithdrawModal>`) | New `event.type` |
+| --------------------------- | ------------------------- | ---------------------------- | ---------------- |
+| `onConnected`               | `"connected"`             | `onConnected`                | `"connected"`    |
+| `onDepositSubmitted`        | `"submitted"`             | `onWithdrawSubmitted`        | `"submitted"`    |
+| `onDepositComplete`         | `"complete"`              | `onWithdrawComplete`         | `"complete"`     |
+| `onDepositFailed`           | `"failed"`                | `onWithdrawFailed`           | `"failed"`       |
+| `onTotalBalanceChange`      | `"balance-changed"`       | —                            | —                |
+| `onSmartAccountChange`      | `"smart-account-changed"` | —                            | —                |
+
+<CodeGroup dropdown>
+
+```diff DepositModal
+ <DepositModal
+   ...
+-  onConnected={({ address, smartAccount }) => trackConnected(address, smartAccount)}
+-  onDepositSubmitted={({ txHash, sourceChain, amount }) => trackSubmitted(txHash, sourceChain, amount)}
+-  onDepositComplete={({ txHash, destinationTxHash }) => trackComplete(txHash, destinationTxHash)}
+-  onDepositFailed={({ txHash, error }) => trackFailed(txHash, error)}
+-  onTotalBalanceChange={(total) => setBalance(total)}
+-  onSmartAccountChange={({ evm, solana }) => setSmartAccount({ evm, solana })}
+-  connectButtonLabel="Connect wallet"
++  onLifecycle={(event) => {
++    switch (event.type) {
++      case "connected":
++        trackConnected(event.address, event.smartAccount);
++        break;
++      case "submitted":
++        trackSubmitted(event.txHash, event.sourceChain, event.amount);
++        break;
++      case "complete":
++        trackComplete(event.txHash, event.destinationTxHash);
++        break;
++      case "failed":
++        trackFailed(event.txHash, event.error);
++        break;
++      case "balance-changed":
++        setBalance(event.totalUsd);
++        break;
++      case "smart-account-changed":
++        setSmartAccount({ evm: event.evm, solana: event.solana });
++        break;
++    }
++  }}
+ />
+```
+
+```diff WithdrawModal
+ <WithdrawModal
+   ...
+-  onConnected={({ address, smartAccount }) => trackConnected(address, smartAccount)}
+-  onWithdrawSubmitted={({ txHash, sourceChain, amount, safeAddress }) => trackSubmitted(txHash, sourceChain, amount, safeAddress)}
+-  onWithdrawComplete={({ txHash, destinationTxHash }) => trackComplete(txHash, destinationTxHash)}
+-  onWithdrawFailed={({ txHash, error }) => trackFailed(txHash, error)}
+-  connectButtonLabel="Connect wallet"
++  onLifecycle={(event) => {
++    switch (event.type) {
++      case "connected":
++        trackConnected(event.address, event.smartAccount);
++        break;
++      case "submitted":
++        trackSubmitted(event.txHash, event.sourceChain, event.amount, event.safeAddress);
++        break;
++      case "complete":
++        trackComplete(event.txHash, event.destinationTxHash);
++        break;
++      case "failed":
++        trackFailed(event.txHash, event.error);
++        break;
++    }
++  }}
+ />
+```
+
+</CodeGroup>
+
+See [status tracking](/deposits/widget/status-tracking) for the full event
+payloads.
+
+## Asymmetries
+
+The two unions look alike but differ — don't assume one helper typechecks
+against both.
+
+| Aspect                            | `DepositLifecycleEvent`  | `WithdrawLifecycleEvent` |
+| --------------------------------- | ------------------------ | ------------------------ |
+| `txHash` type                     | `string`                 | `Hex`                    |
+| `sourceChain` on submit/complete  | `ChainId \| "unknown"`   | `number`                 |
+| `sourceToken` on complete         | `string`, optional       | `Address`, required      |
+| `targetChain` on complete         | `number \| "solana"`     | `number`                 |
+| `targetToken` on complete         | `string`                 | `Address`                |
+| `safeAddress` on submit           | not present              | `Address`                |
+| `"balance-changed"` variant       | yes                      | no                       |
+| `"smart-account-changed"` variant | yes                      | no                       |
+
+<Warning>
+`sourceChain: "unknown"` is deposit-only. A webhook-detected deposit can arrive
+without chain or token info, in which case deposit events carry
+`sourceChain: "unknown"` and `sourceToken: undefined`. Handle this branch in
+your deposit `onLifecycle` switch — the wrong branch picks the wrong explorer
+URL. Withdraw flows always know the source chain.
+</Warning>
+
+## Analytics type rename
+
+The `onEvent` prop name is unchanged on both modals, but its parameter type was
+renamed. The payload shape is unchanged.
+
+```diff
+- import type { DepositEvent, WithdrawEvent, ModalEvent } from "@rhinestone/deposit-modal";
++ import type {
++   DepositAnalyticsEvent,
++   WithdrawAnalyticsEvent,
++   ModalAnalyticsEvent,
++ } from "@rhinestone/deposit-modal";
+```
+
+## Removed
+
+- **`connectButtonLabel`** — gone from both modals. The connect-step copy is
+  controlled internally; delete any consumer-side label, there is no
+  replacement.
+- **`/reown` and `/safe` subpath imports** — they re-exported nothing that
+  isn't already on the root entry point.
+
+  ```diff
+  - import { DepositModal, disconnectWallet } from "@rhinestone/deposit-modal/reown";
+  + import { DepositModal, disconnectWallet } from "@rhinestone/deposit-modal";
+
+  - import type { SafeTransactionRequest } from "@rhinestone/deposit-modal/safe";
+  + import type { SafeTransactionRequest } from "@rhinestone/deposit-modal";
+  ```
+
+  The `./deposit`, `./withdraw`, `./constants`, and `./styles.css` subpaths
+  remain for tree-shaking.
+
+## Additive — no action required
+
+New in v0.3.0; existing code keeps working:
+
+- **`appBalanceUsd?: number`** on `<DepositModal>` — renders a "Balance after
+  deposit" row (`appBalanceUsd + amount`) instead of fetching a portfolio
+  balance.
+- **`dappImports?: DappImportsConfig`** on `<DepositModal>` — pull balances from
+  third-party apps. See [import from other apps](/deposits/widget/deposit-modal#import-from-other-apps).
+- **`defaultAmount: "max"`** — defaults the input to the user's full
+  source-token balance.
+- **Solana destinations** — `targetChain: Chain | number | "solana"`,
+  `targetToken: Address | string`, `recipient: Address | string`.
+- **New root exports** — `DepositLifecycleEvent`, `WithdrawLifecycleEvent`,
+  `DappImportsConfig`, `OutputTokenRule`, plus the renamed analytics types.
+
+## Unchanged
+
+`onError`, `onReady`, `onRequestConnect`, the `onEvent` prop name,
+`dappWalletClient` / `dappPublicClient` / `reownAppId`, `<WithdrawModal>`'s
+`onSignTransaction`, and the `@rhinestone/deposit-modal/styles.css` export all
+keep their names and signatures.

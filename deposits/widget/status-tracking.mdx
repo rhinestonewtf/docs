@@ -1,9 +1,11 @@
 ---
 title: "Status tracking"
-description: "Track deposit progress and react to state changes using widget callbacks."
+description: "Track deposit progress and react to state changes via the onLifecycle callback."
 ---
 
-The deposit modal fires callbacks at each stage of the deposit lifecycle. Use these to update your UI, trigger backend processes, or log analytics.
+The modal emits every state transition through a single `onLifecycle` callback.
+You switch on `event.type` to update your UI, trigger backend processes, or log
+analytics. New event variants can be added without changing the prop surface.
 
 ## Deposit lifecycle
 
@@ -15,111 +17,108 @@ sequenceDiagram
 
     Modal->>App: onReady
     Note over Modal: User connects wallet
-    Modal->>App: onConnected
+    Modal->>App: onLifecycle "connected"
     Note over Modal: User selects chain, token, amount
     Modal->>Chain: Submit deposit tx
-    Modal->>App: onDepositSubmitted
+    Modal->>App: onLifecycle "submitted"
     Note over Chain: Bridge in progress
     Chain-->>Modal: Funds arrive on target chain
-    Modal->>App: onDepositComplete
+    Modal->>App: onLifecycle "complete"
 ```
 
 1. The modal initializes and fires `onReady`
-2. The user connects a wallet (or is connected via embedded wallet). The modal creates a smart account and fires `onConnected` with the EOA `address` and `smartAccount` address.
-3. The user selects a source chain, token, and amount, then confirms the deposit
-4. The modal submits the transaction on the source chain and fires `onDepositSubmitted`
-5. The bridge routes funds to the target chain. When `waitForFinalTx` is `true` (default), the modal waits for destination chain confirmation before firing `onDepositComplete`
+2. The user connects a wallet (or is connected via an embedded wallet). The
+   modal creates a smart account and emits `"connected"` with the EOA `address`
+   and `smartAccount` address.
+3. The user selects a source chain, token, and amount, then confirms
+4. The modal submits the transaction on the source chain and emits `"submitted"`
+5. The bridge routes funds to the target chain. Once they arrive, the modal
+   emits `"complete"`
 
-If the bridge fails after submission, `onDepositFailed` fires instead of `onDepositComplete`.
+If the bridge fails after submission, `"failed"` is emitted instead of
+`"complete"`.
 
-## Event callbacks
+## onLifecycle
 
-### onReady
-
-Fires when the modal is initialized and ready for interaction. No payload.
-
-```tsx
-onReady={() => {
-  console.log("Modal ready");
-}}
-```
-
-### onConnected
-
-Fires when a smart account has been created for the deposit.
+`onLifecycle` receives a discriminated union — `DepositLifecycleEvent` on
+`<DepositModal>`, `WithdrawLifecycleEvent` on `<WithdrawModal>`. The two are
+similar but not identical; see [withdraw events](#withdraw-events) for the
+differences.
 
 ```tsx
-onConnected={(data) => {
-  console.log("EOA:", data.address);
-  console.log("Smart account:", data.smartAccount);
-}}
+import type { DepositLifecycleEvent } from "@rhinestone/deposit-modal";
+
+<DepositModal
+  // ...required props
+  onLifecycle={(event: DepositLifecycleEvent) => {
+    switch (event.type) {
+      case "connected":
+        console.log("smart account", event.smartAccount);
+        break;
+      case "submitted":
+        console.log("source tx", event.txHash, "on", event.sourceChain);
+        break;
+      case "complete":
+        console.log("done", event.destinationTxHash, event.amount);
+        break;
+      case "failed":
+        console.error("failed", event.txHash, event.error);
+        break;
+      case "balance-changed":
+        setBalance(event.totalUsd);
+        break;
+      case "smart-account-changed":
+        setSmartAccount({ evm: event.evm, solana: event.solana });
+        break;
+    }
+  }}
+/>
 ```
 
-| Field | Type | Description |
+### Deposit events
+
+| `event.type` | Fields | Description |
 |---|---|---|
-| `address` | `Address` | The user's EOA or owner address |
-| `smartAccount` | `Address` | The smart account address that receives deposits |
+| `"connected"` | `address: Address`, `smartAccount: Address` | Smart account created for the deposit |
+| `"submitted"` | `txHash: string`, `sourceChain: ChainId \| "unknown"`, `amount: string` | Deposit transaction submitted on the source chain |
+| `"complete"` | `txHash: string`, `destinationTxHash?: string`, `amount: string`, `sourceChain: ChainId \| "unknown"`, `sourceToken?: string`, `targetChain: number \| "solana"`, `targetToken: string` | Tokens arrived on the target chain |
+| `"failed"` | `txHash: string`, `error?: string` | Bridge or transfer failed after submission |
+| `"balance-changed"` | `totalUsd: number` | The user's total portfolio balance (USD) changed |
+| `"smart-account-changed"` | `evm: Address \| null`, `solana: string \| null` | The resolved smart account addresses changed |
 
-### onDepositSubmitted
+`amount` is the deposit amount in the token's smallest unit.
 
-Fires when the user signs and submits the deposit transaction on the source chain.
+<Warning>
+`sourceChain: "unknown"` is deposit-only. When a webhook-detected deposit
+arrives without chain or token information, `sourceChain` is `"unknown"` and
+`sourceToken` is `undefined` — handle this branch so you don't pick the wrong
+explorer URL.
+</Warning>
+
+### Withdraw events
+
+`WithdrawLifecycleEvent` carries the same `type` values minus `"balance-changed"`
+and `"smart-account-changed"`. Its `txHash` is `Hex`, `sourceChain` is always a
+`number`, `sourceToken` / `targetToken` are `Address`, and `"submitted"` adds a
+`safeAddress: Address` field.
+
+## onReady
+
+Fires once when the modal is initialized and ready for interaction. No payload.
 
 ```tsx
-onDepositSubmitted={(data) => {
-  console.log("Submitted:", data.txHash, "on chain", data.sourceChain);
-}}
+onReady={() => console.log("modal ready")}
 ```
 
-| Field | Type | Description |
-|---|---|---|
-| `txHash` | `string` | Source chain transaction hash |
-| `sourceChain` | `number \| "solana"` | Source chain ID |
-| `amount` | `string` | Deposit amount in the token's smallest unit |
+## onError
 
-### onDepositComplete
-
-Fires when tokens arrive on the target chain (or when the bridge is submitted, if `waitForFinalTx` is `false`).
+Fires on errors at any stage — wallet connection, transaction signing, bridge
+setup — that prevent the deposit from being submitted. Distinct from the
+`"failed"` lifecycle event, which covers failures after the source transaction
+confirms.
 
 ```tsx
-onDepositComplete={(data) => {
-  console.log("Completed:", data.destinationTxHash);
-  console.log("Amount:", data.amount);
-}}
-```
-
-| Field | Type | Description |
-|---|---|---|
-| `txHash` | `string` | Source chain transaction hash |
-| `destinationTxHash` | `string \| undefined` | Target chain transaction hash. Absent when `waitForFinalTx` is `false`. |
-| `amount` | `string` | Amount transferred |
-| `sourceChain` | `number \| "solana"` | Source chain ID |
-| `sourceToken` | `string` | Source token address |
-| `targetChain` | `number` | Target chain ID |
-| `targetToken` | `string` | Target token address |
-
-### onDepositFailed
-
-Fires when the bridge fails after the deposit was submitted.
-
-```tsx
-onDepositFailed={(data) => {
-  console.log("Failed:", data.txHash, data.error);
-}}
-```
-
-| Field | Type | Description |
-|---|---|---|
-| `txHash` | `string` | Source chain transaction hash |
-| `error` | `string \| undefined` | Error message, if available |
-
-### onError
-
-Fires on errors at any stage — wallet connection, transaction signing, bridge setup, etc.
-
-```tsx
-onError={(data) => {
-  console.error(`[${data.code}] ${data.message}`);
-}}
+onError={(data) => console.error(`[${data.code}] ${data.message}`)}
 ```
 
 | Field | Type | Description |
@@ -131,25 +130,31 @@ For bridge-level error codes, see [deposit processing error codes](/deposits/api
 
 ## Error handling
 
-Errors can occur at different stages:
-
-| Stage | Callback | Typical causes |
+| Stage | Signal | Typical causes |
 |---|---|---|
 | Wallet connection | `onError` | User rejected connection, network error |
 | Transaction signing | `onError` | User rejected transaction, insufficient gas |
-| After submission | `onDepositFailed` | Bridge failure, timeout, price deviation |
+| After submission | `onLifecycle` `"failed"` | Bridge failure, timeout, price deviation |
 | Any stage | `onError` | Unexpected errors |
 
-`onError` fires for errors that prevent the deposit from being submitted. `onDepositFailed` fires for failures that happen after the source chain transaction is confirmed — at that point, the deposit service may [retry automatically](/deposits/api/deposit-processing#retries).
+After the source chain transaction confirms, the deposit service may
+[retry automatically](/deposits/api/deposit-processing#retries) before the
+`"failed"` event fires.
 
 ## Analytics
 
-The `onEvent` callback fires on granular user interactions for integration with your analytics pipeline.
+The `onEvent` callback fires on granular user interactions for your analytics
+pipeline. Its payload type is `DepositAnalyticsEvent` (or
+`WithdrawAnalyticsEvent`).
 
 ```tsx
-onEvent={(event) => {
+import type { DepositAnalyticsEvent } from "@rhinestone/deposit-modal";
+
+onEvent={(event: DepositAnalyticsEvent) => {
   analytics.track(event.type, event);
 }}
 ```
 
-Events include modal views (`*_open`) and CTA clicks (`*_cta_click`) at each step of the flow, with contextual properties like selected token, chain, and amount.
+Events include modal views (`*_open`) and CTA clicks (`*_cta_click`) at each
+step of the flow, with contextual properties like selected token, chain, and
+amount.

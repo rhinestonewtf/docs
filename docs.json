@@ -263,7 +263,8 @@
               "deposits/widget/deposit-modal",
               "deposits/widget/withdraw-modal",
               "deposits/widget/customization",
-              "deposits/widget/status-tracking"
+              "deposits/widget/status-tracking",
+              "deposits/widget/migration"
             ]
           }
         ]
