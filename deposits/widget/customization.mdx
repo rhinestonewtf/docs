@@ -3,7 +3,7 @@ title: "Customization"
 description: "Theme, brand, and configure the deposit widget to match your app."
 ---
 
-The deposit and withdraw modals accept `theme`, `branding`, and `uiConfig` props to control appearance and behavior.
+The deposit and withdraw modals accept `theme` and `uiConfig` props to control appearance and behavior.
 
 ## Theme
 
@@ -36,40 +36,19 @@ Pass a `theme` object to control the modal's visual style.
 
 All color values accept any CSS color string (hex, rgb, hsl, etc.). Omitted properties use the design system defaults for the selected `mode`.
 
-## Branding
-
-Replace the modal header logo and title with your own.
-
-```tsx
-<DepositModal
-  // ...required props
-  branding={{
-    logoUrl: "https://your-app.com/logo.png",
-    title: "My App",
-  }}
-/>
-```
-
-### Properties
-
-| Property | Type | Default | Description |
-|---|---|---|---|
-| `logoUrl` | `string` | Rhinestone logo | Image URL for the modal header |
-| `title` | `string` | `"Deposit"` / `"Withdraw"` | Header title text |
-
 ## UI configuration
 
-Toggle UI elements and set deposit constraints via `uiConfig`.
+Toggle UI elements, set deposit constraints, and control fee display via `uiConfig`.
 
 ```tsx
 <DepositModal
   // ...required props
   uiConfig={{
-    showLogo: true,
-    showStepper: true,
-    balance: { title: "Wallet balance" },
+    showBackButton: true,
+    showHistoryButton: true,
     minDepositUsd: 1,
     maxDepositUsd: 10000,
+    feeSponsored: true,
   }}
 />
 ```
@@ -78,9 +57,9 @@ Toggle UI elements and set deposit constraints via `uiConfig`.
 
 | Property | Type | Default | Description |
 |---|---|---|---|
-| `showLogo` | `boolean` | `false` | Show the branding logo in the header |
-| `showStepper` | `boolean` | `false` | Show the progress stepper |
 | `showBackButton` | `boolean` | `true` | Show the back button in the header |
-| `balance` | `{ title: string, amount?: string }` | — | Custom balance display. `title` sets the label, `amount` optionally overrides the displayed value. |
-| `maxDepositUsd` | `number` | — | Maximum deposit amount in USD |
+| `showHistoryButton` | `boolean` | `false` | Show the deposit history button in the header |
 | `minDepositUsd` | `number` | — | Minimum deposit amount in USD |
+| `maxDepositUsd` | `number` | — | Maximum deposit amount in USD |
+| `feeSponsored` | `boolean` | `false` | When `true`, the network/protocol fee renders struck-through on the review, processing, and result screens, with a tooltip explaining the sponsorship |
+| `feeTooltip` | `string` | — | Custom copy for the fee info tooltip. Defaults to a generic message based on `feeSponsored`. |

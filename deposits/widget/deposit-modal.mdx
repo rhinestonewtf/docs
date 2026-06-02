@@ -33,7 +33,7 @@ import "@rhinestone/deposit-modal/styles.css";
   targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   recipient="0xYOUR_RECIPIENT_ADDRESS"
   reownAppId="YOUR_REOWN_PROJECT_ID"
-  onDepositComplete={(data) => console.log(data)}
+  onLifecycle={(event) => event.type === "complete" && console.log(event)}
 />
 ```
 
@@ -55,7 +55,7 @@ import "@rhinestone/deposit-modal/styles.css";
   recipient="0xYOUR_RECIPIENT_ADDRESS"
   dappAddress={embeddedWalletAddress}
   onRequestConnect={() => login()}
-  onDepositComplete={(data) => console.log(data)}
+  onLifecycle={(event) => event.type === "complete" && console.log(event)}
 />
 ```
 
@@ -76,7 +76,7 @@ import "@rhinestone/deposit-modal/styles.css";
   targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   recipient="0xYOUR_RECIPIENT_ADDRESS"
   dappAddress={ownerAddress}
-  onDepositComplete={(data) => console.log(data)}
+  onLifecycle={(event) => event.type === "complete" && console.log(event)}
 />
 ```
 
@@ -86,15 +86,16 @@ Control the deposit destination and optionally pre-fill source parameters.
 
 | Prop | Type | Required | Description |
 |---|---|---|---|
-| `targetChain` | `Chain \| number` | Yes | Destination chain (viem `Chain` object or chain ID) |
-| `targetToken` | `Address` | Yes | Token address on the destination chain |
-| `recipient` | `Address` | Yes | Where funds are delivered on the target chain |
-| `defaultAmount` | `string` | No | Pre-filled deposit amount |
+| `targetChain` | `Chain \| number \| "solana"` | Yes | Destination chain (viem `Chain` object, chain ID, or `"solana"`) |
+| `targetToken` | `Address \| string` | Yes | Token address on the destination chain (base58 mint for Solana) |
+| `recipient` | `Address \| string` | Yes | Where funds are delivered on the target chain (base58 address for Solana) |
+| `defaultAmount` | `string` | No | Pre-filled deposit amount. A USD number string (e.g. `"25"`) or the sentinel `"max"` to fill the full available balance. |
 | `sourceChain` | `Chain \| number` | No | Pre-selected source chain |
 | `sourceToken` | `Address` | No | Pre-selected source token |
 | `allowedRoutes` | `RouteConfig` | No | Restrict available source chains and tokens |
 | `outputTokenRules` | `OutputTokenRule[]` | No | Route the deposit to a different final token based on what the user deposited |
 | `rejectUnmapped` | `boolean` | No | Reject deposits that don't match any routing rule instead of falling back to `targetToken` |
+| `appBalanceUsd` | `number` | No | The user's current in-app balance (USD). When set, the amount screen shows a "Balance after deposit" row (`appBalanceUsd + amount`). |
 
 The `allowedRoutes` prop accepts `{ sourceChains?: number[], sourceTokens?: string[] }` to limit what the user can select. For supported chains and tokens, see [supported chains](/deposits/overview#supported-chains-and-tokens).
 
@@ -106,7 +107,6 @@ Sessions allow the widget to execute bridging on behalf of the user's smart acco
 |---|---|---|---|
 | `sessionChainIds` | `number[]` | All supported chains | Restrict which chains get session keys |
 | `forceRegister` | `boolean` | `false` | Force session re-creation even if the account is already registered |
-| `waitForFinalTx` | `boolean` | `true` | Wait for destination chain confirmation before firing `onDepositComplete`. When `false`, resolves after the bridge is submitted. |
 
 ## Destination token routing
 
@@ -150,6 +150,36 @@ Execute actions on the destination chain after bridging completes. Use this for 
 
 The flow becomes: deposit on source chain → bridge to target chain → swap into the output token → deliver to the recipient.
 
+## Import from other apps
+
+The modal can pull balances a user already holds in a supported third-party app
+and fund the deposit from there — no manual transfer first. Each source is
+**off by default**; opt in per source via `dappImports`.
+
+```tsx
+<DepositModal
+  // ...required props
+  dappImports={{ polymarket: true }}
+/>
+```
+
+When enabled and the connected wallet has a balance in that app, a new row
+(e.g. "Transfer from Polymarket") appears on the deposit entry screen. The
+user picks it, and the modal pulls the funds into their smart account and
+bridges them to `targetChain` / `targetToken` like any other source.
+
+### Polymarket
+
+Set `dappImports={{ polymarket: true }}`. The modal looks up the connected
+EOA's Polymarket proxy wallet on Polygon and surfaces any pUSD or USDC.e
+balance. pUSD is unwrapped to USDC.e on the way out; USDC.e is what lands in the
+smart account and what the orchestrator bridges from.
+
+Polymarket exposes two wallet types and the modal handles both: some transfer
+on-chain directly from the user's signed transaction, while others are relayed
+through your configured [`backendUrl`](#backend). The default Rhinestone
+backend handles both with no extra setup.
+
 ## Display modes
 
 By default, the component renders as a centered modal overlay with a backdrop. Set `inline={true}` to render it without the overlay, fitting into your page layout.
@@ -173,9 +203,9 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 |---|---|---|
 | `isOpen` | `boolean` | Controls modal visibility |
 | `onClose` | `() => void` | Called when the user closes the modal |
-| `targetChain` | `Chain \| number` | Destination chain (viem `Chain` object or chain ID) |
-| `targetToken` | `Address` | Token address on the destination chain |
-| `recipient` | `Address` | Where funds are delivered on the target chain |
+| `targetChain` | `Chain \| number \| "solana"` | Destination chain (viem `Chain` object, chain ID, or `"solana"`) |
+| `targetToken` | `Address \| string` | Token address on the destination chain |
+| `recipient` | `Address \| string` | Where funds are delivered on the target chain |
 
 ### Wallet
 
@@ -186,19 +216,20 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 | `dappWalletClient` | `WalletClient` | — | Host-provided viem wallet client for signing |
 | `dappPublicClient` | `PublicClient` | — | Host-provided viem public client |
 | `onRequestConnect` | `() => void` | — | Called when the modal needs the user to connect a wallet |
-| `connectButtonLabel` | `string` | — | Custom label for the connect button |
 
 ### Transfer
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `defaultAmount` | `string` | — | Pre-filled deposit amount |
+| `defaultAmount` | `string` | — | Pre-filled deposit amount. USD number string or the sentinel `"max"`. |
 | `sourceChain` | `Chain \| number` | — | Pre-selected source chain |
 | `sourceToken` | `Address` | — | Pre-selected source token |
+| `appBalanceUsd` | `number` | — | In-app USD balance; enables the "Balance after deposit" row |
 | `allowedRoutes` | `RouteConfig` | — | `{ sourceChains?, sourceTokens? }` to restrict selection |
 | `outputTokenRules` | `OutputTokenRule[]` | — | Per-deposit output token routing rules |
 | `rejectUnmapped` | `boolean` | `false` | Reject deposits that don't match any `outputTokenRules` entry |
 | `postBridgeActions` | `PostBridgeAction[]` | — | Actions to execute after bridging |
+| `dappImports` | `DappImportsConfig` | — | [Import balances](#import-from-other-apps) from third-party apps (e.g. `{ polymarket: true }`) |
 
 ### Session
 
@@ -206,7 +237,6 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 |---|---|---|---|
 | `sessionChainIds` | `number[]` | All supported | Chain IDs for session key creation |
 | `forceRegister` | `boolean` | `false` | Force session re-creation |
-| `waitForFinalTx` | `boolean` | `true` | Wait for destination chain confirmation |
 | `signerAddress` | `Address` | Default signer | Session signer address |
 | `rhinestoneApiKey` | `string` | — | API key for account setup |
 
@@ -224,7 +254,6 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 | `closeOnOverlayClick` | `boolean` | `true` | Close modal on backdrop click |
 | `className` | `string` | — | CSS class for the modal container |
 | `theme` | `DepositModalTheme` | — | [Theme configuration](/deposits/widget/customization#theme) |
-| `branding` | `DepositModalBranding` | — | [Branding configuration](/deposits/widget/customization#branding) |
 | `uiConfig` | `DepositModalUIConfig` | — | [UI configuration](/deposits/widget/customization#ui-configuration) |
 | `debug` | `boolean` | `false` | Enable debug logging |
 
@@ -233,14 +262,11 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 | Prop | Type | Description |
 |---|---|---|
 | `onReady` | `() => void` | Modal initialized |
-| `onConnected` | `(data: ConnectedEventData) => void` | Smart account created |
-| `onDepositSubmitted` | `(data: DepositSubmittedEventData) => void` | Deposit transaction submitted on source chain |
-| `onDepositComplete` | `(data: DepositCompleteEventData) => void` | Tokens arrived on target chain |
-| `onDepositFailed` | `(data: DepositFailedEventData) => void` | Bridge or transfer failed |
+| `onLifecycle` | `(event: DepositLifecycleEvent) => void` | [Lifecycle event](/deposits/widget/status-tracking#onlifecycle) — switch on `event.type` (`connected`, `submitted`, `complete`, `failed`, `balance-changed`, `smart-account-changed`) |
 | `onError` | `(data: ErrorEventData) => void` | Error at any stage |
-| `onEvent` | `(event: DepositEvent) => void` | [Analytics event](/deposits/widget/status-tracking#analytics) |
+| `onEvent` | `(event: DepositAnalyticsEvent) => void` | [Analytics event](/deposits/widget/status-tracking#analytics) |
 
-See [status tracking](/deposits/widget/status-tracking) for callback payload types and the deposit lifecycle.
+See [status tracking](/deposits/widget/status-tracking) for lifecycle event payloads.
 
 ### Solana
 

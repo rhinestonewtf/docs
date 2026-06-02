@@ -61,9 +61,9 @@ This renders a modal where the user connects their wallet, picks a source chain 
 
 <Step title="Handle completion">
 
-Add the `onDepositComplete` callback to react when tokens arrive on the target chain.
+Add the `onLifecycle` callback and react to the `"complete"` event when tokens arrive on the target chain.
 
-```tsx {8-11}
+```tsx {8-13}
 <DepositModal
   isOpen={isOpen}
   onClose={() => setIsOpen(false)}
@@ -71,14 +71,16 @@ Add the `onDepositComplete` callback to react when tokens arrive on the target c
   targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   recipient="0xYOUR_RECIPIENT_ADDRESS"
   reownAppId={process.env.NEXT_PUBLIC_REOWN_PROJECT_ID!}
-  onDepositComplete={(data) => {
-    console.log("Deposit complete:", data.destinationTxHash);
-    setIsOpen(false);
+  onLifecycle={(event) => {
+    if (event.type === "complete") {
+      console.log("Deposit complete:", event.destinationTxHash);
+      setIsOpen(false);
+    }
   }}
 />
 ```
 
-See [`onDepositComplete`](/deposits/widget/status-tracking#ondepositcomplete) for the full `data` payload shape, and [status tracking](/deposits/widget/status-tracking) for all available callbacks.
+`onLifecycle` is a single callback that emits every state transition as a discriminated event — switch on `event.type`. See [status tracking](/deposits/widget/status-tracking#onlifecycle) for all event variants and payloads.
 
 </Step>
 
@@ -91,7 +93,7 @@ See [`onDepositComplete`](/deposits/widget/status-tracking#ondepositcomplete) fo
     Integration modes, transfer configuration, and full props reference.
   </Card>
   <Card title="Customization" icon="palette" href="/deposits/widget/customization">
-    Theme, branding, and UI configuration.
+    Theme and UI configuration.
   </Card>
   <Card title="Status tracking" icon="activity" href="/deposits/widget/status-tracking">
     Lifecycle events, callbacks, and error handling.
