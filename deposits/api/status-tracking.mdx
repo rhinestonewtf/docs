@@ -251,6 +251,7 @@ Sent when tokens have arrived on the target chain.
 | `destination.chain`           | `string`              | Destination chain (CAIP-2)          |
 | `destination.amount`          | `string`              | Destination amount                  |
 | `destination.asset`           | `string`              | Destination asset address           |
+| `destination.logIndex`        | `number \| undefined` | Log index of the destination transfer, when available |
 | `account`                     | `string`              | Account address                     |
 | `settlementLayer`             | `string \| undefined` | Settlement layer used               |
 
@@ -278,7 +279,8 @@ Sent when tokens have arrived on the target chain.
             "transactionHash": "0x789ghi...",
             "chain": "eip155:42161",
             "amount": "990000",
-            "asset": "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
+            "asset": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+            "logIndex": 5
         },
         "account": "0x1234567890abcdef1234567890abcdef12345678"
     }
