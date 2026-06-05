@@ -127,7 +127,7 @@ Passing a raw `policies` array on a permission now throws instead of being silen
 
 ### Session policy addresses
 
-The SmartSession policy singletons were redeployed for V2, and `toSession` now bakes the new (V2) addresses into the session digest by default. If an account already enabled sessions against the **previous** deployments, re-encoding that session under the new SDK binds different policy addresses into the digest preimage — the recomputed digest diverges from the signature the user originally produced, and `_enableSession` reverts on-chain with `HashMismatch`.
+The smart session policies were redeployed, and `toSession` now bakes the new addresses into the session digest by default. If an account already enabled sessions against the previous deployments, trying to use the existing session with the new policies results in an onchain revert due to the digest mismatch.
 
 Pin the affected policies back to the addresses the account was enabled against via `SessionDefinition.policyAddresses`. It's a partial map — only override what you need; everything else falls back to the V2 default:
 
