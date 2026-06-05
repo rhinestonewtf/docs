@@ -143,7 +143,19 @@ const session = toSession({
 })
 ```
 
-The map accepts `sudo`, `universalAction`, `argPolicy`, `spendingLimits`, `timeFrame`, `usageLimit`, and `valueLimit`. New accounts need none of this — the V2 defaults are correct.
+The singletons that changed between V1 and V2 — pin the ones your account's sessions were enabled against:
+
+| `policyAddresses` key | Policy | V1 address | V2 address (default) |
+| --- | --- | --- | --- |
+| `sudo` | [Sudo](../smart-sessions/policies/sudo) | `0x0000003111cD8e92337C100F22B7A9dbf8DEE301` | `0x0000000000FEEc8D74e3143fBaBbca515358d869` |
+| `universalAction` | [Call](../smart-sessions/policies/call) | `0x0000006DDA6c463511C4e9B05CFc34C1247fCF1F` | `0x0000000000714Cf48FcF88A0bFBa70d313415032` |
+| `argPolicy` | Arg policy | — (new in V2) | `0x0000000000167edE64D8751daACDdC0312565a73` |
+| `spendingLimits` | [Spending limit](../smart-sessions/policies/spending-limit) | `0x00000088D48cF102A8Cdb0137A9b173f957c6343` | `0x000000000033212E272655D8a22402Db819477A6` |
+| `timeFrame` | [Timeframe](../smart-sessions/policies/timeframe) | `0x8177451511dE0577b911C254E9551D981C26dc72` | `0x0000000000D30f611fA3bf652ac6879428586930` |
+| `usageLimit` | [Usage limit](../smart-sessions/policies/usage-limit) | `0x1F34eF8311345A3A4a4566aF321b313052F51493` | `0x00000000001d4479FA2A947026204d0283ceDe4B` |
+| `valueLimit` | Value limit | `0x730DA93267E7E513e932301B47F2ac7D062abC83` | `0x000000000021dC45451291BCDfc9f0B46d6f0278` |
+
+`argPolicy` is new in V2 and has no V1 equivalent — a session enabled under V1 never used it, so there's nothing to pin. New accounts need none of this; the V2 defaults are correct.
 
 ### Quote selection
 
