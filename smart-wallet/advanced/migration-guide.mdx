@@ -129,7 +129,7 @@ Passing a raw `policies` array on a permission now throws instead of being silen
 
 The smart session policies were redeployed, and `toSession` now bakes the new addresses into the session digest by default. If an account already enabled sessions against the previous deployments, trying to use the existing session with the new policies results in an onchain revert due to the digest mismatch.
 
-Pin the affected policies back to the addresses the account was enabled against via `SessionDefinition.policyAddresses`. It's a partial map — only override what you need; everything else falls back to the V2 default:
+Pin the affected policies back to the addresses the account was enabled against via `SessionDefinition.policyAddresses`:
 
 ```ts
 const session = toSession({
