@@ -93,6 +93,58 @@ const session = toSession({
 
 The hand-written shape is now `SessionDefinition`; `Session` is the resolved output of `toSession`.
 
+### Session policies are declarative
+
+In 1.x, each `action` carried a raw `policies` array that you assembled by hand. Those arrays are gone — policies are now expressed through fields on the permission's function config, and `toSession` compiles them into the right on-chain policies:
+
+- `params: { x: { anyOf: [a, b] } }` — allowlist a parameter against several values (compiles to an arg-policy OR chain). A single `{ condition, value }` stays a cheaper universal-action.
+- `maxUses` — cap how many times the function may be called.
+- `validUntil` / `validAfter` — restrict the function to a time window (`Date` or ms-epoch).
+- `valueLimit` — cap cumulative ETH value (payable functions only; rejected at compile time otherwise).
+- `spendingLimit: { token, amount }` — cap cumulative ERC-20 spend (only on `transfer` / `transferFrom` / `approve` / `increaseAllowance`-shaped functions).
+
+```ts
+const session = toSession({
+  chain: base,
+  owners: { type: 'ecdsa', accounts: [sessionOwner] },
+  permissions: [
+    {
+      abi: erc20Abi,
+      address: usdcAddress,
+      functions: {
+        transfer: {
+          params: { recipient: { anyOf: [alice, bob] } },
+          spendingLimit: { token: usdcAddress, amount: 1_000_000n },
+          maxUses: 10n,
+        },
+      },
+    },
+  ],
+})
+```
+
+Passing a raw `policies` array on a permission now throws instead of being silently dropped. See [Policies](../smart-sessions/policies/sudo) for the full set.
+
+### Session policy addresses
+
+The SmartSession policy singletons were redeployed for V2, and `toSession` now bakes the new (V2) addresses into the session digest by default. If an account already enabled sessions against the **previous** deployments, re-encoding that session under the new SDK binds different policy addresses into the digest preimage — the recomputed digest diverges from the signature the user originally produced, and `_enableSession` reverts on-chain with `HashMismatch`.
+
+Pin the affected policies back to the addresses the account was enabled against via `SessionDefinition.policyAddresses`. It's a partial map — only override what you need; everything else falls back to the V2 default:
+
+```ts
+const session = toSession({
+  chain: base,
+  owners: { type: 'ecdsa', accounts: [sessionOwner] },
+  permissions: [/* … */],
+  policyAddresses: {
+    // legacy V1 sudo policy
+    sudo: '0x0000003111cD8e92337C100F22B7A9dbf8DEE301',
+  },
+})
+```
+
+The map accepts `sudo`, `universalAction`, `argPolicy`, `spendingLimits`, `timeFrame`, `usageLimit`, and `valueLimit`. New accounts need none of this — the V2 defaults are correct.
+
 ### Quote selection
 
 `prepareTransaction` now returns `quotes: { best, all }` instead of a single `quote`. Existing `prepare → sign → submit` code keeps working — `signTransaction` defaults to `quotes.best`:
