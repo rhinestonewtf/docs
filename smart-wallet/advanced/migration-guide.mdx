@@ -93,6 +93,68 @@ const session = toSession({
 
 The hand-written shape is now `SessionDefinition`; `Session` is the resolved output of `toSession`.
 
+### Session policies are declarative
+
+In 1.x, each `action` carried a raw `policies` array that you assembled by hand. Those arrays are gone — policies are now expressed through fields on the permission's function config, and `toSession` compiles them into the right on-chain policies:
+
+- `params: { x: { anyOf: [a, b] } }` — allowlist a parameter against several values (compiles to an arg-policy OR chain). A single `{ condition, value }` stays a cheaper universal-action.
+- `maxUses` — cap how many times the function may be called.
+- `validUntil` / `validAfter` — restrict the function to a time window (`Date` or ms-epoch).
+- `valueLimit` — cap cumulative ETH value (payable functions only; rejected at compile time otherwise).
+- `spendingLimit: { token, amount }` — cap cumulative ERC-20 spend (only on `transfer` / `transferFrom` / `approve` / `increaseAllowance`-shaped functions).
+
+```ts
+const session = toSession({
+  chain: base,
+  owners: { type: 'ecdsa', accounts: [sessionOwner] },
+  permissions: [
+    {
+      abi: erc20Abi,
+      address: usdcAddress,
+      functions: {
+        transfer: {
+          params: { recipient: { anyOf: [alice, bob] } },
+          spendingLimit: { token: usdcAddress, amount: 1_000_000n },
+          maxUses: 10n,
+        },
+      },
+    },
+  ],
+})
+```
+
+Passing a raw `policies` array on a permission now throws instead of being silently dropped. See [Policies](../smart-sessions/policies/sudo) for the full set.
+
+### Session policy addresses
+
+The smart session policies were redeployed, and `toSession` now bakes the new addresses into the session digest by default. If an account already enabled sessions against the previous deployments, trying to use the existing session with the new policies results in an onchain revert due to the digest mismatch.
+
+Pin the affected policies back to the addresses the account was enabled against via `SessionDefinition.policyAddresses`:
+
+```ts
+const session = toSession({
+  chain: base,
+  owners: { type: 'ecdsa', accounts: [sessionOwner] },
+  permissions: [/* … */],
+  policyAddresses: {
+    // legacy V1 sudo policy
+    sudo: '0x0000003111cD8e92337C100F22B7A9dbf8DEE301',
+  },
+})
+```
+
+The singletons that changed between V1 and V2 — pin the ones your account's sessions were enabled against:
+
+| Policy | Key | V1 address | V2 address (default) |
+| --- | --- | --- | --- |
+| [Sudo](../smart-sessions/policies/sudo) | `sudo` | `0x0000003111cD8e92337C100F22B7A9dbf8DEE301` | `0x0000000000FEEc8D74e3143fBaBbca515358d869` |
+| [Call](../smart-sessions/policies/call) | `universalAction` | `0x0000006DDA6c463511C4e9B05CFc34C1247fCF1F` | `0x0000000000714Cf48FcF88A0bFBa70d313415032` |
+| Arg policy | `argPolicy` | — (new in V2) | `0x0000000000167edE64D8751daACDdC0312565a73` |
+| [Spending limit](../smart-sessions/policies/spending-limit) | `spendingLimits` | `0x00000088D48cF102A8Cdb0137A9b173f957c6343` | `0x000000000033212E272655D8a22402Db819477A6` |
+| [Timeframe](../smart-sessions/policies/timeframe) | `timeFrame` | `0x8177451511dE0577b911C254E9551D981C26dc72` | `0x0000000000D30f611fA3bf652ac6879428586930` |
+| [Usage limit](../smart-sessions/policies/usage-limit) | `usageLimit` | `0x1F34eF8311345A3A4a4566aF321b313052F51493` | `0x00000000001d4479FA2A947026204d0283ceDe4B` |
+| Value limit | `valueLimit` | `0x730DA93267E7E513e932301B47F2ac7D062abC83` | `0x000000000021dC45451291BCDfc9f0B46d6f0278` |
+
 ### Quote selection
 
 `prepareTransaction` now returns `quotes: { best, all }` instead of a single `quote`. Existing `prepare → sign → submit` code keeps working — `signTransaction` defaults to `quotes.best`:
