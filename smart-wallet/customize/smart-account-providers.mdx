@@ -13,6 +13,10 @@ const rhinestoneAccount = await rhinestone.createAccount({
     type: 'safe',
   },
   owners: {
+    // ECDSA/ENS owners become the Safe's native owner. Passkey/multi-factor
+    // owners have no EOA, so the native owner is set to the NoSafeOwner
+    // contract (0xbabe99…5e72), which rejects every signature — the native
+    // owner path is dead and auth runs solely through the 7579 validators.
     type: 'ecdsa',
     accounts: [account],
   },
