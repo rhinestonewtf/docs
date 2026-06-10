@@ -180,6 +180,48 @@ on-chain directly from the user's signed transaction, while others are relayed
 through your configured [`backendUrl`](#backend). The default Rhinestone
 backend handles both with no extra setup.
 
+#### Open directly into Polymarket
+
+To skip the deposit-method home screen and land the user straight on the
+Polymarket transfer, pass `initialDappImport="polymarket"` alongside
+`dappImports={{ polymarket: true }}`. While balances load the modal shows a
+skeleton; if there's no account, no balance, or no connected wallet it falls
+back to the home screen.
+
+```tsx
+<DepositModal
+  // ...required props
+  dappImports={{ polymarket: true }}
+  initialDappImport="polymarket"
+/>
+```
+
+#### Headless account lookup
+
+If you build your own UI and only need the data, the
+`@rhinestone/deposit-modal/polymarket` subpath exports a headless
+`getPolymarketAccount` — no React, modal, or wallet-connect code pulled into
+your bundle. Give it the connected EOA and it returns the user's Polymarket
+proxy wallet address and on-chain pUSD / USDC.e balances on Polygon.
+
+```ts
+import { getPolymarketAccount } from "@rhinestone/deposit-modal/polymarket";
+
+const account = await getPolymarketAccount({ eoa: connectedAddress });
+
+if (account) {
+  account.proxyWallet; // the user's Polymarket address on Polygon
+  account.pusd.formatted; // pUSD balance, e.g. "12.5"
+  account.usdce.formatted; // USDC.e balance
+  account.totalUsd; // combined USD value
+}
+```
+
+Returns `null` only when the EOA has no Polymarket account. A transient failure
+(network, 5xx, abort) rejects instead, so an outage is never mistaken for "no
+account". Pass `rpcUrl` to override the default public Polygon RPC, or a
+`signal` (`AbortSignal`) to cancel the lookup.
+
 ## Display modes
 
 By default, the component renders as a centered modal overlay with a backdrop. Set `inline={true}` to render it without the overlay, fitting into your page layout.
@@ -230,6 +272,7 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 | `rejectUnmapped` | `boolean` | `false` | Reject deposits that don't match any `outputTokenRules` entry |
 | `postBridgeActions` | `PostBridgeAction[]` | — | Actions to execute after bridging |
 | `dappImports` | `DappImportsConfig` | — | [Import balances](#import-from-other-apps) from third-party apps (e.g. `{ polymarket: true }`) |
+| `initialDappImport` | `keyof DappImportsConfig` | — | Open the modal pre-routed into a dapp import (e.g. `"polymarket"`), skipping the home screen. Must name an enabled `dappImports` key. |
 
 ### Session
 
