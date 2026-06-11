@@ -1,71 +1,39 @@
 ---
 title: "Set up sponsorship"
-description: "Monitor and topup your sponsorship balance"
+description: "Monitor and top up your sponsorship balance"
 ---
 
-Rhinestone lets you sponsor your user's activity by topping up a single onchain account ("gas tank").
+Rhinestone lets you sponsor your users' activity by topping up a single onchain account ("gas tank").
 
-You can manage your sponsorship balance in the [Dashboard](https://dashboard.rhinestone.dev).
+You manage your sponsorship balance in the [Dashboard](https://dashboard.rhinestone.dev) under **Settings → Sponsorship**.
 
 ## Viewing your balance
 
-To see your sponsorship balance, open the "Sponsorship" tab:
+The Sponsorship tab shows your available balance and the deposit address that funds it.
 
 <Frame>
-  <img src="/images/dashboard/sponsorship.png" />
+  <img src="/images/dashboard/sponsorship/balance.png" />
 </Frame>
 
 ## Topping up
 
-On the same page, you can also top up your balance by sending USDC on Base to the deposit contract.
-
 There are two ways to top up:
 
-1. Using the deposit modal with the connected wallet
-2. Making a token transfer manually with your wallet of choice
+1. Using the deposit modal with a connected wallet
+2. Sending a token transfer manually from any wallet
+
+<Warning>Only ever send **USDC on Base**. Any other token will not be credited towards your sponsorship balance.</Warning>
 
 ### Using the modal
 
-The easiest way to increase your balance is to use the deposit modal.
-
-To start, press the "Deposit" button:
+The easiest way to top up is the deposit modal. Press "Deposit", enter the amount of USDC, and press "Deposit" again.
 
 <Frame>
-  <img src="/images/dashboard/sponsorship-modal-trigger.png" />
+  <img src="/images/dashboard/sponsorship/deposit-amount.png" />
 </Frame>
 
-Enter the amount to deposit and press "Deposit":
-
-<Frame>
-  <img src="/images/dashboard/sponsorship-modal-input.png" />
-</Frame>
-
-Approve the transaction in your wallet:
-
-<Frame>
-  <img src="/images/dashboard/sponsorship-modal-confirm.png" />
-</Frame>
-
-Once your transaction is complete, your balance will automatically update.
+Approve the transaction in your connected wallet. Once it confirms, your balance updates automatically.
 
 ### Manual deposits
 
-You can deposit the tokens directly using your wallet.
-
-This can be useful if you need to use an external wallet (e.g., Safe or mobile wallet).
-
-To start, press the "Copy" button to copy your address:
-
-<Frame>
-  <img src="/images/dashboard/sponsorship-address-copy.png" />
-</Frame>
-
-Open your wallet to initiate the tranfer transaction:
-
-<Frame>
-  <img src="/images/dashboard/safe-token-transfer.png" />
-</Frame>
-
-<Warning>Make sure to **only send USDC on Base**. Any other token would not be credited towards the sponsorship balance.</Warning>
-
-Once your transaction is complete, your balance will automatically update.
+If you'd rather send from an external wallet (e.g. a Safe or mobile wallet), press "Copy" next to the deposit address and transfer USDC on Base to it directly. Once the transfer confirms, your balance updates automatically.

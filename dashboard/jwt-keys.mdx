@@ -1,0 +1,83 @@
+---
+title: "JWT keys"
+description: "Register a signing key so your backend can issue JWTs"
+---
+
+JWT authentication lets your backend mint short-lived tokens instead of using a long-lived API key. Before you can issue JWTs, you register a **public signing key** with Rhinestone from the [Dashboard](https://dashboard.rhinestone.dev) under **API keys → JWT keys**.
+
+<Note>This page covers registering and managing keys in the dashboard. For how the SDK signs and uses JWTs — including per-request sponsorship policies — see [JWT authentication](/intents/configuration/jwt-authentication).</Note>
+
+## Registering a key
+
+Press "Register key". You can either generate a keypair in your browser or upload a public key you already have.
+
+<Tabs>
+<Tab title="Generate a keypair">
+
+The dashboard generates a keypair in your browser. Only the public key is sent to Rhinestone — the private key never leaves your machine.
+
+<Steps>
+<Step title="Fill in the form">
+
+<Frame>
+  <img src="/images/dashboard/jwt-keys/generate.png" />
+</Frame>
+
+- **Integrator ID** — your organisation's identifier, emitted as the `iss` claim in the JWTs you sign. Typically your service's name.
+- **Key ID** — identifier for this specific key, emitted as the `kid` header. Use a stable name you can rotate later (e.g. `prod-2026-06`).
+
+Press "Create Key".
+
+</Step>
+<Step title="Download the private key">
+
+Download the private key file and store it securely on your backend.
+
+<Frame>
+  <img src="/images/dashboard/jwt-keys/download.png" />
+</Frame>
+
+<Warning>The private key is shown once and can't be recovered. If you lose it, disable the key and register a new one.</Warning>
+
+</Step>
+</Steps>
+
+</Tab>
+<Tab title="Upload a public key">
+
+If you already generated a keypair yourself, upload just the public half as a JWK.
+
+<Steps>
+<Step title="Fill in the form and paste your JWK">
+
+<Frame>
+  <img src="/images/dashboard/jwt-keys/upload.png" />
+</Frame>
+
+- **Integrator ID** — emitted as the `iss` claim (see above).
+- **Key ID** — emitted as the `kid` header (see above).
+- **Public JWK** — paste the JWK JSON, or drag in a `.json` file.
+
+Supported key types are RSA and EC (curve P-256). Only the **public** key is accepted — uploads containing a private key parameter are rejected.
+
+</Step>
+</Steps>
+
+</Tab>
+</Tabs>
+
+Once registered, the key shows as **active** in the list, with its Key ID and Integrator ID.
+
+## Rotating keys
+
+Register a new key with a new Key ID and start signing tokens with it. Tokens signed under the old `kid` keep verifying until they expire, so there's no coordinated client deploy and no revocation race. Disable the old key once nothing signs with it.
+
+## Disabling a key
+
+Open the key and press "Disable".
+
+<Frame>
+  <img src="/images/dashboard/jwt-keys/disable.png" />
+</Frame>
+
+<Warning>Disabling takes effect immediately — tokens signed with that key are rejected right away.</Warning>

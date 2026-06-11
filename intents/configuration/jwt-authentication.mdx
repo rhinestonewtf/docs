@@ -44,70 +44,7 @@ sequenceDiagram
 
 ## Dashboard setup
 
-Before you can issue JWTs, you need to register a signing key with Rhinestone. Keys are managed per-project from the [Dashboard](https://dashboard.rhinestone.dev) under **Auth → JWT Keys**.
-
-### Viewing your keys
-
-Open the "JWT Keys" tab. If you haven't added a key yet, the list is empty:
-
-<Frame>
-  <img src="/images/dashboard/jwt-keys-empty.png" />
-</Frame>
-
-### Adding a key
-
-Press "+ Add Key" to open the key creation modal. There are two ways to add a key: generate a new keypair in the browser, or upload a public JWK you've created yourself.
-
-<Tabs>
-<Tab title="Generate">
-
-The dashboard can generate a keypair directly in your browser. Only the public key is sent to Rhinestone — the private key stays on your machine.
-
-<Steps>
-<Step title="Fill in the form">
-
-<Frame>
-  <img src="/images/dashboard/jwt-keys-generate.png" />
-</Frame>
-
-- **Integrator ID** — identifier for your organisation, emitted as the `iss` claim in the JWTs you'll sign. Typically the name of your service.
-- **Key ID** — identifier for this specific public key, emitted as the `kid` JOSE header. Use a stable name you can rotate later (e.g. `prod-2026-04`).
-
-Press "Add Key" to generate the keypair and register the public half.
-
-</Step>
-<Step title="Save the private key">
-
-The dashboard shows the private key **once**. Download the `.json` file and store it somewhere safe — Rhinestone never sees it and it cannot be recovered:
-
-<Frame>
-  <img src="/images/dashboard/jwt-keys-created.png" />
-</Frame>
-
-<Warning>If you lose the private key, you'll need to register a new one and rotate any clients using the old `kid`.</Warning>
-
-</Step>
-</Steps>
-
-</Tab>
-<Tab title="Upload">
-
-If you've generated a keypair yourself (for example, to store it in a secrets manager first), paste or drag the public JWK JSON into the form:
-
-<Frame>
-  <img src="/images/dashboard/jwt-keys-upload.png" />
-</Frame>
-
-The same **Integrator ID** and **Key ID** rules apply. Only the public key is uploaded.
-
-</Tab>
-</Tabs>
-
-Once the key is created, it shows up in the list along with the integrator ID, status, and creation time:
-
-<Frame>
-  <img src="/images/dashboard/jwt-keys-list.png" />
-</Frame>
+Before you can issue JWTs, you need to register a signing key with Rhinestone. See [JWT keys](/dashboard/jwt-keys) for how to generate or upload a key in the Dashboard. The **Integrator ID** you set there becomes the `iss` claim, and the **Key ID** becomes the `kid` header — both referenced in [Configuration](#configuration) below.
 
 ## Configuration
 

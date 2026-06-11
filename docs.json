@@ -62,6 +62,15 @@
               "home/resources/erc-7579",
               "home/resources/modules"
             ]
+          },
+          {
+            "group": "Dashboard",
+            "pages": [
+              "dashboard/overview",
+              "dashboard/team",
+              "dashboard/api-keys",
+              "dashboard/jwt-keys"
+            ]
           }
         ]
       },
@@ -244,6 +253,7 @@
         "pages": [
           "deposits/overview",
           "deposits/demo",
+          "deposits/troubleshooting",
           {
             "group": "API",
             "pages": [
