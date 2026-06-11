@@ -188,3 +188,11 @@ try {
 
 await browser.close()
 console.log(results.join('\n'))
+
+// Exit non-zero if any shot failed, so a caller (or CI) doesn't treat a
+// partial/failed refresh as success.
+const failed = results.filter((r) => r.startsWith('FAIL'))
+if (failed.length) {
+  console.error(`\n${failed.length} capture(s) failed`)
+  process.exitCode = 1
+}
