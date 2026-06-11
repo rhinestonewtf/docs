@@ -96,9 +96,18 @@ const data = await check.json();
   "isRegistered": true,
   "targetChain": "eip155:42161",
   "targetToken": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-  "sourceChains": ["eip155:8453", "eip155:10", "eip155:42161"]
+  "sources": [
+    { "chain": "eip155:8453", "depositAddress": "<evmDepositAddress>" },
+    { "chain": "eip155:42161", "depositAddress": "<evmDepositAddress>" },
+    {
+      "chain": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+      "depositAddress": "<solanaDepositAddress>"
+    }
+  ]
 }
 ```
+
+`sources` lists every chain the account can receive deposits from, each with its deposit address — EVM chains share the `evmDepositAddress`, Solana carries the `solanaDepositAddress`.
 
 </Step>
 </Steps>
@@ -202,7 +211,7 @@ The JSON replacer `(_, v) => typeof v === "bigint" ? v.toString() : v` is needed
 ```ts
 const check = await fetch(`${DEPOSIT_SERVICE_URL}/check/${address}`);
 const data = await check.json();
-// { isRegistered: true, targetChain: "eip155:42161", ... }
+// { isRegistered: true, targetChain: "eip155:42161", sources: [...] }
 ```
 
 </Step>
