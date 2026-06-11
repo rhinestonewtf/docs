@@ -253,7 +253,6 @@
         "pages": [
           "deposits/overview",
           "deposits/demo",
-          "deposits/troubleshooting",
           {
             "group": "API",
             "pages": [
@@ -276,7 +275,8 @@
               "deposits/widget/status-tracking",
               "deposits/widget/migration"
             ]
-          }
+          },
+          "deposits/troubleshooting"
         ]
       },
       {
