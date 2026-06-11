@@ -111,16 +111,17 @@ const createdApiKey = {
   plaintext: 'rh_sk_live_9Hb3kQ7tWmZ2pX4vN8sLcRf6yJ0aD1gUe2c8',
 }
 
+const CORS = {
+  'Access-Control-Allow-Origin': ORIGIN,
+  'Access-Control-Allow-Credentials': 'true',
+  'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+}
+
 function json(body: unknown, status = 200): Response {
-  return new Response(body === null ? 'null' : JSON.stringify(body), {
+  return new Response(JSON.stringify(body), {
     status,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': ORIGIN,
-      'Access-Control-Allow-Credentials': 'true',
-      'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-    },
+    headers: { 'Content-Type': 'application/json', ...CORS },
   })
 }
 
@@ -129,7 +130,9 @@ Bun.serve({
   fetch(req) {
     const p = new URL(req.url).pathname
     const m = req.method
-    if (m === 'OPTIONS') return json(null, 204)
+    // 204 is a null-body status — return an empty body so the preflight is
+    // spec-compliant on strict Fetch runtimes (Bun tolerates a body; others reject).
+    if (m === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
     if (p === '/users/auth/get-session') return json(SESSION)
     if (p === '/users/me' && m === 'GET') return json({ org: { orgId: ORG_ID, org: { name: 'Rhinestone' } } })
     if (p === '/users/me/projects' && m === 'GET') return json([PROJECT])
