@@ -1,0 +1,47 @@
+---
+title: "Troubleshooting"
+description: "Retry or refund failed deposits from the dashboard"
+---
+
+Most deposits process automatically. When one fails, you can retry or refund it from the [Dashboard](https://dashboard.rhinestone.dev) under **Deposits**.
+
+A failed deposit shows a **failed** status in the deposits list, with "Retry" and "Refund" actions available.
+
+<Frame>
+  <img src="/images/dashboard/deposits/list.png" />
+</Frame>
+
+## Retrying a deposit
+
+Use retry when a deposit failed for a transient reason and the funds are still recoverable on-chain. Open the deposit and press "Retry".
+
+<Frame>
+  <img src="/images/dashboard/deposits/retry.png" />
+</Frame>
+
+<Warning>Retry reprocesses **all failed deposits for that address**, not just the one you opened. Every failed deposit for the address is re-attempted.</Warning>
+
+If retry keeps failing, the funds may not be automatically recoverable — refund the deposit instead, or [reach out to us](http://t.me/kurt_larsen).
+
+## Refunding a deposit
+
+Refunds return a failed deposit's funds to an address you choose. Only Owners and Admins can refund.
+
+<Steps>
+<Step title="Open the deposit and press Refund">
+
+<Frame>
+  <img src="/images/dashboard/deposits/refund.png" />
+</Frame>
+
+</Step>
+<Step title="Enter the recipient">
+
+Enter the address to refund to. You can press "Use sender address" to refund the original sender. Confirm that the recipient is a self-custodial wallet, then press "Refund".
+
+</Step>
+</Steps>
+
+<Warning>Never refund to an exchange deposit address. Exchanges don't credit arbitrary incoming transfers, so the funds **may be lost**. Refund only to a self-custodial wallet you control.</Warning>
+
+Refunds are supported on EVM chains and Solana.
