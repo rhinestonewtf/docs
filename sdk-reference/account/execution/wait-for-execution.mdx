@@ -13,12 +13,12 @@ const result = await account.waitForExecution(result)
 
 ## Parameters
 
-<ParamField path="result" type="TransactionResult" required>
+<ParamField path="result" type="TransactionResult | UserOperationResult" required>
   The result returned by a submit/send call
 </ParamField>
 
 ## Returns
 
-<ResponseField name="result" type="TransactionStatus">
+<ResponseField name="result" type="TransactionStatus | UserOperationReceipt">
   The per-chain operation status (for intents) or a UserOp receipt
 </ResponseField>
