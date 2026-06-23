@@ -14,7 +14,7 @@ import { recoverPasskeyOwnership } from '@rhinestone/sdk/actions/recovery'
 ```ts
 const transaction = await account.prepareTransaction({
   chain,
-  calls: [recoverPasskeyOwnership(address, oldCredentials, newOwners, chain, config)],
+  calls: await recoverPasskeyOwnership(address, oldCredentials, newOwners, chain, config),
 })
 ```
 

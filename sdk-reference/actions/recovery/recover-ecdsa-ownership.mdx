@@ -14,7 +14,7 @@ import { recoverEcdsaOwnership } from '@rhinestone/sdk/actions/recovery'
 ```ts
 const transaction = await account.prepareTransaction({
   chain,
-  calls: [recoverEcdsaOwnership(address, newOwners, chain, config)],
+  calls: await recoverEcdsaOwnership(address, newOwners, chain, config),
 })
 ```
 
