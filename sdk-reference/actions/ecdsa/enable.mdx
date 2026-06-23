@@ -1,0 +1,35 @@
+---
+title: "enable"
+description: "Enable ECDSA authentication"
+---
+
+## Import
+
+```ts
+import { enable } from '@rhinestone/sdk/actions/ecdsa'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [enable(owners, threshold)],
+})
+```
+
+## Parameters
+
+<ParamField path="owners" type="`0x${string}`[]" required>
+  Owners to use for authentication
+</ParamField>
+
+<ParamField path="threshold" type="number" required>
+  Threshold for the owners
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="LazyCallInput">
+  Calls to enable ECDSA authentication
+</ResponseField>

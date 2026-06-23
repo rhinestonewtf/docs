@@ -1,0 +1,26 @@
+---
+title: "experimental_isSessionEnabled"
+description: "Check whether a smart session is enabled on the account."
+---
+
+<Warning>This API is experimental and may change in a future release.</Warning>
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const sessionEnabled = await account.experimental_isSessionEnabled(session)
+```
+
+## Parameters
+
+<ParamField path="session" type="Session" required>
+  Session to check
+</ParamField>
+
+## Returns
+
+<ResponseField name="sessionEnabled" type="boolean">
+  `true` if the session is enabled
+</ResponseField>

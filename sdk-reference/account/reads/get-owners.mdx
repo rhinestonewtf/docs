@@ -1,0 +1,26 @@
+---
+title: "getOwners"
+description: "Get the account owners."
+---
+
+<Note>Only returns ECDSA owners; owners managed by other validator types are not included.</Note>
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const owners = await account.getOwners(chain)
+```
+
+## Parameters
+
+<ParamField path="chain" type="Chain" required>
+  Chain to read the owners from
+</ParamField>
+
+## Returns
+
+<ResponseField name="owners" type="{ accounts: `0x${string}`[]; threshold: number } | null">
+  The owner addresses and threshold, or `null` if unavailable
+</ResponseField>

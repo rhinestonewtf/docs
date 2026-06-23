@@ -1,0 +1,27 @@
+---
+title: "experimental_enable"
+description: "Enable smart sessions"
+---
+
+<Warning>This API is experimental and may change in a future release.</Warning>
+
+## Import
+
+```ts
+import { experimental_enable } from '@rhinestone/sdk/actions/smart-sessions'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [experimental_enable()],
+})
+```
+
+## Returns
+
+<ResponseField name="call" type="LazyCallInput">
+  Calls to enable smart sessions
+</ResponseField>

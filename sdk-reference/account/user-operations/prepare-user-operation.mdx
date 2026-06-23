@@ -1,0 +1,30 @@
+---
+title: "prepareUserOperation"
+description: "Prepare a user operation for signing."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const userOperation = await account.prepareUserOperation(transaction)
+```
+
+## Parameters
+
+<ParamField path="transaction" type="UserOperationTransaction" required>
+  User operation to prepare
+</ParamField>
+
+## Returns
+
+<ResponseField name="userOperation" type="PreparedUserOperationData">
+  The prepared user operation data
+</ResponseField>
+
+## See also
+
+- [signUserOperation](/sdk-reference/account/user-operations/sign-user-operation) to sign the prepared user operation
+- [submitUserOperation](/sdk-reference/account/user-operations/submit-user-operation) to submit the signed user operation
+- [sendUserOperation](/sdk-reference/account/user-operations/send-user-operation) to prepare, sign, and submit in one call

@@ -1,0 +1,39 @@
+---
+title: "getTransactionMessages"
+description: "Get the typed-data messages to sign for a prepared transaction."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const transactionMessages = account.getTransactionMessages(preparedTransaction)
+```
+
+## Parameters
+
+<ParamField path="preparedTransaction" type="PreparedTransactionData" required>
+  Prepared transaction data
+</ParamField>
+
+<ParamField path="options" type="QuoteSelection">
+  Optional override; pass `{ intentId }` to inspect a specific quote from `preparedTransaction.quotes.all`
+</ParamField>
+
+## Returns
+
+The origin, destination, and (when required) target-execution typed-data messages
+
+<ResponseField name="destination" type="MessageDefinition" required>
+</ResponseField>
+
+<ResponseField name="origin" type="MessageDefinition[]" required>
+</ResponseField>
+
+<ResponseField name="targetExecution" type="MessageDefinition">
+</ResponseField>
+
+## See also
+
+- [prepareTransaction](/sdk-reference/account/transactions/prepare-transaction) to prepare the transaction data for signing

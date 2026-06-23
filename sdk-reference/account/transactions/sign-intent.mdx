@@ -1,0 +1,36 @@
+---
+title: "signIntent"
+description: "Sign an orchestrator intent operation. Used by headless flows that prepare the intent outside the SDK but still need the SDK-owned smart-session signature packing and target-execution signature routing."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const signatures = await account.signIntent(signData, targetChain)
+```
+
+## Parameters
+
+<ParamField path="signData" type="SignData" required>
+  Sign data returned by the orchestrator (origin/destination/targetExecution typed data)
+</ParamField>
+
+<ParamField path="targetChain" type="DestinationChain" required>
+  Chain where the destination execution runs
+</ParamField>
+
+<ParamField path="signers" type="SignerSet">
+  Signers to use, or `undefined` for the account default
+</ParamField>
+
+## Returns
+
+<ResponseField name="signatures" type="SignedIntentData">
+  The intent signatures, ready for submission
+</ResponseField>
+
+## See also
+
+- [signTransaction](/sdk-reference/account/transactions/sign-transaction) for the canonical signing path

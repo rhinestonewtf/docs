@@ -1,0 +1,28 @@
+---
+title: "deploy"
+---
+
+## Import
+
+```ts
+import { deploy } from '@rhinestone/sdk/actions'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [deploy(account)],
+})
+```
+
+## Parameters
+
+<ParamField path="account" type="RhinestoneAccount" required>
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="LazyCallInput">
+</ResponseField>

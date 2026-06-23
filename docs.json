@@ -188,6 +188,154 @@
               "smart-wallet/module-sdk",
               "smart-wallet/modulekit"
             ]
+          },
+          {
+            "group": "SDK Reference",
+            "pages": [
+              {
+                "group": "RhinestoneSDK",
+                "pages": [
+                  "sdk-reference/rhinestone-sdk/rhinestone-sdk",
+                  "sdk-reference/rhinestone-sdk/create-account",
+                  "sdk-reference/rhinestone-sdk/get-intent-status",
+                  "sdk-reference/rhinestone-sdk/split-intents"
+                ]
+              },
+              {
+                "group": "Account",
+                "pages": [
+                  {
+                    "group": "Deployment",
+                    "pages": [
+                      "sdk-reference/account/deployment/deploy",
+                      "sdk-reference/account/deployment/is-deployed",
+                      "sdk-reference/account/deployment/setup",
+                      "sdk-reference/account/deployment/get-init-data",
+                      "sdk-reference/account/deployment/sign-eip7702-init-data"
+                    ]
+                  },
+                  {
+                    "group": "Transactions",
+                    "pages": [
+                      "sdk-reference/account/transactions/prepare-transaction",
+                      "sdk-reference/account/transactions/get-transaction-messages",
+                      "sdk-reference/account/transactions/sign-transaction",
+                      "sdk-reference/account/transactions/sign-authorizations",
+                      "sdk-reference/account/transactions/sign-intent",
+                      "sdk-reference/account/transactions/submit-transaction"
+                    ]
+                  },
+                  {
+                    "group": "User operations",
+                    "pages": [
+                      "sdk-reference/account/user-operations/prepare-user-operation",
+                      "sdk-reference/account/user-operations/sign-user-operation",
+                      "sdk-reference/account/user-operations/submit-user-operation",
+                      "sdk-reference/account/user-operations/send-user-operation"
+                    ]
+                  },
+                  {
+                    "group": "Signing",
+                    "pages": [
+                      "sdk-reference/account/signing/sign-message",
+                      "sdk-reference/account/signing/sign-typed-data"
+                    ]
+                  },
+                  {
+                    "group": "Execution",
+                    "pages": [
+                      "sdk-reference/account/execution/wait-for-execution"
+                    ]
+                  },
+                  {
+                    "group": "Reads",
+                    "pages": [
+                      "sdk-reference/account/reads/get-address",
+                      "sdk-reference/account/reads/get-portfolio",
+                      "sdk-reference/account/reads/get-owners",
+                      "sdk-reference/account/reads/get-validators",
+                      "sdk-reference/account/reads/get-executors"
+                    ]
+                  },
+                  {
+                    "group": "Smart sessions",
+                    "pages": [
+                      "sdk-reference/account/smart-sessions/experimental-get-session-details",
+                      "sdk-reference/account/smart-sessions/experimental-is-session-enabled",
+                      "sdk-reference/account/smart-sessions/experimental-sign-enable-session"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Actions",
+                "pages": [
+                  {
+                    "group": "ECDSA",
+                    "pages": [
+                      "sdk-reference/actions/ecdsa/enable",
+                      "sdk-reference/actions/ecdsa/disable",
+                      "sdk-reference/actions/ecdsa/add-owner",
+                      "sdk-reference/actions/ecdsa/remove-owner",
+                      "sdk-reference/actions/ecdsa/change-threshold"
+                    ]
+                  },
+                  {
+                    "group": "Passkeys",
+                    "pages": [
+                      "sdk-reference/actions/passkeys/enable",
+                      "sdk-reference/actions/passkeys/disable",
+                      "sdk-reference/actions/passkeys/add-owner",
+                      "sdk-reference/actions/passkeys/remove-owner",
+                      "sdk-reference/actions/passkeys/change-threshold"
+                    ]
+                  },
+                  {
+                    "group": "MFA",
+                    "pages": [
+                      "sdk-reference/actions/mfa/enable",
+                      "sdk-reference/actions/mfa/disable",
+                      "sdk-reference/actions/mfa/change-threshold",
+                      "sdk-reference/actions/mfa/set-sub-validator",
+                      "sdk-reference/actions/mfa/remove-sub-validator"
+                    ]
+                  },
+                  {
+                    "group": "Recovery",
+                    "pages": [
+                      "sdk-reference/actions/recovery/enable",
+                      "sdk-reference/actions/recovery/recover-ecdsa-ownership",
+                      "sdk-reference/actions/recovery/recover-passkey-ownership"
+                    ]
+                  },
+                  {
+                    "group": "Modules",
+                    "pages": [
+                      "sdk-reference/actions/modules/install-module",
+                      "sdk-reference/actions/modules/uninstall-module",
+                      "sdk-reference/actions/modules/deploy"
+                    ]
+                  },
+                  {
+                    "group": "Smart sessions",
+                    "pages": [
+                      "sdk-reference/actions/smart-sessions/experimental-enable",
+                      "sdk-reference/actions/smart-sessions/experimental-disable",
+                      "sdk-reference/actions/smart-sessions/experimental-enable-session",
+                      "sdk-reference/actions/smart-sessions/create-cross-chain-permission"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Utils",
+                "pages": [
+                  "sdk-reference/utils/experimental-get-v0-init-data",
+                  "sdk-reference/utils/experimental-get-rhinestone-init-data",
+                  "sdk-reference/utils/to-view-only-account"
+                ]
+              }
+            ]
           }
         ]
       },
@@ -284,7 +432,9 @@
         "groups": [
           {
             "group": "Get started",
-            "pages": ["api-reference/introduction"]
+            "pages": [
+              "api-reference/introduction"
+            ]
           },
           {
             "group": "Intents",

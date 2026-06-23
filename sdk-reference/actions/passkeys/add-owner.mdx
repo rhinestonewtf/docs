@@ -1,0 +1,39 @@
+---
+title: "addOwner"
+description: "Add a passkey owner"
+---
+
+## Import
+
+```ts
+import { addOwner } from '@rhinestone/sdk/actions/passkeys'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [addOwner(pubKeyX, pubKeyY, requireUserVerification)],
+})
+```
+
+## Parameters
+
+<ParamField path="pubKeyX" type="bigint" required>
+  Public key X
+</ParamField>
+
+<ParamField path="pubKeyY" type="bigint" required>
+  Public key Y
+</ParamField>
+
+<ParamField path="requireUserVerification" type="boolean" required>
+  Whether to require user verification
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="CalldataInput">
+  Call to add the passkey owner
+</ResponseField>

@@ -1,0 +1,31 @@
+---
+title: "addOwner"
+description: "Add an ECDSA owner"
+---
+
+## Import
+
+```ts
+import { addOwner } from '@rhinestone/sdk/actions/ecdsa'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [addOwner(owner)],
+})
+```
+
+## Parameters
+
+<ParamField path="owner" type="`0x${string}`" required>
+  Owner address
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="CalldataInput">
+  Call to add the owner
+</ResponseField>

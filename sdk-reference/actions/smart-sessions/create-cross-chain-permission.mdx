@@ -1,0 +1,49 @@
+---
+title: "createCrossChainPermission"
+description: "Build a CrossChainPermit from an ergonomic input shape."
+---
+
+<Warning>This API is experimental and may change in a future release.</Warning>
+
+Accepts:
+  - a single `from`/`to` leg or arrays of legs
+  - `TokenSymbol` ("USDC", "USDT", ...) which is resolved to the
+    per-chain ERC-20 address via the shared token registry
+  - `Date` or unix-seconds `bigint` for `validUntil`/`validAfter`
+
+Plug the returned object into `SessionDefinition.crossChainPermits`
+to permission a session key for Permit2-backed cross-chain transfers.
+
+## Import
+
+```ts
+import { createCrossChainPermission } from '@rhinestone/sdk/actions/smart-sessions'
+```
+
+## Usage
+
+```ts
+import { arbitrum, mainnet } from 'viem/chains'
+
+const permit = createCrossChainPermission({
+  from: { chain: mainnet, token: 'USDC', maxAmount: 1_000_000_000n },
+  to:   { chain: arbitrum, token: 'USDC' },
+  validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+})
+
+const session = toSession({
+  chain: mainnet,
+  owners: { type: 'ecdsa', accounts: [sessionKey] },
+  crossChainPermits: [permit],
+})
+```
+
+## Parameters
+
+<ParamField path="input" type="CreateCrossChainPermissionInput" required>
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="CrossChainPermit">
+</ResponseField>

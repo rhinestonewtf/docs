@@ -1,0 +1,35 @@
+---
+title: "removeOwner"
+description: "Remove an ECDSA owner"
+---
+
+## Import
+
+```ts
+import { removeOwner } from '@rhinestone/sdk/actions/ecdsa'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [removeOwner(prevOwner, ownerToRemove)],
+})
+```
+
+## Parameters
+
+<ParamField path="prevOwner" type="`0x${string}`" required>
+  Previous owner address
+</ParamField>
+
+<ParamField path="ownerToRemove" type="`0x${string}`" required>
+  Owner to remove
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="CalldataInput">
+  Call to remove the owner
+</ResponseField>

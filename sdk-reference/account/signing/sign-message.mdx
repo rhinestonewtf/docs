@@ -1,0 +1,36 @@
+---
+title: "signMessage"
+description: "Sign a message (EIP-191)."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const signature = await account.signMessage(message, chain, signers)
+```
+
+## Parameters
+
+<ParamField path="message" type="SignableMessage" required>
+  Message to sign
+</ParamField>
+
+<ParamField path="chain" type="Chain" required>
+  Chain to sign the message for
+</ParamField>
+
+<ParamField path="signers" type="SignerSet | undefined" required>
+  Signers to use, or `undefined` for the account default
+</ParamField>
+
+## Returns
+
+<ResponseField name="signature" type="`0x${string}`">
+  The signature
+</ResponseField>
+
+## See also
+
+- [signTypedData](/sdk-reference/account/signing/sign-typed-data) to sign EIP-712 typed data

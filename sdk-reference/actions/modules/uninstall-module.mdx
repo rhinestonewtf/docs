@@ -1,0 +1,31 @@
+---
+title: "uninstallModule"
+description: "Uninstall a custom module"
+---
+
+## Import
+
+```ts
+import { uninstallModule } from '@rhinestone/sdk/actions'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [uninstallModule(module)],
+})
+```
+
+## Parameters
+
+<ParamField path="module" type="ModuleInput" required>
+  Module to uninstall
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="LazyCallInput">
+  Calls to uninstall the module
+</ResponseField>

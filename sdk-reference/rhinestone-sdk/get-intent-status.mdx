@@ -1,0 +1,24 @@
+---
+title: "getIntentStatus"
+description: "Get the current status of a submitted intent."
+---
+
+Method on a [`RhinestoneSDK`](/sdk-reference/rhinestone-sdk/rhinestone-sdk) instance.
+
+## Usage
+
+```ts
+const intentStatus = await sdk.getIntentStatus(intentId)
+```
+
+## Parameters
+
+<ParamField path="intentId" type="string" required>
+  The intent ID returned when the transaction was submitted
+</ParamField>
+
+## Returns
+
+<ResponseField name="intentStatus" type="TransactionStatus">
+  The intent status
+</ResponseField>

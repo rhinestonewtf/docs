@@ -1,0 +1,29 @@
+---
+title: "submitUserOperation"
+description: "Submit a signed user operation."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const userOperation = await account.submitUserOperation(signedUserOperation)
+```
+
+## Parameters
+
+<ParamField path="signedUserOperation" type="SignedUserOperationData" required>
+  Signed user operation data
+</ParamField>
+
+## Returns
+
+<ResponseField name="userOperation" type="UserOperationResult">
+  The user operation result (a UserOp hash)
+</ResponseField>
+
+## See also
+
+- [signUserOperation](/sdk-reference/account/user-operations/sign-user-operation) to sign the user operation data
+- [waitForExecution](/sdk-reference/account/execution/wait-for-execution) to wait for the user operation to execute onchain

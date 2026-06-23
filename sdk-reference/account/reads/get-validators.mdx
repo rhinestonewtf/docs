@@ -1,0 +1,24 @@
+---
+title: "getValidators"
+description: "Get the account validator modules."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const validators = await account.getValidators(chain)
+```
+
+## Parameters
+
+<ParamField path="chain" type="Chain" required>
+  Chain to read the validators from
+</ParamField>
+
+## Returns
+
+<ResponseField name="validators" type="`0x${string}`[]">
+  The validator module addresses
+</ResponseField>

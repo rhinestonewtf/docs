@@ -1,0 +1,24 @@
+---
+title: "waitForExecution"
+description: "Wait for a submitted transaction or user operation to execute onchain. Polls the orchestrator until the intent reaches a terminal state; on failure an IntentFailedError is thrown."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const result = await account.waitForExecution(result)
+```
+
+## Parameters
+
+<ParamField path="result" type="TransactionResult" required>
+  The result returned by a submit/send call
+</ParamField>
+
+## Returns
+
+<ResponseField name="result" type="TransactionStatus">
+  The per-chain operation status (for intents) or a UserOp receipt
+</ResponseField>

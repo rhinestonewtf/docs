@@ -1,0 +1,42 @@
+---
+title: "recoverEcdsaOwnership"
+description: "Recover an account's ownership (ECDSA)"
+---
+
+## Import
+
+```ts
+import { recoverEcdsaOwnership } from '@rhinestone/sdk/actions/recovery'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [recoverEcdsaOwnership(address, newOwners, chain, config)],
+})
+```
+
+## Parameters
+
+<ParamField path="address" type="`0x${string}`" required>
+  Account address
+</ParamField>
+
+<ParamField path="newOwners" type="OwnableValidatorConfig" required>
+  New owners
+</ParamField>
+
+<ParamField path="chain" type="Chain" required>
+  Chain to recover ownership on
+</ParamField>
+
+<ParamField path="config" type="RhinestoneConfig" required>
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="CalldataInput[]">
+  Calls to recover ownership
+</ResponseField>

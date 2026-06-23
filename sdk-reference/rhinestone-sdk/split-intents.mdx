@@ -1,0 +1,24 @@
+---
+title: "splitIntents"
+description: "Split a transaction into multiple intents across chains."
+---
+
+Method on a [`RhinestoneSDK`](/sdk-reference/rhinestone-sdk/rhinestone-sdk) instance.
+
+## Usage
+
+```ts
+const intents = await sdk.splitIntents(input)
+```
+
+## Parameters
+
+<ParamField path="input" type="SplitIntentsInput" required>
+  The intents to split
+</ParamField>
+
+## Returns
+
+<ResponseField name="intents" type="SplitIntentsResult">
+  The split-intents result
+</ResponseField>

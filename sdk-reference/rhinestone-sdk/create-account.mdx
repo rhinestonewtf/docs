@@ -1,0 +1,35 @@
+---
+title: "createAccount"
+description: "Create an account using this instance's shared configuration."
+---
+
+Method on a [`RhinestoneSDK`](/sdk-reference/rhinestone-sdk/rhinestone-sdk) instance.
+
+## Usage
+
+```ts
+import { RhinestoneSDK } from '@rhinestone/sdk'
+import { privateKeyToAccount } from 'viem/accounts'
+
+const owner = privateKeyToAccount('0x...')
+
+const sdk = new RhinestoneSDK({
+  auth: { mode: 'apiKey', apiKey: process.env.RHINESTONE_API_KEY! },
+})
+
+const account = await sdk.createAccount({
+  owners: { type: 'ecdsa', accounts: [owner] },
+})
+```
+
+## Parameters
+
+<ParamField path="config" type="RhinestoneAccountConfig" required>
+  Per-account configuration (owners, account type, modules, sessions)
+</ParamField>
+
+## Returns
+
+<ResponseField name="account" type="RhinestoneAccount">
+  The account instance
+</ResponseField>
