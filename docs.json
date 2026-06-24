@@ -301,14 +301,6 @@
                     ]
                   },
                   {
-                    "group": "Recovery",
-                    "pages": [
-                      "sdk-reference/actions/recovery/enable",
-                      "sdk-reference/actions/recovery/recover-ecdsa-ownership",
-                      "sdk-reference/actions/recovery/recover-passkey-ownership"
-                    ]
-                  },
-                  {
                     "group": "Modules",
                     "pages": [
                       "sdk-reference/actions/modules/install-module",
@@ -322,7 +314,7 @@
                       "sdk-reference/actions/smart-sessions/experimental-enable",
                       "sdk-reference/actions/smart-sessions/experimental-disable",
                       "sdk-reference/actions/smart-sessions/experimental-enable-session",
-                      "sdk-reference/actions/smart-sessions/create-cross-chain-permission"
+                      "sdk-reference/actions/smart-sessions/experimental-disable-session"
                     ]
                   }
                 ]
