@@ -3,11 +3,7 @@ title: "Quickstart"
 description: "Add the deposit widget to your React app and accept cross-chain deposits in minutes."
 ---
 
-Install the `@rhinestone/deposit-modal` package, render the modal, and handle a completed deposit. By the end the modal fires a completion event when funds land on your target chain:
-
-```txt
-Deposit complete: 0x… (funds on Base)
-```
+Install the `@rhinestone/deposit-modal` package, render the modal, and handle a completed deposit.
 
 This quickstart uses **external wallet mode** with Reown for wallet connection. If you don't want to set up Reown, the modal also supports [QR code deposits](/deposits/widget/deposit-modal#qr-code-deposit) (no wallet connection) and [embedded wallets](/deposits/widget/deposit-modal#embedded-wallet) (Privy, Dynamic, Turnkey, etc.).
 
@@ -89,8 +85,6 @@ Add the `onLifecycle` callback and react to the `"complete"` event when tokens a
 </Step>
 
 </Steps>
-
-The user connects, picks any chain and token, and confirms — bridging to your target chain happens automatically, and `onLifecycle` tells you the moment funds land.
 
 ## Next steps
 

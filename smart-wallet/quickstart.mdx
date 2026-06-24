@@ -1,9 +1,11 @@
 ---
 title: "Quickstart"
-description: "Create a smart account and send a crosschain transaction in a Node.js script."
+description: "Create a smart account and send a crosschain transaction"
 ---
 
-Create a smart account and send a crosschain transaction in a Node.js script — no browser or wallet connection required. By the end you'll have an account deployed on two chains and a USDC transfer that crossed between them, funded entirely with ETH:
+Create a smart account and send a crosschain transaction.
+
+By the end you'll have an account deployed on two chains and a USDC transfer that crossed between them, funded entirely with ETH.
 
 ```txt
 Smart account address: 0x5fA3…42c1
@@ -13,9 +15,7 @@ Result { status: 'COMPLETED', … }
 
 ## Prerequisites
 
-<Note>You don't need an API key for testnets. For production — especially sponsoring fees or using dashboard API keys — see the [Security guide](./advanced/security) to proxy Orchestrator requests via a backend and avoid exposing your key.</Note>
-
-You'll need a funding account with some testnet ETH on Base Sepolia. Get testnet ETH from [QuickNode](https://faucet.quicknode.com/drip) or [Alchemy](https://www.alchemy.com/faucets). You don't need testnet USDC — the Orchestrator sources it from your ETH.
+You'll need a funding account with some testnet ETH on Base Sepolia. Get testnet ETH from [QuickNode](https://faucet.quicknode.com/drip) or [Alchemy](https://www.alchemy.com/faucets).
 
 Install the SDK:
 
@@ -85,10 +85,10 @@ console.log(`Smart account address: ${address}`)
 You'll see a deterministic address printed:
 
 ```txt
-Smart account address: 0x5fA3…42c1
+Smart account address: 0x...
 ```
 
-Nothing is onchain yet — the account is deployed lazily on first use, on each chain it touches.
+Nothing is onchain yet: the account is deployed lazily on first use, on each chain it touches.
 
 </Step>
 
@@ -119,7 +119,7 @@ await publicClient.waitForTransactionReceipt({ hash: txHash })
 
 <Step title="Send a crosschain transaction">
 
-Transfer USDC on the target chain — sourced from the ETH you funded on the source chain:
+Transfer USDC on the target chain, sourced from the ETH you funded on the source chain:
 
 ```ts
 const usdcAmount = parseUnits('0.1', 6)
@@ -173,7 +173,7 @@ Result {
 }
 ```
 
-Your ETH on Base Sepolia landed as USDC on Arbitrum Sepolia in a single atomic operation — no bridging, swapping, or gas tokens to manage.
+Your ETH on Base Sepolia landed as USDC on Arbitrum Sepolia in a single atomic operation: no bridging, swapping, or gas tokens to manage.
 
 </Step>
 
