@@ -345,47 +345,6 @@ const allowance = await publicClient.readContract({
 })
 ```
 
-### Cross-chain permits fold into `toSession`
-
-`createCrossChainPermission` is removed. Pass the same input directly on `SessionDefinition.crossChainPermits` — `toSession` resolves token symbols, deadlines, and leg normalization internally:
-
-```ts
-// Before
-import { createCrossChainPermission } from '@rhinestone/sdk/actions/smart-sessions'
-
-const permit = createCrossChainPermission({
-  from: { chain: base, token: 'USDC' },
-  to: { chain: arbitrum, token: 'USDC' },
-})
-const session = toSession({ chain: base, owners, crossChainPermits: [permit] })
-
-// After
-const session = toSession({
-  chain: base,
-  owners,
-  crossChainPermits: [
-    {
-      from: { chain: base, token: 'USDC' },
-      to: { chain: arbitrum, token: 'USDC' },
-    },
-  ],
-})
-```
-
-The input type is now `CrossChainPermissionInput` (was `CreateCrossChainPermissionInput`).
-
-### Datetime inputs accept `Date`
-
-Public datetime inputs accept a `Date` only — raw epoch `number` / `bigint` are no longer accepted. This affects permission `validUntil` / `validAfter`, the cross-chain permit `validUntil` / `validAfter` / `fillDeadline` bounds, and `experimental_disableSession`'s `expires`. Convert at the boundary:
-
-```ts
-// Before
-functions: { transfer: { validUntil: 1893456000000 } }
-
-// After
-functions: { transfer: { validUntil: new Date('2030-01-01') } }
-```
-
 ### ENS validator owner set
 
 `ENSValidatorConfig` couples each owner with its expiry instead of using parallel arrays. Omit `expiration` for an owner that never expires:
@@ -413,7 +372,6 @@ const validator = {
 - **`createRhinestoneAccount`** is removed. Use `new RhinestoneSDK({ apiKey }).createAccount(config)`.
 - **Account recovery.** The `@rhinestone/sdk/actions/recovery` subpackage (`enable`, `recoverEcdsaOwnership`, `recoverPasskeyOwnership`), the `recovery` field on the account config, and the guardian signer set are removed.
 - **`account.deploy()` session param.** The unused `session` option on `account.deploy()` is removed (it was a no-op).
-- **`@rhinestone/sdk/smart-sessions`** now exports only the curated public surface — `toSession`, the policy address constants, and the `SessionDetails` / `ChainDigest` types. The internal helpers it previously re-exported are no longer public.
 - **Compact-bound surface.** The `@rhinestone/sdk/actions/compact` subpackage, the `lockFunds` transaction option, and `Account.emissaryConfig` are removed alongside the orchestrator's compact-based deposit/withdrawal flow.
 - **Permit2 signing helpers.** `signPermit2Batch`, `signPermit2Sequential`, and the related `MultiChainPermit2Config` / `MultiChainPermit2Result` / `BatchPermit2Result` types are removed. Signing now uses orchestrator-provided EIP-712 typed data internally.
 - **`getPermit2Address`** is removed. Permit2 lives at `0x000000000022D473030F116dDEE9F6B43aC78BA3` on every supported chain — hardcode the constant.
@@ -468,7 +426,7 @@ const rhinestoneAccount = await rhinestone.createAccount({
 
 ### Transaction utilities (actions)
 
-Action utilities related to using modules and account management (e.g., `installModule`, `addOwner`) were moved to separate subpackages:
+Action utilities related to using modules and resource locking (e.g., `installModule`, `addOwner`, `recoverEcdsaOwnership`) were moved to separate subpackages:
 
 ```ts
 // Before
@@ -533,6 +491,10 @@ await rhinestoneAccount.sendTransaction({
     * `addOwner` to add an owner
     * `removeOwner` to remove an owner
     * `changeThreshold` to change the signature threshold
+  * `/actions/recovery` (social recovery):
+    * `enable` to enable the validator
+    * `recoverEcdsaOwnership` to recover ownership to a new ECDSA owner
+    * `recoverPasskeyOwnership` to recover ownership to a new passkey owner
 </Accordion>
 
 ### Errors
@@ -550,7 +512,7 @@ import { isAccountError, AccountError, SigningNotSupportedForAccountError } from
 
 All transactions executed with `sendTransaction` and `prepareTransaction` now use Rhinestone intents.
 
-Using the ERC-4337 user operations now requires a separate flow.
+Using the ERC-4337 user operations (for example, when using a social recovery) now requires a separate flow.
 
 This change lets us improve type-safety and DX around using intents.
 
