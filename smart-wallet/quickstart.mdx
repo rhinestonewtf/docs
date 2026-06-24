@@ -1,16 +1,23 @@
 ---
 title: "Quickstart"
+description: "Create a smart account and send a crosschain transaction in a Node.js script."
 ---
 
-Create a smart account and send a crosschain transaction in a Node.js script. No browser or wallet connection required.
+Create a smart account and send a crosschain transaction in a Node.js script — no browser or wallet connection required. By the end you'll have an account deployed on two chains and a USDC transfer that crossed between them, funded entirely with ETH:
+
+```txt
+Smart account address: 0x5fA3…42c1
+Transaction { type: 'intent', id: '0x9c…', targetChain: 421614 }
+Result { status: 'COMPLETED', … }
+```
 
 ## Prerequisites
 
-<Note>You don't need an API key to get started. For production use, you'll need one. For production setups that sponsor user fees or use dashboard API keys, see the [Security guide](./advanced/security) to proxy Orchestrator requests via a backend and avoid exposing your key.</Note>
+<Note>You don't need an API key for testnets. For production — especially sponsoring fees or using dashboard API keys — see the [Security guide](./advanced/security) to proxy Orchestrator requests via a backend and avoid exposing your key.</Note>
 
-You will need some testnet funds. To get testnet ETH, you can use a faucet from [Quicknode](https://faucet.quicknode.com/drip) or [Alchemy](https://www.alchemy.com/faucets). To get testnet USDC, use [Circle Faucet](https://faucet.circle.com/).
+You'll need a funding account with some testnet ETH on Base Sepolia. Get testnet ETH from [QuickNode](https://faucet.quicknode.com/drip) or [Alchemy](https://www.alchemy.com/faucets). You don't need testnet USDC — the Orchestrator sources it from your ETH.
 
-Install the Rhinestone SDK:
+Install the SDK:
 
 <CodeGroup>
 
@@ -30,9 +37,9 @@ bun install viem @rhinestone/sdk@beta
 
 <Steps>
 
-<Step title="Create a Wallet">
+<Step title="Create an account">
 
-Let's create a smart account with a single owner:
+Create a smart account with a single ECDSA owner:
 
 ```ts
 import { RhinestoneSDK } from '@rhinestone/sdk'
@@ -46,6 +53,7 @@ import {
   type Hex,
   http,
   parseEther,
+  parseUnits,
 } from 'viem'
 
 const fundingPrivateKey = process.env.FUNDING_PRIVATE_KEY
@@ -74,11 +82,19 @@ const address = rhinestoneAccount.getAddress()
 console.log(`Smart account address: ${address}`)
 ```
 
+You'll see a deterministic address printed:
+
+```txt
+Smart account address: 0x5fA3…42c1
+```
+
+Nothing is onchain yet — the account is deployed lazily on first use, on each chain it touches.
+
 </Step>
 
-<Step title="Fund the Account">
+<Step title="Fund the account">
 
-Send ETH to the smart account. The Orchestrator handles deployment and token conversion on the destination chain.
+Send ETH to the smart account on the source chain. This is the only token you fund:
 
 ```ts
 const publicClient = createPublicClient({
@@ -101,12 +117,12 @@ await publicClient.waitForTransactionReceipt({ hash: txHash })
 
 </Step>
 
-<Step title="Send a Cross-chain Transaction">
+<Step title="Send a crosschain transaction">
 
-Finally, let's make a cross-chain token transfer:
+Transfer USDC on the target chain — sourced from the ETH you funded on the source chain:
 
 ```ts
-const usdcAmount = 1n
+const usdcAmount = parseUnits('0.1', 6)
 
 const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [sourceChain],
@@ -137,9 +153,27 @@ const transactionResult = await rhinestoneAccount.waitForExecution(transaction)
 console.log('Result', transactionResult)
 ```
 
-After running that, you will get a smart account deployed on both Base Sepolia and Arbitrum Sepolia, and make a cross-chain USDC transfer.
+`submitTransaction` returns an intent handle; `waitForExecution` polls until every chain's operation reaches a terminal state:
 
-Note that you don't need to manage the gas tokens or do the ETH → USDC swap when making a transfer. The Orchestrator will handle that for you!
+```txt
+Transaction {
+  type: 'intent',
+  id: '0x9c…',
+  traceId: '…',
+  sourceChains: [ 84532 ],
+  targetChain: 421614
+}
+Result {
+  status: 'COMPLETED',
+  accountAddress: '0x5fA3…42c1',
+  operations: [
+    { chain: 84532, status: 'COMPLETED', txHash: '0x…', timestamp: 1750000000 },
+    { chain: 421614, status: 'COMPLETED', txHash: '0x…', timestamp: 1750000002 }
+  ]
+}
+```
+
+Your ETH on Base Sepolia landed as USDC on Arbitrum Sepolia in a single atomic operation — no bridging, swapping, or gas tokens to manage.
 
 </Step>
 
@@ -153,7 +187,7 @@ Note that you don't need to manage the gas tokens or do the ETH → USDC swap wh
   **Going to production?** Never expose your Rhinestone API key in the browser. Read the [Security guide](./advanced/security) to proxy Orchestrator requests safely via a backend.
 </Warning>
 
-## Next Steps
+## Next steps
 
 <CardGroup cols={3}>
   <Card title="Sponsor fees" icon="fuel" href="./tutorials/sponsor-fees">
@@ -166,9 +200,5 @@ Note that you don't need to manage the gas tokens or do the ETH → USDC swap wh
 
   <Card title="Smart Sessions" icon="key" href="./smart-sessions/overview">
     Add session keys for one-click UX and automated transactions.
-  </Card>
-
-  <Card title="EIP-7702" icon="zap" href="./core/eip-7702">
-    Add smart account features to an existing EOA without changing its address.
   </Card>
 </CardGroup>

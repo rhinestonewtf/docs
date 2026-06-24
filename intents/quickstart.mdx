@@ -1,9 +1,13 @@
 ---
-title: "API quickstart"
+title: "Quickstart"
 description: "Send your first crosschain intent via the Rhinestone REST API."
 ---
 
-This guide walks through the full intent flow for **EOA users**: get a quote, fulfill token requirements, sign, and submit.
+Send your first crosschain intent straight through the REST API. This guide walks the full flow for **EOA users** — get a quote, fulfill token requirements, sign, and submit — and ends with the intent settled on the destination chain:
+
+```txt
+Final status: COMPLETED
+```
 
 <Info>
   **Using the Rhinestone SDK?** The [wallet quickstart](/smart-wallet/quickstart) already covers crosschain intents. Come back here when you need API-specific configuration.
@@ -179,11 +183,19 @@ async function pollStatus(intentId: string) {
 await pollStatus(submittedId);
 ```
 
+Once execution finishes you'll see the terminal status:
+
+```txt
+Final status: COMPLETED
+```
+
 Typical execution time is under 2 seconds. See [Tracking intents](/intents/guides/tracking-intents) for the full lifecycle.
 
 </Step>
 
 </Steps>
+
+Your tokens moved across chains from a single set of signatures — no bridge, no manual settlement.
 
 ## Next steps
 
