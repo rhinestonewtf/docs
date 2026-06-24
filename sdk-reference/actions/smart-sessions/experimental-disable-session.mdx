@@ -1,0 +1,45 @@
+---
+title: "experimental_disableSession"
+description: "Disable a smart session"
+---
+
+<Warning>This API is experimental and may change in a future release.</Warning>
+
+Removes a single session from the smart-session emissary via `removeConfig`.
+The account executes the call itself, so the emissary skips the disable
+user-signature — the user authorizes it by signing the outer transaction as
+usual (no separate, blind session-digest signature). The `session` must be a
+resolved `Session` (the return value of `toSession(...)`) on the chain where
+the session is being disabled.
+
+## Import
+
+```ts
+import { experimental_disableSession } from '@rhinestone/sdk/actions/smart-sessions'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [experimental_disableSession(session)],
+})
+```
+
+## Parameters
+
+<ParamField path="session" type="Session" required>
+  resolved session to disable
+</ParamField>
+
+<ParamField path="expires" type="Date">
+  optional deadline after which this disable call is no longer
+  valid; must be in the future. Omit for no expiry.
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="LazyCallInput">
+  Calls to disable the smart session
+</ResponseField>
