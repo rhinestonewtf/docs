@@ -254,6 +254,19 @@ This will prompt the signature request from the session owner(s) and submit the 
 
 <Note>You can also enable and use the smart session in one transaction using the ["enable mode"](./multi-session-signature).</Note>
 
+### Disabling a session
+
+To disable a single enabled session, use `experimental_disableSession`. This only removes a single session: to uninstall the validator entirely (and every session with it), use [`experimental_disable`](#installing-the-validation) instead.
+
+```ts
+import { experimental_disableSession } from '@rhinestone/sdk/actions/smart-sessions'
+
+const transaction = await rhinestoneAccount.prepareTransaction({
+  chain,
+  calls: [experimental_disableSession(session)],
+})
+```
+
 ## Security
 
 Smart Sessions is a powerful tool that unlocks a bunch of new opportunities and use cases. To keep your users secure when using sessions, follow these guidelines:
