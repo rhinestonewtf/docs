@@ -165,6 +165,28 @@ const session = toSession({
 })
 ```
 
+### Cross-chain permits
+
+Use `crossChainPermits` to scope which routes, tokens, amounts, and recipients it may bridge:
+
+```ts {7-12}
+const session = toSession({
+  chain: base,
+  owners: {
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
+  },
+  crossChainPermits: [
+    {
+      from: [{ chain: base, token: 'USDC' }],
+      to: [{ chain: arbitrum, token: 'USDC' }],
+    },
+  ],
+})
+```
+
+See [Cross-chain permits](./policies/cross-chain) for guardrails, recipient safety, and settlement-layer options.
+
 ### Installing sessions
 
 To enable a session:
