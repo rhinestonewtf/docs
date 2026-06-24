@@ -2,39 +2,62 @@
 title: "Error handling"
 ---
 
+All errors are exported from `@rhinestone/sdk/errors`. Each category has a base class
+and a matching type guard — `isAccountError`, `isExecutionError`, and
+`isOrchestratorError` — so you can catch a whole category at once. Orchestrator errors
+also expose `isRetryable`, `isRateLimited`, `isSimulationFailed`, `isAuthError`, and
+`isValidationError`.
+
 ## Account errors
 
-* `Eip7702AccountMustHaveEoaError`: when using EIP-7702, you need to provide an EOA account by passing `eoa` param.
+* `AccountError`: base class for the errors below — catch it (or use `isAccountError`) to handle any account error.
+* `AccountConfigurationNotSupportedError`: your account setup is not currently supported. Try a different account configuration or [submit](https://github.com/rhinestonewtf/sdk/issues) a feature request.
+* `DefaultValidatorAlreadyInitializedError`: ECDSA is already enabled on this account. Use `addOwner` / `removeOwner` / `changeThreshold` to manage owners instead of `enable`.
+* `Eip712DomainNotAvailableError`: the account doesn't expose an EIP-712 domain, which is required for typed-data signing.
+* `Eip7702AccountMustHaveEoaError`: when using EIP-7702, you need to provide an EOA account by passing the `eoa` param.
+* `Eip7702NotSupportedForAccountError`: this account type does not support EIP-7702. Try a different account implementation or [submit](https://github.com/rhinestonewtf/sdk/issues) a feature request.
+* `EoaAccountMustHaveAccountError`: EOA accounts need a signer — pass it via the `account` param.
+* `EoaSigningMethodNotConfiguredError`: the EOA account provider is missing a signing method required for this operation.
+* `EoaSigningNotSupportedError`: the EOA account provider does not support the requested signing method.
+* `FactoryArgsNotAvailableError`: factory data is not available for this account type. Most likely an issue with the SDK itself. Please [submit](https://github.com/rhinestonewtf/sdk/issues) a bug report.
+* `ModuleInstallationNotSupportedError`: this account type does not support installing modules.
+* `OwnersFieldRequiredError`: smart accounts require an `owners` field.
 * `SigningNotSupportedForAccountError`: the account you provided does not support message signing.
 * `WalletClientNoConnectedAccountError`: the `WalletClient` instance you provided is missing a default account. Ensure the wallet is connected and the client has an account.
-* `Eip7702NotSupportedForAccountError`: this account type does not support EIP-7702. Try using a different account implementation or [submit](https://github.com/rhinestonewtf/sdk/issues) a feature request.
-* `AccountConfigurationNotSupportedError`: your account setup is not currently supported. Try using a different account configuration or [submit](https://github.com/rhinestonewtf/sdk/issues) a feature request.
-* `FactoryArgsNotAvailableError`: factory data is not available for this type of account. Most likely an issue with the SDK itself. Please [submit](https://github.com/rhinestonewtf/sdk/issues) a bug report.
-* `SmartSessionsNotEnabledError`: smart session validator is not available. Most likely an issue with the SDK itself. Please [submit](https://github.com/rhinestonewtf/sdk/issues) a bug report.
 
 ## Execution errors
 
-* `SourceChainsNotAvailableForUserOpFlowError`: when using a UserOp flow (e.g., for account recovery), you need to provide a source chain.
-* `UserOperationRequiredForSmartSessionsError`: when using smart sessions, you need to use the UserOp flow.
-* `SessionChainRequiredError`: when using smart sessions, each session needs to define a chain where it is activated.
+* `ExecutionError`: base class for the errors below — catch it (or use `isExecutionError`) to handle any execution error.
+* `Eip7702InitSignatureRequiredError`: an EIP-7702 initialization signature is required when preparing a transaction for a 7702 account — even if the account is already deployed on all chains. Generate it with `signEip7702InitData()`.
 * `IntentFailedError`: the intent failed (reverted onchain). A common reason is that a swap failed due to price action.
-* `SimulationNotSupportedForUserOpFlowError`: `simulateTransaction` can only simulate intents.
-* `OrderPathRequiredForIntentsError`: when sending an intent, you need to first get the path. When using `submitTransaction`, make sure to call `prepareTransaction` first.
+* `InvalidSourceCallsError`: `sourceCalls` includes a chain that isn't in `sourceChains` (or the target chain for same-chain transactions).
+* `OrderPathRequiredForIntentsError`: when sending an intent you need the order path first. When using `submitTransaction`, make sure to call `prepareTransaction` first.
+* `QuoteNotInPreparedTransactionError`: the selected quote doesn't belong to the prepared transaction. Re-prepare and try again.
 
 ## Orchestrator errors
 
-* `InsufficientBalanceError`: the account doesn't have enough funds. See [Error handling](/intents/guides/error-handling).
-* `UnsupportedChainIdError`: this chain is not supported. See [Error handling](/intents/guides/error-handling).
-* `UnsupportedChainError`: the target or the source chain is not supported. See [Error handling](/intents/guides/error-handling).
-* `UnsupportedTokenError`: the token you're requesting is not supported. Make sure you're only using supported tokens when setting `tokenRequests`. See [Error handling](/intents/guides/error-handling).
-* `TokenNotSupportedError`: the token you're requesting is not supported. See [Error handling](/intents/guides/error-handling).
-* `AuthenticationRequiredError`: make sure you're providing an API key when using mainnets by passing `rhinestoneApiKey` param. See [Error handling](/intents/guides/error-handling).
-* `InvalidApiKeyError`: the API key you're using has expired or is invalid. See [Error handling](/intents/guides/error-handling).
-* `InvalidIntentSignatureError`: see [Error handling](/intents/guides/error-handling).
-* `OnlyOneTargetTokenAmountCanBeUnsetError`: when specifying `tokenRequests`, you need to provide the exact token amounts for all except one token.
-* `NoPathFoundError`: we couldn't find a path for the intent you've provided. Try using a different set of token requests on the target chain.
-* `IntentNotFoundError`: can't find the intent in the system. Please try again or use different input parameters.
-* `RateLimitedError`: you're being rate-limited. Refer to the `retry-after` header and retry later.
-* `ServiceUnavailableError`: temporary service outage. Safe to retry later.
-* `SchemaValidationError`: request failed schema validation (400/422). Fix payload and retry.
-* `BodyParserError`: request body could not be parsed (encoding/size). Fix body and retry.
+Server-side errors from the orchestrator API. Each carries a `code`, `traceId`, and `statusCode`.
+
+* `OrchestratorError`: base class for the errors below — catch it (or use `isOrchestratorError`) to handle any orchestrator error.
+* `ValidationError`: the request failed validation. Inspect `issues` for the offending fields.
+* `InsufficientLiquidityError`: there isn't enough liquidity to fill the intent. Inspect `unfillable` and `availableIntents`.
+* `NotFoundError`: the requested resource (e.g. an intent) couldn't be found.
+* `UnauthorizedError`: authentication failed. Make sure you're passing a valid API key.
+* `ForbiddenError`: the request is not allowed.
+* `KeyScopeDeniedError`: the API key's scope denies this request. Widen the key's scope — `scope`, `required`, and `actual` describe what's missing.
+* `ConflictError`: the request conflicts with the current state.
+* `UnprocessableContentError`: the request was well-formed but couldn't be processed.
+* `RateLimitedError`: you're being rate-limited. Honor `retryAfter` and retry later.
+* `SettlementQuoteError`: the settlement layer failed to return a quote.
+* `SettlementExecutionError`: the settlement layer failed to execute the intent.
+* `SimulationFailedError`: intent simulation failed. Inspect `category`, `errorName`, and `simulations`; `retryable` indicates whether a retry may help.
+* `ExternalServiceTimeoutError`: an upstream service timed out. Safe to retry later.
+* `RelayerMarketUnavailableError`: no relayer is currently available. Safe to retry later.
+* `InternalServerError`: an internal orchestrator error. Safe to retry later.
+
+## Registry errors
+
+Thrown by the SDK's local token/chain registry — not the orchestrator API, so you can catch them separately.
+
+* `UnsupportedChainError`: the chain isn't supported. Make sure you're only using supported chains.
+* `UnsupportedTokenError`: the token isn't supported on the given chain. Make sure you're only using supported tokens when setting `tokenRequests`.
