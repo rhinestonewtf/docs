@@ -149,7 +149,8 @@
                   "smart-wallet/smart-sessions/policies/spending-limit",
                   "smart-wallet/smart-sessions/policies/gas-limit",
                   "smart-wallet/smart-sessions/policies/timeframe",
-                  "smart-wallet/smart-sessions/policies/usage-limit"
+                  "smart-wallet/smart-sessions/policies/usage-limit",
+                  "smart-wallet/smart-sessions/policies/cross-chain"
                 ]
               }
             ]
