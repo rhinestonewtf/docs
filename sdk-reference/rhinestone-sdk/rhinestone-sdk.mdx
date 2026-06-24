@@ -1,0 +1,24 @@
+---
+title: "RhinestoneSDK"
+description: "Stateful entry point that holds shared configuration (auth, provider, bundler, paymaster) and creates accounts from it."
+---
+
+## Import
+
+```ts
+import { RhinestoneSDK } from '@rhinestone/sdk'
+```
+
+## Usage
+
+```ts
+const sdk = new RhinestoneSDK({
+  // ...config
+})
+```
+
+## Parameters
+
+<ParamField path="options" type="RhinestoneSDKConfig" required>
+  Shared configuration applied to every account created by this instance
+</ParamField>

@@ -1,0 +1,28 @@
+---
+title: "deploy"
+description: "Deploy the account on a given chain."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const success = await account.deploy(chain)
+```
+
+## Parameters
+
+<ParamField path="chain" type="Chain" required>
+  Chain to deploy the account on
+</ParamField>
+
+<ParamField path="params" type="{ session: Session; sponsored: boolean }">
+  Optional deployment parameters (session, sponsorship)
+</ParamField>
+
+## Returns
+
+<ResponseField name="success" type="boolean">
+  `true` once the deployment is submitted
+</ResponseField>

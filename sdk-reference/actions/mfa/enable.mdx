@@ -1,0 +1,35 @@
+---
+title: "enable"
+description: "Enable multi-factor authentication"
+---
+
+## Import
+
+```ts
+import { enable } from '@rhinestone/sdk/actions/mfa'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [enable(validators, threshold)],
+})
+```
+
+## Parameters
+
+<ParamField path="validators" type="OwnableValidatorConfig | WebauthnValidatorConfig | null[]" required>
+  List of validators to use
+</ParamField>
+
+<ParamField path="threshold" type="number" required>
+  Threshold for the validators
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="LazyCallInput">
+  Calls to enable multi-factor authentication
+</ResponseField>

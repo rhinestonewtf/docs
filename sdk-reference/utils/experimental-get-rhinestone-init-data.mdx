@@ -1,0 +1,43 @@
+---
+title: "experimental_getRhinestoneInitData"
+description: "Compute the Rhinestone initialization data for an account configuration."
+---
+
+<Warning>This API is experimental and may change in a future release.</Warning>
+
+Use this to reconstruct the `initData` for an account originally created with
+the Rhinestone SDK, then pass it back into `createAccount` instead of
+providing the factory and factory data manually.
+
+## Import
+
+```ts
+import { experimental_getRhinestoneInitData } from '@rhinestone/sdk/utils'
+```
+
+## Usage
+
+```ts
+import { experimental_getRhinestoneInitData } from '@rhinestone/sdk/utils'
+
+const initData = experimental_getRhinestoneInitData({
+  owners: { type: 'ecdsa', accounts: [owner] },
+})
+
+const account = await sdk.createAccount({
+  owners: { type: 'ecdsa', accounts: [owner] },
+  initData,
+})
+```
+
+## Parameters
+
+<ParamField path="config" type="RhinestoneAccountConfig" required>
+  Account configuration
+</ParamField>
+
+## Returns
+
+<ResponseField name="rhinestoneInitData" type="object | { address: `0x${string}` }">
+  The account address, plus factory data when the account is not yet deployed
+</ResponseField>

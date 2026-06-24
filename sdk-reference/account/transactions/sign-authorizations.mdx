@@ -1,0 +1,28 @@
+---
+title: "signAuthorizations"
+description: "Sign the EIP-7702 authorizations required for a transaction."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const authorizations = await account.signAuthorizations(preparedTransaction)
+```
+
+## Parameters
+
+<ParamField path="preparedTransaction" type="PreparedTransactionData" required>
+  Prepared transaction data
+</ParamField>
+
+## Returns
+
+<ResponseField name="authorizations" type="SignedAuthorizationList">
+  The signed authorization list
+</ResponseField>
+
+## See also
+
+- [prepareTransaction](/sdk-reference/account/transactions/prepare-transaction) to prepare the transaction data for signing

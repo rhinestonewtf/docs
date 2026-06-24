@@ -1,0 +1,30 @@
+---
+title: "enable"
+description: "Enable passkeys authentication"
+---
+
+## Import
+
+```ts
+import { enable } from '@rhinestone/sdk/actions/passkeys'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [enable(credential)],
+})
+```
+
+## Parameters
+
+<ParamField path="credential" type="WebauthnCredential" required>
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="LazyCallInput">
+  Calls to enable passkeys authentication
+</ResponseField>

@@ -1,0 +1,24 @@
+---
+title: "getExecutors"
+description: "Get the account executor modules."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const executors = await account.getExecutors(chain)
+```
+
+## Parameters
+
+<ParamField path="chain" type="Chain" required>
+  Chain to read the executors from
+</ParamField>
+
+## Returns
+
+<ResponseField name="executors" type="`0x${string}`[]">
+  The executor module addresses
+</ResponseField>

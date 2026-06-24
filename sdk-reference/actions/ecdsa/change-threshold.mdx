@@ -1,0 +1,31 @@
+---
+title: "changeThreshold"
+description: "Change an account's signer threshold (ECDSA)"
+---
+
+## Import
+
+```ts
+import { changeThreshold } from '@rhinestone/sdk/actions/ecdsa'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [changeThreshold(newThreshold)],
+})
+```
+
+## Parameters
+
+<ParamField path="newThreshold" type="number" required>
+  New threshold
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="CalldataInput">
+  Call to change the threshold
+</ResponseField>

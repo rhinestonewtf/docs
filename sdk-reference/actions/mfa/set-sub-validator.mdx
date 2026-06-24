@@ -1,0 +1,35 @@
+---
+title: "setSubValidator"
+description: "Set a sub-validator (multi-factor)"
+---
+
+## Import
+
+```ts
+import { setSubValidator } from '@rhinestone/sdk/actions/mfa'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [setSubValidator(id, validator)],
+})
+```
+
+## Parameters
+
+<ParamField path="id" type="number | `0x${string}`" required>
+  Validator ID
+</ParamField>
+
+<ParamField path="validator" type="OwnableValidatorConfig | WebauthnValidatorConfig" required>
+  Validator module
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="CalldataInput">
+  Call to set the sub-validator
+</ResponseField>

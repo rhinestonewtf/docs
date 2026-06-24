@@ -1,0 +1,24 @@
+---
+title: "getPortfolio"
+description: "Get the account portfolio (token balances across chains)."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const portfolio = await account.getPortfolio()
+```
+
+## Parameters
+
+<ParamField path="onTestnets" type="boolean">
+  Whether to query testnet balances (default is `false`)
+</ParamField>
+
+## Returns
+
+<ResponseField name="portfolio" type="Portfolio">
+  The account balances
+</ResponseField>

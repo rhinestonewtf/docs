@@ -1,0 +1,26 @@
+---
+title: "experimental_signEnableSession"
+description: "Sign the data required to enable a smart session."
+---
+
+<Warning>This API is experimental and may change in a future release.</Warning>
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const signature = await account.experimental_signEnableSession(details)
+```
+
+## Parameters
+
+<ParamField path="details" type="SessionDetails" required>
+  Session details to enable
+</ParamField>
+
+## Returns
+
+<ResponseField name="signature" type="`0x${string}`">
+  The enable-session signature
+</ResponseField>

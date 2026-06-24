@@ -1,0 +1,31 @@
+---
+title: "installModule"
+description: "Install a custom module"
+---
+
+## Import
+
+```ts
+import { installModule } from '@rhinestone/sdk/actions'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [installModule(module)],
+})
+```
+
+## Parameters
+
+<ParamField path="module" type="ModuleInput" required>
+  Module to install
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="LazyCallInput">
+  Calls to install the module
+</ResponseField>

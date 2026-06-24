@@ -1,0 +1,25 @@
+---
+title: "disable"
+description: "Disable multi-factor authentication"
+---
+
+## Import
+
+```ts
+import { disable } from '@rhinestone/sdk/actions/mfa'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [disable()],
+})
+```
+
+## Returns
+
+<ResponseField name="call" type="LazyCallInput">
+  Calls to disable multi-factor authentication
+</ResponseField>

@@ -1,0 +1,18 @@
+---
+title: "signEip7702InitData"
+description: "Prepare and sign the EIP-7702 account initialization data."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const signature = await account.signEip7702InitData()
+```
+
+## Returns
+
+<ResponseField name="signature" type="`0x${string}`">
+  The init data signature
+</ResponseField>

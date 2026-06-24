@@ -1,0 +1,46 @@
+---
+title: "recoverPasskeyOwnership"
+description: "Recover an account's ownership (Passkey)"
+---
+
+## Import
+
+```ts
+import { recoverPasskeyOwnership } from '@rhinestone/sdk/actions/recovery'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: await recoverPasskeyOwnership(address, oldCredentials, newOwners, chain, config),
+})
+```
+
+## Parameters
+
+<ParamField path="address" type="`0x${string}`" required>
+  Account address
+</ParamField>
+
+<ParamField path="oldCredentials" type="{ pubKeyX: bigint; pubKeyY: bigint }[]" required>
+  Old credentials to be replaced (with pubKeyX, pubKeyY)
+</ParamField>
+
+<ParamField path="newOwners" type="WebauthnValidatorConfig" required>
+  New passkey owners
+</ParamField>
+
+<ParamField path="chain" type="Chain" required>
+  Chain to recover ownership on
+</ParamField>
+
+<ParamField path="config" type="RhinestoneConfig" required>
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="CalldataInput[]">
+  Calls to recover ownership
+</ResponseField>

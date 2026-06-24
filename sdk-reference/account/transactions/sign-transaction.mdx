@@ -1,0 +1,33 @@
+---
+title: "signTransaction"
+description: "Sign a prepared transaction."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const transaction = await account.signTransaction(preparedTransaction)
+```
+
+## Parameters
+
+<ParamField path="preparedTransaction" type="PreparedTransactionData" required>
+  Prepared transaction data
+</ParamField>
+
+<ParamField path="options" type="QuoteSelection">
+  Optional override; pass `{ intentId }` to sign a specific quote from `preparedTransaction.quotes.all`
+</ParamField>
+
+## Returns
+
+<ResponseField name="transaction" type="SignedTransactionData">
+  The signed transaction data
+</ResponseField>
+
+## See also
+
+- [prepareTransaction](/sdk-reference/account/transactions/prepare-transaction) to prepare the transaction data for signing
+- [submitTransaction](/sdk-reference/account/transactions/submit-transaction) to submit the signed transaction

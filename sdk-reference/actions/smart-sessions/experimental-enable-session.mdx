@@ -1,0 +1,49 @@
+---
+title: "experimental_enableSession"
+description: "Enable a smart session"
+---
+
+<Warning>This API is experimental and may change in a future release.</Warning>
+
+The `session` must be a resolved `Session` (the return value of
+`toSession(...)`). Re-resolving it here would drop the explicit
+`permissions` — a `Session` only carries the derived `actions`, not the
+original `SessionDefinition.permissions` — which makes the on-chain digest
+computed by `SmartSessionLens.getAndVerifyDigest` diverge from the one
+signed in `getSessionDetails`, causing the emissary to reject the enable.
+
+## Import
+
+```ts
+import { experimental_enableSession } from '@rhinestone/sdk/actions/smart-sessions'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [experimental_enableSession(session, enableSessionSignature, hashesAndChainIds, sessionToEnableIndex)],
+})
+```
+
+## Parameters
+
+<ParamField path="session" type="Session" required>
+  resolved session to enable
+</ParamField>
+
+<ParamField path="enableSessionSignature" type="`0x${string}`" required>
+</ParamField>
+
+<ParamField path="hashesAndChainIds" type="{ chainId: bigint; sessionDigest: `0x${string}` }[]" required>
+</ParamField>
+
+<ParamField path="sessionToEnableIndex" type="number" required>
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="LazyCallInput">
+  Calls to enable the smart session
+</ResponseField>

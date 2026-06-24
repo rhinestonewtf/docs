@@ -1,0 +1,52 @@
+---
+title: "experimental_getV0InitData"
+description: "Compute the v0 (legacy) initialization data for an account configuration."
+---
+
+<Warning>This API is experimental and may change in a future release.</Warning>
+
+Use this to reconstruct the `initData` for an account originally created with
+the Rhinestone SDK v0, then pass it back into `createAccount`.
+
+## Import
+
+```ts
+import { experimental_getV0InitData } from '@rhinestone/sdk/utils'
+```
+
+## Usage
+
+```ts
+import { experimental_getV0InitData } from '@rhinestone/sdk/utils'
+
+const initData = experimental_getV0InitData({
+  owners: { type: 'ecdsa', accounts: [owner] },
+})
+
+const account = await sdk.createAccount({
+  owners: { type: 'ecdsa', accounts: [owner] },
+  initData,
+})
+```
+
+## Parameters
+
+<ParamField path="config" type="RhinestoneAccountConfig" required>
+  Account configuration
+</ParamField>
+
+## Returns
+
+The account address, factory, factory data, and whether the intent executor is installed
+
+<ResponseField name="address" type="`0x${string}`" required>
+</ResponseField>
+
+<ResponseField name="factory" type="`0x${string}`" required>
+</ResponseField>
+
+<ResponseField name="factoryData" type="`0x${string}`" required>
+</ResponseField>
+
+<ResponseField name="intentExecutorInstalled" type="boolean" required>
+</ResponseField>

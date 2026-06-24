@@ -1,0 +1,24 @@
+---
+title: "isDeployed"
+description: "Check whether the account is deployed on a given chain."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const deployed = await account.isDeployed(chain)
+```
+
+## Parameters
+
+<ParamField path="chain" type="Chain" required>
+  Chain to check
+</ParamField>
+
+## Returns
+
+<ResponseField name="deployed" type="boolean">
+  `true` if the account is deployed, `false` otherwise
+</ResponseField>

@@ -1,0 +1,29 @@
+---
+title: "prepareTransaction"
+description: "Prepare a transaction for signing."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const result = await account.prepareTransaction(transaction)
+```
+
+## Parameters
+
+<ParamField path="transaction" type="Transaction" required>
+  Transaction to prepare
+</ParamField>
+
+## Returns
+
+<ResponseField name="transaction" type="PreparedTransactionData">
+  The prepared transaction data
+</ResponseField>
+
+## See also
+
+- [signTransaction](/sdk-reference/account/transactions/sign-transaction) to sign the prepared transaction
+- [submitTransaction](/sdk-reference/account/transactions/submit-transaction) to submit the signed transaction
