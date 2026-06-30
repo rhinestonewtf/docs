@@ -11,7 +11,7 @@ You set them at the session level via `crossChainPermits`, not per function. Eac
 
 Restrict a session to only bridge USDC from Base to Arbitrum:
 
-```ts {6-11}
+```ts {7-12}
 const session = toSession({
   chain: base,
   owners: {
@@ -38,7 +38,7 @@ A token can be a symbol (resolved to the per-chain address) or an explicit addre
 
 Tighten a permit with optional bounds:
 
-```ts {9-13}
+```ts {8-14}
 const session = toSession({
   chain: base,
   owners: {
@@ -65,26 +65,40 @@ const session = toSession({
 
 By default a cross-chain permit enforces **bridge-to-self** on-chain: the destination recipient must be the smart account itself. This stops a leaked session key from routing funds to an attacker-controlled address. Opt out explicitly only when you need to bridge to a different recipient:
 
-```ts {4-5}
-crossChainPermits: [
-  {
-    from: [{ chain: base, token: 'USDC' }],
-    to: [{ chain: arbitrum, token: 'USDC', recipient: payoutAddress }],
-    allowRecipientNotAccount: true,
+```ts {10-11}
+const session = toSession({
+  chain: base,
+  owners: {
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
   },
-]
+  crossChainPermits: [
+    {
+      from: [{ chain: base, token: 'USDC' }],
+      to: [{ chain: arbitrum, token: 'USDC', recipient: payoutAddress }],
+      allowRecipientNotAccount: true,
+    },
+  ],
+})
 ```
 
 ## Settlement layers
 
 A permit allows any supported settlement layer by default. Pass `settlementLayers` to narrow it to a subset:
 
-```ts {4}
-crossChainPermits: [
-  {
-    from: [{ chain: base, token: 'USDC' }],
-    to: [{ chain: arbitrum, token: 'USDC' }],
-    settlementLayers: ['ECO'],
+```ts {11}
+const session = toSession({
+  chain: base,
+  owners: {
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
   },
-]
+  crossChainPermits: [
+    {
+      from: [{ chain: base, token: 'USDC' }],
+      to: [{ chain: arbitrum, token: 'USDC' }],
+      settlementLayers: ['ECO'],
+    },
+  ],
+})
 ```
