@@ -124,8 +124,7 @@
             "group": "Gas & fee sponsorship",
             "pages": [
               "smart-wallet/gas-sponsorship/overview",
-              "smart-wallet/gas-sponsorship/set-up-sponsorship",
-              "smart-wallet/gas-sponsorship/pay-gas-with-erc20"
+              "smart-wallet/gas-sponsorship/set-up-sponsorship"
             ]
           },
           {
