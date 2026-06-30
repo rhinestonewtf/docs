@@ -5,7 +5,7 @@ sidebarTitle: "Timeframe"
 
 Restrict when a session function can be called. Attach the policy at the function level.
 
-```ts {14-18}
+```ts {13-14}
 const session = toSession({
   chain: base,
   owners: {
@@ -18,13 +18,8 @@ const session = toSession({
       address: usdcAddress,
       functions: {
         transfer: {
-          policies: [
-            {
-              type: 'time-frame',
-              validAfter: Date.now(),
-              validUntil: Date.now() + 1000 * 60 * 60 * 24,
-            },
-          ],
+          validAfter: new Date(),
+          validUntil: new Date(Date.now() + 1000 * 60 * 60 * 24),
         },
       },
     },

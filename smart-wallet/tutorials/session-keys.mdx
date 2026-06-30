@@ -94,14 +94,10 @@ const session = toSession({
       address: usdcAddress,
       functions: {
         transfer: {
-          policies: [
-            {
-              type: 'spending-limits',
-              limits: [
-                { token: usdcAddress, amount: parseUnits('100', 6) }, // 100 USDC
-              ],
-            },
-          ],
+          spendingLimit: {
+            token: usdcAddress,
+            amount: parseUnits('100', 6), // 100 USDC
+          },
         },
       },
     },
