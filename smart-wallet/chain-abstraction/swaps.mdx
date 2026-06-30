@@ -1,20 +1,15 @@
 ---
 title: "Swaps"
-description: "Bridge and swap in a single transaction. Use Warp's built-in swaps or supply your own swap calldata."
+description: "Bridge and swap in a single transaction using Warp's built-in solver liquidity."
 ---
 
-Rhinestone supports two swap modes:
-
-- **Swaps**: Warp handles the swap using solver liquidity. Simpler to integrate, best for common tokens.
-- **Injected swaps**: you supply the calldata for a swap from an external API (1inch, 0x, etc.). More setup, but full token coverage and best-price routing.
+Warp can bridge and swap in a single transaction. Specify the token you want on the destination chain, and if it differs from what the user holds, Warp routes through solver liquidity to swap and bridge automatically.
 
 <Tabs>
 
 <Tab title="SDK">
 
-## Swaps
-
-Specify the token you want on the destination chain. If it differs from what the user holds, Warp handles the bridge and swap automatically.
+Request ETH on the target chain via `tokenRequests`. If the user only holds another token there (or on the source chain), Warp swaps and bridges to cover it:
 
 ```ts
 import { baseSepolia, arbitrumSepolia } from 'viem/chains'
@@ -46,78 +41,9 @@ If the user has USDC on Base Sepolia, Warp will swap it to ETH, bridge to Arbitr
 
 <Note>The token address in `calls` and `tokenRequests` must correspond to the _target_ chain.</Note>
 
-## Injected swaps
-
-For full token coverage or best-price routing, supply swap calldata from a DEX aggregator and include it as destination chain calls.
-
-The example below makes a WETH to cbBTC swap on Base using funds from Arbitrum, via 1inch.
-
-**1. Initialize the 1inch client:**
-
-```ts
-const walletAddress = rhinestoneAccount.getAddress()
-const wethBase = '0x4200000000000000000000000000000000000006'
-const wethAmount = parseEther('0.1')
-const cbbtcBase = '0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf'
-const oneInchApiKey = 'YOUR_1INCH_API_KEY'
-const baseUrl = 'https://api.1inch.dev/swap/v6.0/8453'
-
-async function call1inchAPI<T>(
-  endpointPath: string,
-  queryParams: Record<string, string>
-): Promise<T> {
-  const url = new URL(baseUrl + endpointPath)
-  url.search = new URLSearchParams(queryParams).toString()
-  const response = await fetch(url.toString(), {
-    headers: { Accept: 'application/json', Authorization: `Bearer ${oneInchApiKey}` },
-  })
-  if (!response.ok) throw new Error(`1inch API error ${response.status}`)
-  return response.json() as Promise<T>
-}
-```
-
-**2. Fetch approval and swap data:**
-
-```ts
-const approveTx = await call1inchAPI<ApproveTransactionResponse>('/approve/transaction', {
-  tokenAddress: wethBase,
-  amount: wethAmount.toString(),
-})
-
-const swapTx = await call1inchAPI<TxResponse>('/swap', {
-  src: wethBase,
-  dst: cbbtcBase,
-  amount: wethAmount.toString(),
-  from: walletAddress,
-  slippage: '1',
-  disableEstimate: 'false',
-  allowPartialFill: 'false',
-})
-```
-
-**3. Submit as a crosschain transaction:**
-
-```ts
-const transaction = await rhinestoneAccount.prepareTransaction({
-  sourceChains: [arbitrum],
-  targetChain: base,
-  calls: [
-    { to: approveTx.to, data: approveTx.data, value: approveTx.value },
-    { to: swapTx.tx.to, data: swapTx.tx.data, value: swapTx.tx.value },
-  ],
-  tokenRequests: [
-    { address: wethBase, amount: wethAmount },
-  ],
-})
-```
-
-This bridges from Arbitrum to get 0.1 WETH on Base, then executes the 1inch swap to cbBTC.
-
 </Tab>
 
 <Tab title="API">
-
-## Swaps
 
 When you request a token on the destination chain that differs from the user's source token, Warp routes through the solver market to bridge and swap in a single operation. No additional parameters are required — the quote response tells you what will be spent and what will be received.
 
