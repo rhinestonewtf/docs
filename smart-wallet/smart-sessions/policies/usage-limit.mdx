@@ -5,7 +5,7 @@ sidebarTitle: "Usage limit"
 
 Limit how many times a session function can be called.
 
-```ts {14-17}
+```ts {13}
 const session = toSession({
   chain: base,
   owners: {
@@ -18,12 +18,7 @@ const session = toSession({
       address: usdcAddress,
       functions: {
         transfer: {
-          policies: [
-            {
-              type: 'usage-limit',
-              limit: 10n,
-            },
-          ],
+          maxUses: 10n,
         },
       },
     },
