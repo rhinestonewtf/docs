@@ -125,3 +125,61 @@ const transaction = await account.prepareTransaction({
   tokenRequests: [],
 })
 ```
+
+## Example: multi-device 1-of-n
+
+Register a passkey per device and use a 1-of-n threshold, so the user can sign from any of their devices.
+
+```ts
+import { RhinestoneSDK } from '@rhinestone/sdk'
+import { toWebAuthnAccount } from 'viem/account-abstraction'
+import { base, arbitrum } from 'viem/chains'
+import { encodeFunctionData, erc20Abi, parseUnits } from 'viem'
+
+// One passkey per device, each registered via WebAuthn on that device
+const passkeyAccountA = toWebAuthnAccount({ credential: credentialFromDeviceA })
+const passkeyAccountB = toWebAuthnAccount({ credential: credentialFromDeviceB })
+
+const rhinestone = new RhinestoneSDK({
+  apiKey: process.env.RHINESTONE_API_KEY as string,
+})
+
+// Any single registered device can sign
+const account = await rhinestone.createAccount({
+  owners: {
+    type: 'passkey',
+    accounts: [passkeyAccountA, passkeyAccountB],
+    threshold: 1,
+  },
+})
+
+const usdcAmount = parseUnits('0.1', 6)
+const prepared = await account.prepareTransaction({
+  sourceChains: [base],
+  targetChain: arbitrum,
+  calls: [
+    {
+      to: 'USDC',
+      value: 0n,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: ['0xd8da6bf26964af9d7eed9e03e53415d37aa96045', usdcAmount],
+      }),
+    },
+  ],
+  tokenRequests: [{ address: 'USDC', amount: usdcAmount }],
+  // Sign from a single device
+  signers: {
+    type: 'owner',
+    kind: 'passkey',
+    accounts: [passkeyAccountA],
+  },
+})
+
+const signed = await account.signTransaction(prepared)
+const transaction = await account.submitTransaction(signed)
+const result = await account.waitForExecution(transaction)
+```
+
+When the user adds a new device, register a passkey for it and add it as an owner — see [Add a passkey (new device)](#add-a-passkey-new-device).

@@ -24,8 +24,9 @@ const rhinestone = new RhinestoneSDK()
 const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'multi-factor',
-    // List of subvalidators to use
-    // Multiple validators can have the same type
+    // Require a valid signature from both an EOA and a passkey signer
+    threshold: 2,
+    // List of subvalidators to use; multiple validators can have the same type
     validators: [
       {
         type: 'ecdsa',
@@ -35,8 +36,6 @@ const rhinestoneAccount = await rhinestone.createAccount({
         type: 'passkey',
         accounts: [passkeyAccount],
       },
-      // Setting this will require a valid signature from both an EOA and a passkey signer
-      threshold: 2,
     ],
   },
 })
@@ -135,4 +134,66 @@ const transaction = await rhinestoneAccount.prepareTransaction({
     }),
   ],
 })
+```
+
+## Example: EOA + passkey (2-of-2)
+
+End to end: create an account that requires both an EOA and a passkey, then approve a transaction with both factors.
+
+```ts
+import { RhinestoneSDK } from '@rhinestone/sdk'
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import { toWebAuthnAccount } from 'viem/account-abstraction'
+import { base, arbitrum } from 'viem/chains'
+import { encodeFunctionData, erc20Abi, parseUnits } from 'viem'
+
+const eoaAccount = privateKeyToAccount(generatePrivateKey())
+const passkeyAccount = toWebAuthnAccount({ credential })
+
+const rhinestone = new RhinestoneSDK({
+  apiKey: process.env.RHINESTONE_API_KEY as string,
+})
+
+// Require a signature from both the EOA and the passkey
+const rhinestoneAccount = await rhinestone.createAccount({
+  owners: {
+    type: 'multi-factor',
+    threshold: 2,
+    validators: [
+      { type: 'ecdsa', accounts: [eoaAccount] },
+      { type: 'passkey', accounts: [passkeyAccount] },
+    ],
+  },
+})
+
+const usdcAmount = parseUnits('0.1', 6)
+const prepared = await rhinestoneAccount.prepareTransaction({
+  sourceChains: [base],
+  targetChain: arbitrum,
+  calls: [
+    {
+      to: 'USDC',
+      value: 0n,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: ['0xd8da6bf26964af9d7eed9e03e53415d37aa96045', usdcAmount],
+      }),
+    },
+  ],
+  tokenRequests: [{ address: 'USDC', amount: usdcAmount }],
+  // Provide both factors. `id` is each validator's index in the list above.
+  signers: {
+    type: 'owner',
+    kind: 'multi-factor',
+    validators: [
+      { type: 'ecdsa', id: 0, accounts: [eoaAccount] },
+      { type: 'passkey', id: 1, accounts: [passkeyAccount] },
+    ],
+  },
+})
+
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const transaction = await rhinestoneAccount.submitTransaction(signed)
+const result = await rhinestoneAccount.waitForExecution(transaction)
 ```

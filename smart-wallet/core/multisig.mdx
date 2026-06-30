@@ -217,3 +217,65 @@ To retrieve the current list of owners along with the signature threshold:
 const owners = await rhinestoneAccount.getOwners(chain)
 // → { "accounts": ["0xaaa…", "0xbbb…", "0xccc…"], "threshold": 2 }
 ```
+
+## Example: 2-of-3 approval
+
+End to end: create a 2-of-3 ECDSA account, then approve a transaction with two of the three owners.
+
+```ts
+import { RhinestoneSDK } from '@rhinestone/sdk'
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import { base, arbitrum } from 'viem/chains'
+import { encodeFunctionData, erc20Abi, parseUnits } from 'viem'
+
+const accountA = privateKeyToAccount(generatePrivateKey())
+const accountB = privateKeyToAccount(generatePrivateKey())
+const accountC = privateKeyToAccount(generatePrivateKey())
+
+const rhinestone = new RhinestoneSDK({
+  apiKey: process.env.RHINESTONE_API_KEY as string,
+})
+
+// Any two of the three owners can approve
+const rhinestoneAccount = await rhinestone.createAccount({
+  owners: {
+    type: 'ecdsa',
+    accounts: [accountA, accountB, accountC],
+    threshold: 2,
+  },
+})
+
+const usdcAmount = parseUnits('0.1', 6)
+const prepared = await rhinestoneAccount.prepareTransaction({
+  sourceChains: [base],
+  targetChain: arbitrum,
+  calls: [
+    {
+      to: 'USDC',
+      value: 0n,
+      data: encodeFunctionData({
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: ['0xd8da6bf26964af9d7eed9e03e53415d37aa96045', usdcAmount],
+      }),
+    },
+  ],
+  tokenRequests: [{ address: 'USDC', amount: usdcAmount }],
+  // Sign with two owners to meet the threshold
+  signers: {
+    type: 'owner',
+    kind: 'ecdsa',
+    accounts: [accountA, accountB],
+  },
+})
+
+const signed = await rhinestoneAccount.signTransaction(prepared)
+const transaction = await rhinestoneAccount.submitTransaction(signed)
+const result = await rhinestoneAccount.waitForExecution(transaction)
+```
+
+Signing with only one owner would fail validation, since the account requires two.
+
+<Note>
+For clarity this signs with both owners in a single call. In practice the owners are usually separate parties who each sign the same transaction independently, and their signatures are merged into the account's multisig signature. A dedicated helper for independent signing and merging is coming.
+</Note>
