@@ -141,7 +141,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
 
 If the source call hands over tokens (an unwrap, an unstake, withdrawing from a vault), declare them via `provides`. Routing then treats those tokens as available, the same way `auxiliaryFunds` does:
 
-```ts {7-9}
+```ts {6-8}
 sourceCalls: {
   [base.id]: [
     {

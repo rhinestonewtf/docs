@@ -7,6 +7,18 @@ By default, the Rhinestone SDK uses a Safe smart account. You can override this 
 
 <CodeGroup>
 
+```ts Nexus
+const rhinestoneAccount = await rhinestone.createAccount({
+  account: {
+    type: 'nexus',
+  },
+  owners: {
+    type: 'ecdsa',
+    accounts: [account],
+  },
+})
+```
+
 ```ts Safe
 const rhinestoneAccount = await rhinestone.createAccount({
   account: {
@@ -23,14 +35,15 @@ const rhinestoneAccount = await rhinestone.createAccount({
 })
 ```
 
-```ts Nexus
+```ts Startale
 const rhinestoneAccount = await rhinestone.createAccount({
   account: {
-    type: 'nexus',
+    type: 'startale',
   },
   owners: {
     type: 'ecdsa',
     accounts: [account],
+    module: '0x00000072f286204bb934ed49d8969e86f7dec7b1',
   },
 })
 ```
@@ -43,19 +56,6 @@ const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
     accounts: [account],
-  },
-})
-```
-
-```ts Startale
-const rhinestoneAccount = await rhinestone.createAccount({
-  account: {
-    type: 'startale',
-  },
-  owners: {
-    type: 'ecdsa',
-    accounts: [account],
-    module: '0x00000072f286204bb934ed49d8969e86f7dec7b1',
   },
 })
 ```

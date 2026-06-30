@@ -38,16 +38,23 @@ A token can be a symbol (resolved to the per-chain address) or an explicit addre
 
 Tighten a permit with optional bounds:
 
-```ts {3-7}
-crossChainPermits: [
-  {
-    from: [{ chain: base, token: 'USDC', maxAmount: parseUnits('100', 6) }],
-    to: [{ chain: arbitrum, token: 'USDC' }],
-    validAfter: new Date('2026-01-01'),
-    validUntil: new Date('2027-01-01'),
-    fillDeadline: [{ chain: arbitrum, max: new Date('2027-01-01') }],
+```ts {9-13}
+const session = toSession({
+  chain: base,
+  owners: {
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
   },
-]
+  crossChainPermits: [
+    {
+      from: [{ chain: base, token: 'USDC', maxAmount: parseUnits('100', 6) }],
+      to: [{ chain: arbitrum, token: 'USDC' }],
+      validAfter: new Date('2026-01-01'),
+      validUntil: new Date('2027-01-01'),
+      fillDeadline: [{ chain: arbitrum, max: new Date('2027-01-01') }],
+    },
+  ],
+})
 ```
 
 - `maxAmount` on a source leg caps how much of that token the session can pull (a spending limit).

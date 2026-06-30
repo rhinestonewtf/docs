@@ -21,7 +21,7 @@ Available conditions:
 
 To restrict an ERC20 transfer to a single recipient:
 
-```ts {15}
+```ts {14-17}
 const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 
 const session = toSession({
@@ -52,24 +52,31 @@ Reference parameters by name — the SDK looks them up in the ABI. Only static t
 
 Cap the total accumulated value of a param across all session uses with `usageLimit`. Useful for capping cumulative spend across calls.
 
-```ts {8-12}
-permissions: [
-  {
-    abi: erc20Abi,
-    address: usdcAddress,
-    functions: {
-      transfer: {
-        params: {
-          amount: {
-            condition: 'lessThan',
-            value: parseUnits('10', 6),
-            usageLimit: parseUnits('50', 6),
+```ts {13-19}
+const session = toSession({
+  chain: base,
+  owners: {
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
+  },
+  permissions: [
+    {
+      abi: erc20Abi,
+      address: usdcAddress,
+      functions: {
+        transfer: {
+          params: {
+            amount: {
+              condition: 'lessThan',
+              value: parseUnits('10', 6),
+              usageLimit: parseUnits('50', 6),
+            },
           },
         },
       },
     },
-  },
-],
+  ],
+})
 ```
 
 This caps each transfer at 10 USDC and the total across the session lifetime at 50 USDC.
@@ -78,18 +85,25 @@ This caps each transfer at 10 USDC and the total across the session lifetime at 
 
 To cap the ETH value sent on a single call, use `valueLimitPerUse` at the function level:
 
-```ts {7}
-permissions: [
-  {
-    abi: vaultAbi,
-    address: vaultAddress,
-    functions: {
-      depositEth: {
-        valueLimitPerUse: parseUnits('0.1', 18),
+```ts {13}
+const session = toSession({
+  chain: base,
+  owners: {
+    type: 'ecdsa',
+    accounts: [sessionOwnerAccount],
+  },
+  permissions: [
+    {
+      abi: vaultAbi,
+      address: vaultAddress,
+      functions: {
+        depositEth: {
+          valueLimitPerUse: parseUnits('0.1', 18),
+        },
       },
     },
-  },
-],
+  ],
+})
 ```
 
 This limits the value per call to 0.1 ETH.

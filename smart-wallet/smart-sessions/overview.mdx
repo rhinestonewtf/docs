@@ -139,7 +139,7 @@ const session = toSession({
 
 Finally, you can constrain function parameters. The SDK derives the selector and parameter offsets from the ABI, so you reference parameters by name:
 
-```ts {12-16}
+```ts {11-20}
 const session = toSession({
   chain: base,
   owners: {
@@ -169,7 +169,7 @@ const session = toSession({
 
 Use `crossChainPermits` to scope which routes, tokens, amounts, and recipients it may bridge:
 
-```ts {7-12}
+```ts {8-13}
 const session = toSession({
   chain: base,
   owners: {
