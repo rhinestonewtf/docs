@@ -187,13 +187,15 @@ Try the full integration in our example repository. We have lots of examples, ca
 
 ```bash
 git clone https://github.com/rhinestonewtf/e2e-examples.git
-cd e2e-examples/reown
-npm install && npm run dev
+cd e2e-examples
+pnpm install
+cd reown && pnpm dev
 ```
 
 ## Next Steps
 
 - **See it in action**: [External Wallet + Rhinestone Example](https://github.com/rhinestonewtf/e2e-examples/tree/main/reown)
+- **No auth provider**: pure [wagmi](https://github.com/rhinestonewtf/e2e-examples/tree/main/standalone-wagmi) (injected connector) and [viem](https://github.com/rhinestonewtf/e2e-examples/tree/main/standalone-viem) (Node script) examples
 - **Reown + Wagmi connectors**: Learn about [wagmi connectors](https://docs.reown.com/appkit/next/core/installation)
 - **Session keys**: Set up [session keys](../../smart-sessions/overview) for automated operations
 - **Cross-chain transactions**: Explore [chain abstraction](../create-first-transaction) for complex multi-chain operations
