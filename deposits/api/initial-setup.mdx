@@ -100,7 +100,7 @@ await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
 
 If no whitelist is set, all [supported tokens](/deposits/overview#supported-chains-and-tokens) are accepted with no amount restrictions.
 
-Rejected deposits trigger a `bridge-failed` webhook with error code `TOKEN-3` (token not allowed) or `BALANCE-3` (amount out of range).
+Rejected deposits trigger a [`deposit-rejected`](/deposits/api/status-tracking#deposit-rejected) webhook — not `bridge-failed` — with error code `TOKEN-3` (token not allowed), `BALANCE-3` (amount above the configured maximum), or `BALANCE-4` (amount below the configured minimum).
 
 ## Set price deviation tolerance
 
@@ -120,6 +120,24 @@ await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
 
 The default is `200` (2%) if not set. Tighten this for high-value stablecoin corridors; loosen it if you see rejections during volatile periods.
 
+## Set a minimum deposit value
+
+Set a per-client minimum deposit value in USD, applied across all tokens and source chains. Deposits priced below it are rejected — a [`deposit-rejected`](/deposits/api/status-tracking#deposit-rejected) webhook is sent with error code `BALANCE-4` and no bridging is attempted.
+
+```ts
+await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    params: {
+      minDepositUsd: 1, // reject deposits worth less than $1
+    },
+  }),
+});
+```
+
+`minDepositUsd` is a non-negative `number` (USD). This is a per-client override; a platform-wide minimum floor also applies and is not client-configurable.
+
 ## Clear a configuration field
 
 Each `/setup` call is a partial update. To explicitly clear a field, pass `null` for string fields or `{}` for object fields:
@@ -131,6 +149,7 @@ Each `/setup` call is a partial update. To explicitly clear a field, pass `null`
 | `sponsorship`          | `{}`   |
 | `depositWhitelist`     | `{}`   |
 | `maxPriceDeviationBps` | `null` |
+| `minDepositUsd`        | `null` |
 
 ## Put it all together
 
@@ -160,6 +179,7 @@ await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
         ],
       },
       maxPriceDeviationBps: 150,
+      minDepositUsd: 1,
     },
   }),
 });

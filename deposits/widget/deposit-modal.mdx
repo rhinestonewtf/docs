@@ -131,25 +131,6 @@ Deliver a different final token depending on what the user deposits. Pass `outpu
 
 When several rules match the same deposit, the most specific one wins: `chain + token` outranks `chain + symbol`, which outranks `token`, then `symbol`, then `chain` alone. See [token routing](/deposits/api/account-registration#optional-token-routing) for the full rule semantics, priority order, and additional examples.
 
-## Post-bridge actions
-
-Execute actions on the destination chain after bridging completes. Use this for automated swaps into vault tokens or other DeFi positions.
-
-```tsx
-<DepositModal
-  // ...required props
-  postBridgeActions={[
-    {
-      type: "orderbook-swap",
-      contract: "0xSWAP_CONTRACT_ADDRESS",
-      outputToken: "0xVAULT_TOKEN_ADDRESS",
-    },
-  ]}
-/>
-```
-
-The flow becomes: deposit on source chain → bridge to target chain → swap into the output token → deliver to the recipient.
-
 ## Import from other apps
 
 The modal can pull balances a user already holds in a supported third-party app
@@ -270,7 +251,6 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 | `allowedRoutes` | `RouteConfig` | — | `{ sourceChains?, sourceTokens? }` to restrict selection |
 | `outputTokenRules` | `OutputTokenRule[]` | — | Per-deposit output token routing rules |
 | `rejectUnmapped` | `boolean` | `false` | Reject deposits that don't match any `outputTokenRules` entry |
-| `postBridgeActions` | `PostBridgeAction[]` | — | Actions to execute after bridging |
 | `dappImports` | `DappImportsConfig` | — | [Import balances](#import-from-other-apps) from third-party apps (e.g. `{ polymarket: true }`) |
 | `initialDappImport` | `keyof DappImportsConfig` | — | Open the modal pre-routed into a dapp import (e.g. `"polymarket"`), skipping the home screen. Must name an enabled `dappImports` key. |
 
@@ -288,6 +268,7 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `backendUrl` | `string` | Rhinestone production URL | URL of your deposit-widget-backend instance |
+| `rpcUrls` | `RpcUrlMap` | — | Per-chain RPC overrides keyed by EVM chain id or the literal `"solana"` key (e.g. `{ 8453: "https://…", solana: "https://…" }`). Applied to EVM public clients, the connected wallet, HyperEVM, and the Solana connection; chains left unset use their default RPC |
 
 ### Display
 
@@ -316,4 +297,3 @@ See [status tracking](/deposits/widget/status-tracking) for lifecycle event payl
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `enableSolana` | `boolean` | `true` | Enable Solana wallet support and QR flows |
-| `solanaRpcUrl` | `string` | Solana mainnet | Custom Solana RPC endpoint |

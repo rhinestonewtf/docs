@@ -111,6 +111,7 @@ Safe's `eth_sign` path requires adding 4 to the `v` value of a `personal_sign` s
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `backendUrl` | `string` | Rhinestone production URL | URL of your deposit-widget-backend instance |
+| `rpcUrls` | `RpcUrlMap` | Chain defaults | Per-chain RPC overrides keyed by EVM chain id. Applied to EVM public clients and the connected wallet; chains left unset use their default RPC |
 
 ### Display
 

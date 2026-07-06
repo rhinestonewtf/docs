@@ -374,39 +374,3 @@ await fetch(`${DEPOSIT_SERVICE_URL}/register-managed`, {
 ```
 
 Deposits that don't match USDC or ETH are ignored (not bridged).
-
-## Optional: configure post-bridge actions
-
-Post-bridge actions execute after the bridged tokens arrive on the target chain — for example, swapping into a protocol-specific token.
-
-Set `postBridgeActions` in the `target` object at registration time. When present, `target.token` is the intermediate token bridged into the account, and the last action's `outputToken` is the final token delivered to the recipient.
-
-```ts
-await fetch(`${DEPOSIT_SERVICE_URL}/register-managed`, {
-  method: "POST",
-  headers,
-  body: JSON.stringify({
-    account: {
-      salt,
-      target: {
-        chain: "eip155:8453",
-        token: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC bridged first
-        recipient: "0xYOUR_RECIPIENT_ADDRESS",
-        postBridgeActions: [
-          {
-            type: "orderbook-swap",
-            contract: "0xSWAP_CONTRACT_ADDRESS",
-            outputToken: "0xFINAL_TOKEN_ADDRESS",
-          },
-        ],
-      },
-    },
-  }),
-});
-```
-
-| Field         | Type               | Description                            |
-| ------------- | ------------------ | -------------------------------------- |
-| `type`        | `"orderbook-swap"` | The action type                        |
-| `contract`    | `Address`          | Swap contract address                  |
-| `outputToken` | `Address`          | Final token delivered to the recipient |

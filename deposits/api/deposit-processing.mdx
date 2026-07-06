@@ -83,7 +83,9 @@ These are transient failures. The service retries automatically, or you can trig
 | `BRIDGE-3` | Bridge timed out |
 | `BRIDGE-4` | Bridge provider failed |
 | `BRIDGE-5` | Price deviation exceeded tolerance |
-| `BRIDGE-6` | Unsupported bridge route |
+| `BRIDGE-7` | Bridge refunded |
+| `BRIDGE-8` | Bridge cancelled |
+| `BRIDGE-9` | Bridge rejected |
 | `SWAP-1` | Post-bridge swap failed |
 | `INTERNAL-1` | Unexpected service error |
 
@@ -94,11 +96,17 @@ These indicate a configuration or input problem. Check account registration, dep
 | Code | Description |
 |---|---|
 | `BALANCE-1` | Account balance too low for bridging |
+| `BALANCE-2` | Account balance could not be read |
 | `BALANCE-3` | Deposit amount above the configured maximum |
 | `BALANCE-4` | Deposit amount below the configured minimum |
 | `TOKEN-1` | Token not supported on this chain |
+| `TOKEN-2` | Token account (Solana ATA) creation failed |
 | `TOKEN-3` | Token not in deposit whitelist |
 | `ACCOUNT-1` | Account not registered |
+| `ACCOUNT-2` | Account (Solana Swig wallet) creation failed |
+| `SESSION-1` | Smart session not found — resolved by re-registering the account |
+| `TRANSFER-1` | Transfer execution failed |
+| `BRIDGE-6` | Unsupported bridge route — no route available; the deposit is rejected, not retried |
 
 <Note>
 Failed deposits with non-retryable errors will not be retried automatically. Resolve the underlying issue (e.g. update your deposit whitelist or register the account) before triggering a manual retry.

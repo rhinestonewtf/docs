@@ -63,3 +63,4 @@ Toggle UI elements, set deposit constraints, and control fee display via `uiConf
 | `maxDepositUsd` | `number` | — | Maximum deposit amount in USD |
 | `feeSponsored` | `boolean` | `false` | When `true`, the network/protocol fee renders struck-through on the review, processing, and result screens, with a tooltip explaining the sponsorship |
 | `feeTooltip` | `string` | — | Custom copy for the fee info tooltip. Defaults to a generic message based on `feeSponsored`. |
+| `checkLiquidity` | `boolean` | `false` | When `true`, runs an orchestrator liquidity check as the user continues from the amount step and surfaces an "unavailable / check failed" warning on the review screen. Does not block the deposit |
