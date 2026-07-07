@@ -14,7 +14,7 @@ Send your first crosschain intent straight through the REST API. This guide walk
 ## Prerequisites
 
 - A Rhinestone API key ([request one here](https://tally.so/r/wg22x4)) — not required for testnets
-- An EOA with funds on at least one [supported chain](/home/resources/supported-chains)
+- An EOA with funds on Ethereum, Optimism, Base, or Arbitrum — the source chains this quickstart handles below (extend the `accountAccessList` and wrap map for any other [supported chain](/home/resources/supported-chains))
 
 ## Steps
 
@@ -69,6 +69,10 @@ const res = await fetch(`${BASE_URL}/quotes`, {
         amount: "5000000", // 5 USDC (6 decimals)
       },
     ],
+    // Limit source funds to the chains this quickstart handles below.
+    accountAccessList: {
+      chainIds: ["eip155:1", "eip155:10", "eip155:8453", "eip155:42161"],
+    },
   }),
 });
 
@@ -111,7 +115,8 @@ for (const [chainId, tokens] of Object.entries(tokenRequirements)) {
 **ETH wrapping** — wrap native ETH to WETH:
 
 ```ts
-// Wrapped-native token per chain — only needed when the source token is ETH.
+// Wrapped-native token for each chain in the accountAccessList above
+// (only needed when the source token is ETH).
 const WETH: Record<string, `0x${string}`> = {
   "eip155:1": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // Ethereum
   "eip155:10": "0x4200000000000000000000000000000000000006", // Optimism
