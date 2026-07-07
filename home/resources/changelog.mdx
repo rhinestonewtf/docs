@@ -1,0 +1,51 @@
+---
+title: "Changelog"
+description: "Major releases and updates to the Rhinestone SDK and API."
+rss: true
+---
+
+Major releases and updates to the Smart Wallet SDK and Intents API. Filter by tag, or subscribe via the RSS button.
+
+<Update label="July 2026" description="SDK 2.0.0" tags={["SDK", "Breaking"]}>
+
+## Smart Wallet SDK v2
+
+A ground-up rework of the SDK, aligned with the [Blanc API](/intents/guides/api-versioning).
+
+- **Non-EVM destinations**: settle intents to Solana and Tron.
+- **Multi-route quotes**: `prepareTransaction` returns `quotes: { best, all }`; sign the recommended route or pick your own.
+- **Simplified intent lifecycle**: `IntentStatus` reduces to `PENDING`, `COMPLETED`, and `FAILED`, with a flat per-chain `operations[]` shape.
+- **Settlement control**: include or exclude specific bridges per intent.
+
+[Migrating from 1.x](/smart-wallet/advanced/migration-guide#migrating-from-1-x-sdk)
+
+</Update>
+
+<Update label="May 2026" tags={["SDK", "API", "Feature"]}>
+
+## Solana and Tron destinations
+
+Intents can now settle to Solana and Tron, alongside every supported EVM chain.
+
+[Non-EVM destinations](/intents/features/non-evm-destinations)
+
+</Update>
+
+<Update label="April 2026" description="API 2026-04.blanc" tags={["API", "Breaking"]}>
+
+## Blanc API
+
+A major revision of the Intents API, and the recommended version for new integrations. Pin it with `x-api-version: 2026-04.blanc`.
+
+- **Non-EVM destinations**: settle intents to Solana and Tron.
+- **Destination executions on more layers**: run arbitrary calldata on the destination chain after the bridge delivers funds, now across all supported settlement layers.
+- **Multi-route quotes**: `POST /quotes` returns a flat, server-ranked `routes[]`.
+- **Improved cost reporting**: one `cost` object per route with `input`, `output`, and a `fees` breakdown, replacing the scattered per-field costs.
+- **Server-stored intents**: quote returns an `intentId`; submit signatures by id, no more round-tripping the full `intentOp`.
+- **Server-provided EIP-712**: forward `signData` directly to `wallet.signTypedData()` instead of reconstructing types client-side.
+
+The previous `2026-01.alps` version is deprecated and will be sunset in the future.
+
+[API versioning and migration guide](/intents/guides/api-versioning)
+
+</Update>
