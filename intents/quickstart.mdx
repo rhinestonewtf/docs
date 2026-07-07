@@ -25,9 +25,9 @@ Send your first crosschain intent straight through the REST API. This guide walk
 Submit a meta intent to the `/quotes` endpoint. Specify your destination chain, the token and amount you want on that chain, and your account:
 
 ```ts
-import { createWalletClient, http, type Hex } from "viem";
+import { createWalletClient, extractChain, http, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { base } from "viem/chains";
+import * as chains from "viem/chains";
 
 const BASE_URL = "https://v1.orchestrator.rhinestone.dev";
 const API_KEY = process.env.RHINESTONE_API_KEY;
@@ -36,11 +36,17 @@ const API_KEY = process.env.RHINESTONE_API_KEY;
 const account = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
 const EOA_ADDRESS = account.address;
 
-const walletClient = createWalletClient({
-  account,
-  chain: base,
-  transport: http(),
-});
+// A route can pull source funds from any chain, so token requirements can land
+// on any chain. Build a wallet client for whichever chain a requirement targets.
+const walletClientFor = (chainId: string) =>
+  createWalletClient({
+    account,
+    chain: extractChain({
+      chains: Object.values(chains),
+      id: Number(chainId.split(":")[1]),
+    }),
+    transport: http(),
+  });
 
 const headers = {
   "Content-Type": "application/json",
@@ -91,7 +97,7 @@ import { erc20Abi, maxUint256 } from "viem";
 for (const [chainId, tokens] of Object.entries(tokenRequirements)) {
   for (const [tokenAddress, requirement] of Object.entries(tokens)) {
     if (requirement.type === "approval") {
-      await walletClient.writeContract({
+      await walletClientFor(chainId).writeContract({
         address: tokenAddress,
         abi: erc20Abi,
         functionName: "approve",
@@ -105,8 +111,13 @@ for (const [chainId, tokens] of Object.entries(tokenRequirements)) {
 **ETH wrapping** — wrap native ETH to WETH:
 
 ```ts
-// WETH on Base. Use the wrapped-native token for whichever chain the requirement targets.
-const WETH_ADDRESS = "0x4200000000000000000000000000000000000006";
+// Wrapped-native token per chain — only needed when the source token is ETH.
+const WETH: Record<string, `0x${string}`> = {
+  "eip155:1": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // Ethereum
+  "eip155:10": "0x4200000000000000000000000000000000000006", // Optimism
+  "eip155:8453": "0x4200000000000000000000000000000000000006", // Base
+  "eip155:42161": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1", // Arbitrum
+};
 const wethAbi = [
   {
     name: "deposit",
@@ -120,8 +131,8 @@ const wethAbi = [
 for (const [chainId, tokens] of Object.entries(tokenRequirements)) {
   for (const [tokenAddress, requirement] of Object.entries(tokens)) {
     if (requirement.type === "wrap") {
-      await walletClient.writeContract({
-        address: WETH_ADDRESS,
+      await walletClientFor(chainId).writeContract({
+        address: WETH[chainId],
         abi: wethAbi,
         functionName: "deposit",
         value: BigInt(requirement.amount),
@@ -144,10 +155,10 @@ Forward `signData.origin[]` and `signData.destination` directly to `signTypedDat
 ```ts
 const originSignatures = await Promise.all(
   signData.origin.map((typedData) =>
-    walletClient.signTypedData(typedData),
+    account.signTypedData(typedData),
   ),
 );
-const destinationSignature = await walletClient.signTypedData(
+const destinationSignature = await account.signTypedData(
   signData.destination,
 );
 ```
