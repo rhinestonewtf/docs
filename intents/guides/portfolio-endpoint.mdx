@@ -12,7 +12,7 @@ Pass a user address and your API key to get aggregated balances across all chain
 
 ```ts
 const baseUrl = "https://v1.orchestrator.rhinestone.dev";
-const apiKey = "YOUR_RHINESTONE_API_KEY";
+const apiKey = process.env.RHINESTONE_API_KEY;
 const accountAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
 
 const res = await fetch(

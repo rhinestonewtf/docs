@@ -14,7 +14,7 @@ Send your first crosschain intent straight through the REST API. This guide walk
 ## Prerequisites
 
 - A Rhinestone API key ([request one here](https://tally.so/r/wg22x4)) — not required for testnets
-- An EOA with funds on at least one [supported chain](/home/resources/supported-chains)
+- An EOA with funds on Ethereum, Optimism, Base, or Arbitrum — the source chains this quickstart handles below (extend the `accountAccessList` and wrap map for any other [supported chain](/home/resources/supported-chains))
 
 ## Steps
 
@@ -25,9 +25,28 @@ Send your first crosschain intent straight through the REST API. This guide walk
 Submit a meta intent to the `/quotes` endpoint. Specify your destination chain, the token and amount you want on that chain, and your account:
 
 ```ts
+import { createWalletClient, extractChain, http, type Hex } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import * as chains from "viem/chains";
+
 const BASE_URL = "https://v1.orchestrator.rhinestone.dev";
-const API_KEY = "YOUR_RHINESTONE_API_KEY";
-const EOA_ADDRESS = "0xYourEOAAddress";
+const API_KEY = process.env.RHINESTONE_API_KEY;
+
+// EOA signer — swap in any viem-compatible signer.
+const account = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
+const EOA_ADDRESS = account.address;
+
+// A route can pull source funds from any chain, so token requirements can land
+// on any chain. Build a wallet client for whichever chain a requirement targets.
+const walletClientFor = (chainId: string) =>
+  createWalletClient({
+    account,
+    chain: extractChain({
+      chains: Object.values(chains),
+      id: Number(chainId.split(":")[1]),
+    }),
+    transport: http(),
+  });
 
 const headers = {
   "Content-Type": "application/json",
@@ -50,6 +69,10 @@ const res = await fetch(`${BASE_URL}/quotes`, {
         amount: "5000000", // 5 USDC (6 decimals)
       },
     ],
+    // Limit source funds to the chains this quickstart handles below.
+    accountAccessList: {
+      chainIds: ["eip155:1", "eip155:10", "eip155:8453", "eip155:42161"],
+    },
   }),
 });
 
@@ -73,12 +96,12 @@ Before signing, the user must fulfill any `tokenRequirements` returned in the qu
 **ERC-20 approvals** — approve tokens to the Permit2 contract:
 
 ```ts
-import { maxUint256 } from "viem";
+import { erc20Abi, maxUint256 } from "viem";
 
 for (const [chainId, tokens] of Object.entries(tokenRequirements)) {
   for (const [tokenAddress, requirement] of Object.entries(tokens)) {
     if (requirement.type === "approval") {
-      await walletClient.writeContract({
+      await walletClientFor(chainId).writeContract({
         address: tokenAddress,
         abi: erc20Abi,
         functionName: "approve",
@@ -92,14 +115,32 @@ for (const [chainId, tokens] of Object.entries(tokenRequirements)) {
 **ETH wrapping** — wrap native ETH to WETH:
 
 ```ts
+// Wrapped-native token for each chain in the accountAccessList above
+// (only needed when the source token is ETH).
+const WETH: Record<string, `0x${string}`> = {
+  "eip155:1": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // Ethereum
+  "eip155:10": "0x4200000000000000000000000000000000000006", // Optimism
+  "eip155:8453": "0x4200000000000000000000000000000000000006", // Base
+  "eip155:42161": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1", // Arbitrum
+};
+const wethAbi = [
+  {
+    name: "deposit",
+    type: "function",
+    stateMutability: "payable",
+    inputs: [],
+    outputs: [],
+  },
+] as const;
+
 for (const [chainId, tokens] of Object.entries(tokenRequirements)) {
   for (const [tokenAddress, requirement] of Object.entries(tokens)) {
     if (requirement.type === "wrap") {
-      await walletClient.writeContract({
-        address: WETH_ADDRESS,
+      await walletClientFor(chainId).writeContract({
+        address: WETH[chainId],
         abi: wethAbi,
         functionName: "deposit",
-        value: requirement.amount,
+        value: BigInt(requirement.amount),
       });
     }
   }
@@ -119,10 +160,10 @@ Forward `signData.origin[]` and `signData.destination` directly to `signTypedDat
 ```ts
 const originSignatures = await Promise.all(
   signData.origin.map((typedData) =>
-    walletClient.signTypedData(typedData),
+    account.signTypedData(typedData),
   ),
 );
-const destinationSignature = await walletClient.signTypedData(
+const destinationSignature = await account.signTypedData(
   signData.destination,
 );
 ```

@@ -11,7 +11,8 @@ Use the `/quotes` endpoint. You'll need the **destination chain**, the **token**
 
 ```ts Get Quote
 const baseUrl = "https://v1.orchestrator.rhinestone.dev";
-const apiKey = "YOUR_RHINESTONE_API_KEY";
+const apiKey = process.env.RHINESTONE_API_KEY;
+const EOA_ADDRESS = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"; // your EOA address
 
 const payload = {
   account: {
@@ -87,10 +88,14 @@ const fastest = routes
 
 await fetch(`${baseUrl}/intents`, {
   method: "POST",
-  headers: { /* ... */ },
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    "x-api-version": "2026-04.blanc",
+  },
   body: JSON.stringify({
     intentId: fastest.intentId,
-    signatures: { /* signed against fastest.signData */ },
+    signatures: { /* signed against fastest.signData — see the signing guide */ },
   }),
 });
 ```
@@ -110,7 +115,7 @@ const payload = {
     // Deposit USDC to a vault
     {
       to: VAULT_CONTRACT,
-      value: 0n,
+      value: "0",
       data: encodeFunctionData({
         abi: vaultAbi,
         functionName: 'deposit',
@@ -120,11 +125,11 @@ const payload = {
     // Send vault receipt token back to the EOA
     {
       to: USDC_VAULT_CONTRACT,
-      value: 0n,
+      value: "0",
       data: encodeFunctionData({
         abi: erc20Abi,
         functionName: 'transfer',
-        args: [tokenAmount, EOA_ADDRESS],
+        args: [EOA_ADDRESS, tokenAmount],
       }),
     }
   ],

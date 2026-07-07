@@ -10,7 +10,7 @@ After [submitting an intent](./submitting-the-intent), you receive an `intentId`
 
 ```ts
 const baseUrl = "https://v1.orchestrator.rhinestone.dev";
-const apiKey = "YOUR_RHINESTONE_API_KEY";
+const apiKey = process.env.RHINESTONE_API_KEY;
 
 async function getIntentStatus(intentId: string) {
   const res = await fetch(`${baseUrl}/intents/${intentId}`, {

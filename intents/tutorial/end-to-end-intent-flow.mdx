@@ -17,12 +17,12 @@ By the end you will have a working end-to-end implementation you can adapt for a
 ## Setup
 
 ```ts
-import { createWalletClient, http, erc20Abi, maxUint256 } from "viem";
+import { createWalletClient, http, erc20Abi, maxUint256, type Hex } from "viem";
 import { base } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 
 const BASE_URL = "https://v1.orchestrator.rhinestone.dev";
-const API_KEY = "YOUR_RHINESTONE_API_KEY";
+const API_KEY = process.env.RHINESTONE_API_KEY;
 
 const headers = {
   "Content-Type": "application/json",
@@ -30,7 +30,7 @@ const headers = {
   "x-api-version": "2026-04.blanc",
 };
 
-const account = privateKeyToAccount("0xYOUR_PRIVATE_KEY");
+const account = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
 
 const walletClient = createWalletClient({
   account,

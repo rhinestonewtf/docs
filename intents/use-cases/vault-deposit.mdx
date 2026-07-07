@@ -19,16 +19,17 @@ The flow works as follows:
 <Tabs>
 <Tab title="EOA">
 
-For EOAs, destination executions run in an intermediary contract — not in the user's account context. The requested tokens are automatically swept to the user after execution, but any tokens received as a result of the execution (such as vault shares) are not automatically swept.
+For EOAs, destination executions run in an intermediary contract — not in the user's account context — so any tokens the execution produces (like vault shares) would otherwise be stranded there.
 
-You must include an explicit `transfer` call to send the vault shares back to the user's address.
+ERC-4626's `deposit(assets, receiver)` sidesteps this: set `receiver` to the user's address and shares mint directly to them. First approve the vault to pull the deposit token from the intermediary, then deposit.
 
 ```ts
 import { encodeFunctionData, erc20Abi, parseUnits } from "viem";
 
-const VAULT_ADDRESS = "0x..."; // ERC-4626 vault
-const DEPOSIT_TOKEN = "0x..."; // Vault's underlying asset
-const depositAmount = parseUnits("100", 6); // e.g. 100 USDC
+const VAULT_ADDRESS = "0xbeef0e0834849aCC03f0089F01f4F1Eeb06873C9"; // Steakhouse Prime USDC vault (ERC-4626) on Base
+const DEPOSIT_TOKEN = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // USDC on Base (the vault's underlying asset)
+const USER_ADDRESS = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"; // the EOA receiving the vault shares
+const depositAmount = parseUnits("100", 6); // 100 USDC (6 decimals)
 
 const vaultAbi = [
   {
@@ -44,44 +45,45 @@ const vaultAbi = [
 ] as const;
 
 const destinationExecutions = [
-  // 1. Deposit into the vault
+  // 1. Approve the vault to pull USDC from the intermediary
+  {
+    to: DEPOSIT_TOKEN,
+    value: "0",
+    data: encodeFunctionData({
+      abi: erc20Abi,
+      functionName: "approve",
+      args: [VAULT_ADDRESS, depositAmount],
+    }),
+  },
+  // 2. Deposit, minting shares straight to the user via the receiver arg
   {
     to: VAULT_ADDRESS,
-    value: 0n,
+    value: "0",
     data: encodeFunctionData({
       abi: vaultAbi,
       functionName: "deposit",
-      args: [depositAmount, VAULT_ADDRESS], // receiver is the intermediary
-    }),
-  },
-  // 2. Transfer vault shares back to the user
-  {
-    to: VAULT_ADDRESS, // ERC-4626 vaults are also ERC-20 share tokens
-    value: 0n,
-    data: encodeFunctionData({
-      abi: erc20Abi,
-      functionName: "transfer",
-      args: [USER_ADDRESS, depositAmount], // approximate share amount
+      args: [depositAmount, USER_ADDRESS],
     }),
   },
 ];
 ```
 
 <Note>
-Since executions run outside the user's account, you need the second `transfer` call to move vault shares to the user. This limitation will be addressed in a future API update with a new field for specifying expected output tokens.
+Because executions run in the intermediary — not the user's account — tokens produced onchain aren't swept back automatically. ERC-4626's `receiver` argument handles this: shares mint straight to the user. For outputs from calls that don't expose a recipient (e.g. a swap), add an explicit `transfer` back to the user.
 </Note>
 
 </Tab>
 <Tab title="Smart Account">
 
-For Smart Accounts, the IntentExecutor runs destination executions within the account's own context. Vault shares are minted directly to the account — no extra transfer needed.
+For Smart Accounts, the IntentExecutor runs destination executions within the account's own context, so shares mint directly to the account with the account as `receiver` — no post-hoc transfer needed. You still approve the vault to pull the deposit token first.
 
 ```ts
-import { encodeFunctionData, parseUnits } from "viem";
+import { encodeFunctionData, erc20Abi, parseUnits } from "viem";
 
-const VAULT_ADDRESS = "0x..."; // ERC-4626 vault
-const DEPOSIT_TOKEN = "0x..."; // Vault's underlying asset
-const depositAmount = parseUnits("100", 6); // e.g. 100 USDC
+const VAULT_ADDRESS = "0xbeef0e0834849aCC03f0089F01f4F1Eeb06873C9"; // Steakhouse Prime USDC vault (ERC-4626) on Base
+const DEPOSIT_TOKEN = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // USDC on Base (the vault's underlying asset)
+const ACCOUNT_ADDRESS = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"; // your smart account address
+const depositAmount = parseUnits("100", 6); // 100 USDC (6 decimals)
 
 const vaultAbi = [
   {
@@ -97,9 +99,20 @@ const vaultAbi = [
 ] as const;
 
 const destinationExecutions = [
+  // 1. Approve the vault to pull USDC from the account
+  {
+    to: DEPOSIT_TOKEN,
+    value: "0",
+    data: encodeFunctionData({
+      abi: erc20Abi,
+      functionName: "approve",
+      args: [VAULT_ADDRESS, depositAmount],
+    }),
+  },
+  // 2. Deposit — shares mint directly to the account
   {
     to: VAULT_ADDRESS,
-    value: 0n,
+    value: "0",
     data: encodeFunctionData({
       abi: vaultAbi,
       functionName: "deposit",
@@ -119,7 +132,7 @@ const destinationExecutions = [
 
 ```ts
 const metaIntent = {
-  destinationChainId: "eip155:42161", // e.g. Arbitrum
+  destinationChainId: "eip155:8453", // Base (where the vault lives)
   tokenRequests: [
     {
       tokenAddress: DEPOSIT_TOKEN,
@@ -139,7 +152,7 @@ const metaIntent = {
 
 ```ts
 const metaIntent = {
-  destinationChainId: "eip155:42161", // e.g. Arbitrum
+  destinationChainId: "eip155:8453", // Base (where the vault lives)
   tokenRequests: [
     {
       tokenAddress: DEPOSIT_TOKEN,
@@ -164,7 +177,7 @@ Submit the meta intent to the `/quotes` endpoint:
 
 ```ts
 const baseUrl = "https://v1.orchestrator.rhinestone.dev";
-const apiKey = "YOUR_RHINESTONE_API_KEY";
+const apiKey = process.env.RHINESTONE_API_KEY;
 
 const headers = {
   "Content-Type": "application/json",
