@@ -25,9 +25,22 @@ Send your first crosschain intent straight through the REST API. This guide walk
 Submit a meta intent to the `/quotes` endpoint. Specify your destination chain, the token and amount you want on that chain, and your account:
 
 ```ts
+import { createWalletClient, http, type Hex } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { base } from "viem/chains";
+
 const BASE_URL = "https://v1.orchestrator.rhinestone.dev";
-const API_KEY = "YOUR_RHINESTONE_API_KEY";
-const EOA_ADDRESS = "0xYourEOAAddress";
+const API_KEY = process.env.RHINESTONE_API_KEY;
+
+// EOA signer — swap in any viem-compatible signer.
+const account = privateKeyToAccount(process.env.PRIVATE_KEY as Hex);
+const EOA_ADDRESS = account.address;
+
+const walletClient = createWalletClient({
+  account,
+  chain: base,
+  transport: http(),
+});
 
 const headers = {
   "Content-Type": "application/json",
@@ -73,7 +86,7 @@ Before signing, the user must fulfill any `tokenRequirements` returned in the qu
 **ERC-20 approvals** — approve tokens to the Permit2 contract:
 
 ```ts
-import { maxUint256 } from "viem";
+import { erc20Abi, maxUint256 } from "viem";
 
 for (const [chainId, tokens] of Object.entries(tokenRequirements)) {
   for (const [tokenAddress, requirement] of Object.entries(tokens)) {
@@ -92,6 +105,18 @@ for (const [chainId, tokens] of Object.entries(tokenRequirements)) {
 **ETH wrapping** — wrap native ETH to WETH:
 
 ```ts
+// WETH on Base. Use the wrapped-native token for whichever chain the requirement targets.
+const WETH_ADDRESS = "0x4200000000000000000000000000000000000006";
+const wethAbi = [
+  {
+    name: "deposit",
+    type: "function",
+    stateMutability: "payable",
+    inputs: [],
+    outputs: [],
+  },
+] as const;
+
 for (const [chainId, tokens] of Object.entries(tokenRequirements)) {
   for (const [tokenAddress, requirement] of Object.entries(tokens)) {
     if (requirement.type === "wrap") {

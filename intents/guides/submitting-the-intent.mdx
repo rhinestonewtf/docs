@@ -9,7 +9,7 @@ Use the `/intents` endpoint. Pass the `intentId` from the quote and the signatur
 
 ```ts
 const baseUrl = "https://v1.orchestrator.rhinestone.dev";
-const apiKey = "YOUR_RHINESTONE_API_KEY";
+const apiKey = process.env.RHINESTONE_API_KEY;
 
 const res = await fetch(`${baseUrl}/intents`, {
   method: "POST",
