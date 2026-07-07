@@ -37,6 +37,18 @@ There are 4 tabs: Home, Smart Wallet SDK, Intents API, API Reference. Navigation
 2. Add the page path to `docs.json` under the relevant tab's `groups[].pages[]` array
 3. Use cases go in `intents/use-cases/<slug>`, guides go in `intents/guides/<slug>`
 
+## Spellchecking (Vale)
+
+Mintlify runs [Vale](https://vale.sh) as a CI check on PRs (spellcheck only). Config lives in the repo:
+
+- `.vale.ini` — Mintlify's MDX-safe defaults, pointed at the `Rhinestone` vocab.
+- `styles/config/vocabularies/Rhinestone/accept.txt` — known-good words. **To silence a false positive, append a line here** (one word per line, regex + case-insensitive, so `bundlers?` covers `Bundler`/`bundlers`). No `.vale.ini` change needed.
+- `styles/config/vocabularies/Rhinestone/reject.txt` — banned terms (empty by default).
+
+Run locally before pushing: `vale .` (install: `brew install vale`, or grab a binary from https://github.com/vale-cli/vale/releases). Should report 0 errors across the tree.
+
+Use US spelling — the vocab intentionally does **not** whitelist British variants (e.g. write `incentivized`, not `incentivised`), so they surface as errors.
+
 ## Writing Style
 
 - **Concise and direct.** No filler, no "In this guide, we will explore..." — get to the point.
