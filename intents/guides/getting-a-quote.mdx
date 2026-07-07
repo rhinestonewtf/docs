@@ -115,7 +115,7 @@ const payload = {
     // Deposit USDC to a vault
     {
       to: VAULT_CONTRACT,
-      value: 0n,
+      value: "0",
       data: encodeFunctionData({
         abi: vaultAbi,
         functionName: 'deposit',
@@ -125,7 +125,7 @@ const payload = {
     // Send vault receipt token back to the EOA
     {
       to: USDC_VAULT_CONTRACT,
-      value: 0n,
+      value: "0",
       data: encodeFunctionData({
         abi: erc20Abi,
         functionName: 'transfer',

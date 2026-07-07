@@ -48,7 +48,7 @@ const destinationExecutions = [
   // 1. Approve the vault to pull USDC from the intermediary
   {
     to: DEPOSIT_TOKEN,
-    value: 0n,
+    value: "0",
     data: encodeFunctionData({
       abi: erc20Abi,
       functionName: "approve",
@@ -58,7 +58,7 @@ const destinationExecutions = [
   // 2. Deposit, minting shares straight to the user via the receiver arg
   {
     to: VAULT_ADDRESS,
-    value: 0n,
+    value: "0",
     data: encodeFunctionData({
       abi: vaultAbi,
       functionName: "deposit",
@@ -102,7 +102,7 @@ const destinationExecutions = [
   // 1. Approve the vault to pull USDC from the account
   {
     to: DEPOSIT_TOKEN,
-    value: 0n,
+    value: "0",
     data: encodeFunctionData({
       abi: erc20Abi,
       functionName: "approve",
@@ -112,7 +112,7 @@ const destinationExecutions = [
   // 2. Deposit — shares mint directly to the account
   {
     to: VAULT_ADDRESS,
-    value: 0n,
+    value: "0",
     data: encodeFunctionData({
       abi: vaultAbi,
       functionName: "deposit",

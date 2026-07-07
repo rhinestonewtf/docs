@@ -124,7 +124,7 @@ for (const [chainId, tokens] of Object.entries(tokenRequirements)) {
         address: WETH_ADDRESS,
         abi: wethAbi,
         functionName: "deposit",
-        value: requirement.amount,
+        value: BigInt(requirement.amount),
       });
     }
   }
