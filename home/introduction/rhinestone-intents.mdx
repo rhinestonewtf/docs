@@ -7,7 +7,13 @@ mode: "wide"
 
 **Warp** is Rhinestone's intent routing and execution engine. It aggregates crosschain settlement layers through a unified solver market and executes intents with sub-2-second confirmation times.
 
-<video src="/images/omni-account-chain-abstraction.mp4" muted autoPlay loop className='rounded-2xl' />
+<video
+    src="/images/omni-account-chain-abstraction.mp4"
+    muted
+    autoPlay
+    loop
+    className="rounded-2xl"
+/>
 
 ## How it works
 
@@ -34,6 +40,27 @@ sequenceDiagram
 
 Origin chain settlement happens asynchronously after the destination fill. The user's transaction is complete once the fill lands — they don't wait for settlement finality.
 
+## Lifecycle and status
+
+Once you submit a signed intent, you poll it for one of three states:
+
+- **Pending** — the intent has been accepted and is being routed and filled.
+- **Completed** — the destination fill landed. The user's action is done at this point.
+- **Failed** — the intent couldn't be completed.
+
+Internally an intent is a set of operations (origin-chain claims and a destination fill). Its overall status is derived from them: it reports **completed** only once every operation has completed, and **failed** as soon as any single operation fails.
+
+When an intent fails, the status includes a reason:
+
+| Reason          | What it means                                                                      |
+| --------------- | ---------------------------------------------------------------------------------- |
+| Expired         | Not filled within the intent's validity window. Request a fresh quote and re-sign. |
+| Reverted        | An onchain execution (origin or destination) reverted.                             |
+| Bridge timeout  | The underlying settlement layer didn't deliver in time.                            |
+| Relayer failure | No solver completed the fill.                                                      |
+
+Fills typically confirm in under two seconds.
+
 ## Components
 
 ### Orchestrator
@@ -52,6 +79,7 @@ Warp intents are broken down into **chain-token elements**, each with an origin 
 Solvers in the Relayer Market listen for intent operations from the Orchestrator and compete to execute them. Warp aggregates settlement layers (Across, Relay, Eco, and others) not by aggregating their APIs, but through direct onchain integrations via the Intent Router. Each solver interacts with the relevant settlement layer's contracts directly.
 
 This design enables:
+
 - Broad chain and token coverage
 - Best-price routing per chain-token element
 - New settlement layers to be added without protocol changes
