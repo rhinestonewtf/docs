@@ -129,7 +129,7 @@ const payload = {
       data: encodeFunctionData({
         abi: erc20Abi,
         functionName: 'transfer',
-        args: [tokenAmount, EOA_ADDRESS],
+        args: [EOA_ADDRESS, tokenAmount],
       }),
     }
   ],
