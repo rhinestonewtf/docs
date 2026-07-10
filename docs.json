@@ -199,7 +199,8 @@
                   "sdk-reference/rhinestone-sdk/rhinestone-sdk",
                   "sdk-reference/rhinestone-sdk/create-account",
                   "sdk-reference/rhinestone-sdk/get-intent-status",
-                  "sdk-reference/rhinestone-sdk/split-intents"
+                  "sdk-reference/rhinestone-sdk/split-intents",
+                  "sdk-reference/rhinestone-sdk/get-app-fee-balances"
                 ]
               },
               {
