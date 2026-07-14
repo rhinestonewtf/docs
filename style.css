@@ -175,9 +175,7 @@ table th:last-child {
 }
 
 /* Sidebar active/selected item */
-.dark [data-active="true"],
-.dark [aria-current="page"],
-.dark [aria-selected="true"] {
+.dark #sidebar [data-active="true"] {
   background-color: #141414 !important;
   border-radius: 6px;
 }
