@@ -180,3 +180,10 @@ struct
 bool
 null
 undefined
+
+# Fiat on-ramp (Swapped)
+CEX
+KYC
+iframes?
+WebViews?
+prefill(s|ed)?

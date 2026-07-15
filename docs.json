@@ -402,6 +402,7 @@
               "deposits/api/initial-setup",
               "deposits/api/account-registration",
               "deposits/api/deposit-processing",
+              "deposits/api/onramp",
               "deposits/api/fees",
               "deposits/api/sponsorship",
               "deposits/api/status-tracking"
