@@ -486,5 +486,5 @@ For more details, see the API reference for [`GET /webhooks/events`](/api-refere
 ## Conventions
 
 - EVM addresses and token addresses are **lowercase**. Non-EVM addresses (Solana, Tron) preserve their original case.
-- All amounts are **strings** (raw token units, not human-readable). Exception: `onramp-order` amounts are decimal strings as reported by Swapped.
+- Token amounts are **strings in raw token units** (not human-readable). Fiat amounts are **decimal strings** (e.g. `"101.75"`). The one crossover: `onramp-order.cryptoAmount` is reported by Swapped as a decimal string, not raw units.
 - Chains use [CAIP-2](https://chainagnostic.org/CAIPs/caip-2) identifiers (e.g. `"eip155:8453"` for Base).
