@@ -136,9 +136,6 @@ const transaction = await account.submitTransaction(signed)
 
 When owners are separate parties on different devices, each signs the same prepared transaction independently, and a coordinator merges the results. Prepare the transaction once and share it with each owner:
 
-<Tabs>
-<Tab title="ECDSA">
-
 ```ts
 // Coordinator: prepare once, then share `prepared` with each owner
 const prepared = await account.prepareTransaction({
@@ -160,30 +157,7 @@ const transaction = await account.submitTransaction(signed)
 const result = await account.waitForExecution(transaction)
 ```
 
-</Tab>
-<Tab title="Passkeys">
-
-```ts
-const prepared = await account.prepareTransaction({
-  sourceChains: [base],
-  targetChain: arbitrum,
-  calls: [
-    // …
-  ],
-  tokenRequests: [{ address: 'USDC', amount: usdcAmount }],
-})
-
-const signatureA = await account.signTransaction(prepared, { owner: passkeyAccountA })
-const signatureB = await account.signTransaction(prepared, { owner: passkeyAccountB })
-
-const signed = await account.assembleTransaction(prepared, [signatureA, signatureB])
-const transaction = await account.submitTransaction(signed)
-```
-
-</Tab>
-</Tabs>
-
-The signature returned by `signTransaction({ owner })` is JSON-serializable, so each owner can return it over the wire:
+Passkey owners follow the same flow — pass the passkey account as `owner`. The signature returned by `signTransaction({ owner })` is JSON-serializable, so each owner can return it over the wire:
 
 ```ts
 // On the owner's side
