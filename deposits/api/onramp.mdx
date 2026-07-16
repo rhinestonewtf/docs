@@ -15,7 +15,7 @@ Users without crypto can fund their account directly inside your app. The deposi
 
 ## Prerequisites
 
-- The account is [registered](/deposits/api/account-registration) — minting a checkout URL for an unregistered account returns `403`.
+- The account is [registered](/deposits/api/account-registration) — minting a checkout URL for an account that isn't registered to your project returns `403 Unauthorized`.
 - A [webhook URL](/deposits/api/initial-setup#configure-a-webhook) is configured if you want order updates pushed rather than polled.
 - Calls are made from your backend. The endpoints require your API key, which never ships in client-side code.
 
@@ -68,7 +68,7 @@ Full request and response schemas: [`POST /onramp/swapped/widget-url`](/api-refe
 
 ### Fund from an exchange
 
-To let users transfer from a centralized exchange balance (Binance, Coinbase, and others) instead of paying with fiat, mint a Connect URL — same request shape plus an optional `connection` preselecting the exchange, same response shape:
+To let users transfer from a centralized exchange balance (Binance, Coinbase, and others) instead of paying with fiat, mint a Connect URL. The request takes a subset of the widget fields — `smartAccount` plus optional `baseCountry`, `baseCurrencyCode`, `locale`, and a `connection` preselecting the exchange. There's no amount or payment-method prefill; the user chooses those inside the exchange flow. The response shape is identical:
 
 ```ts
 const response = await fetch(`${DEPOSIT_SERVICE_URL}/onramp/swapped/connect-url`, {
