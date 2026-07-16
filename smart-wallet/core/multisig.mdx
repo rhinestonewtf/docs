@@ -110,7 +110,7 @@ When the threshold is greater than one, you need signatures from several owners.
 
 ### Co-located signing
 
-If every key is available in the same environment, sign with a subset of owners in a single call. List the signing owners under `signers` and call `signTransaction` once.
+If every key is available in the same environment, sign with a subset of owners in a single call. List the signing owners under `signers` and call `signTransaction` once — the SDK requests a signature from each account in the list in parallel and packs them into the account's multisig signature. Every listed key must be reachable in this environment; if the owners sign from separate devices, use [independent signing](#independent-signing) instead.
 
 ```ts
 const prepared = await account.prepareTransaction({
