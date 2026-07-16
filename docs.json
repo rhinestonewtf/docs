@@ -97,6 +97,7 @@
                 "pages": [
                   "smart-wallet/core/ecdsa-signer",
                   "smart-wallet/core/passkeys",
+                  "smart-wallet/core/multisig",
                   "smart-wallet/advanced/multi-factor-authentication"
                 ]
               },
