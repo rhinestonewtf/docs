@@ -1,252 +1,80 @@
 ---
 title: "Multisig"
-description: "Setup an m-of-n passkeys or ECDSA multisig."
+description: "Set up and use m-of-n ECDSA or passkey multisig accounts."
 ---
 
-## Overview
+A multisig account requires signatures from multiple owners to authorize a transaction. It distributes control so no single party can act unilaterally — useful for treasuries and shared accounts — and can also improve UX (e.g. a passkey per device, so a user can sign from any of them).
 
-A multisig account requires multiple signatures from a predefined set of authorized parties to approve and execute transactions. Unlike single-signature setups, where one keyholder controls the account, multisig enhances security and trust by distributing control among multiple stakeholders. 
+Both the [ECDSA signer](/smart-wallet/core/ecdsa-signer) (Ownable Validator) and the [passkey signer](/smart-wallet/core/passkeys) (WebAuthn Validator) support multisig. The validator verifies each signature against the stored owner set, and the account enforces the threshold (e.g. 2-of-3).
 
-In most common cases, multisig is used to ensure that no single party can act unilaterally, reducing the risk of theft, loss, or misuse of funds. However, in some cases multisigs can also be used to improve the user experience. For example, when using passkeys a common headache is that passkeys are not portable between devices. Therefore, in order to provide a seamless experience a new passkey signer must be added for each new device, creating a 1-of-1+n(devices) setup.
+## Setup
 
-Both our [ECDSA signer](./ecdsa-signer) (Ownable Validator) and [passkeys signer](./passkeys) (WebAuthn Validator) support multisig by verifying individual signatures, while the smart account enforces the required threshold (e.g., 2-of-3 signatures).
-
-### How it works
-
-* **Mechanism**: The Ownable Validator or WebAuthn Validator stores a list of owner addresses and validates a single signature at a time, ensuring the signer is a registered owner.  
-* **Multisig Integration**: The smart account collects signatures from multiple owners, encodes them into a signature field, and passes each for validation. The account enforces the multisig policy (e.g., 2-of-3 owners).  
-* **Workflow**:  
-  1. Owners submit a signature.  
-  2. The smart account aggregates signatures and iterates through them, calling the Ownable Validator or WebAuthn Validator to verify each against the stored owners.  
-  3. If the required number of valid signatures meets the account’s threshold, the action is approved.
-
-## Initialization
+Create a multisig by passing multiple owners and a `threshold` — the number of signatures required to authorize a transaction.
 
 <Tabs>
 <Tab title="ECDSA">
 
-To create a multisig account:
-
-```ts {4}
-const rhinestoneAccount = await rhinestone.createAccount({
-  owners: {
-    type: 'ecdsa',
-    accounts: [accountA, accountB, accountC],
-  },
-})
-```
-
-You can also specify the signature threshold (i.e., how many signatures are required to authorize the transaction):
-
 ```ts {5}
-const rhinestoneAccount = await rhinestone.createAccount({
+const account = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
-    accounts: [accountA, accountB, accountC],
-    threshold: 2,
+    accounts: [signerA, signerB, signerC],
+    threshold: 2, // 2-of-3
   },
 })
 ```
-
-By default, the `threshold` is 1 (any multisig owner can sign any transaction).
 
 </Tab>
 <Tab title="Passkeys">
 
-To create a multisig account:
-
-```ts {4}
-const rhinestoneAccount = await rhinestone.createAccount({
+```ts {5}
+const account = await rhinestone.createAccount({
   owners: {
     type: 'passkey',
     accounts: [passkeyAccountA, passkeyAccountB],
+    threshold: 2, // 2-of-2
   },
 })
 ```
 
-You can also specify the signature threshold (i.e., how many signatures are required to authorize the transaction):
-
-```ts {5}
-const rhinestoneAccount = await rhinestone.createAccount({
-  owners: {
-    type: 'passkey',
-    accounts: [passkeyAccountA, passkeyAccountB],
-    threshold: 2,
-  },
-})
-```
-
-By default, the `threshold` is 1 (any multisig owner can sign any transaction).
-
 </Tab>
 </Tabs>
 
-## Usage
+By default, `threshold` is `1` (any single owner can sign).
 
-### Signer Selection
+Managing owners after creation — adding or removing signers, changing the threshold, reading the current set — is covered on the signer pages: [ECDSA](/smart-wallet/core/ecdsa-signer#multisig) and [passkeys](/smart-wallet/core/passkeys#multisig).
 
-For 1-of-n and m-of-n multisigs, you usually want to sign the transaction with a subset of owners instead of using all of them. You can choose which signers to use with `signers`:
+<Note>To combine *different* signer types (e.g. require both an EOA and a passkey), use [multi-factor authentication](/smart-wallet/advanced/multi-factor-authentication) instead.</Note>
 
-```ts {6-10}
-const transaction = await rhinestoneAccount.prepareTransaction({
-  chain,
-  calls: [
-    // …
-  ],
-  signers: {
-    type: 'owner',
-    kind: 'ecdsa',
-    accounts: [accountB],
-  },
-})
-```
+## 1-of-n: sign from any owner
 
-<Note>Make sure to provide enough signers to meet the threshold; otherwise, the transaction validation will fail.</Note>
-
-## Management
-
-### Add Signer
-
-To add a new signer to your multisig:
-
-<Tabs>
-<Tab title="ECDSA">
-
-```ts
-import { addOwner } from '@rhinestone/sdk/actions/ecdsa'
-
-// Add a new owner
-const transaction = await rhinestoneAccount.prepareTransaction({
-  chain,
-  calls: [addOwner(accountD.address)],
-})
-```
-
-</Tab>
-<Tab title="Passkeys">
-
-```ts
-import { addOwner } from '@rhinestone/sdk/actions/passkeys'
-
-const pubKeyX = BigInt(slice(passkeyAccountC.publicKey, 0, 32))
-const pubKeyY = BigInt(slice(passkeyAccountC.publicKey, 32))
-const requiresUV = false;
-
-// Add a new owner
-const transaction = await rhinestoneAccount.prepareTransaction({
-  chain,
-  calls: [addOwner(pubKeyX, pubKeyY, requiresUV)],
-})
-```
-
-</Tab>
-</Tabs>
-
-### Remove Signer
-
-To remove an existing signer from your multisig:
-
-<Tabs>
-<Tab title="ECDSA">
-
-```ts
-import { removeOwner } from '@rhinestone/sdk/actions/ecdsa'
-
-// Remove an owner
-const transaction = await rhinestoneAccount.prepareTransaction({
-  chain,
-  calls: [removeOwner(accountC.address)],
-})
-```
-
-</Tab>
-<Tab title="Passkeys">
-
-```ts
-import { removeOwner } from '@rhinestone/sdk/actions/passkeys'
-
-// Remove an owner
-const transaction = await rhinestoneAccount.prepareTransaction({
-  chain,
-  calls: [removeOwner(pubKeyX, pubKeyY)],
-})
-```
-
-</Tab>
-</Tabs>
-
-### Change Threshold
-
-To update the signature threshold for your multisig:
-
-<Tabs>
-<Tab title="ECDSA">
-
-```ts
-import { changeThreshold } from '@rhinestone/sdk/actions/ecdsa'
-
-// Change threshold to 2-of-N
-const transaction = await rhinestoneAccount.prepareTransaction({
-  chain,
-  calls: [changeThreshold(2)],
-})
-```
-
-</Tab>
-<Tab title="Passkeys">
-
-```ts
-import { changeThreshold } from '@rhinestone/sdk/actions/passkeys'
-
-// Change threshold to 2-of-N
-const transaction = await rhinestoneAccount.prepareTransaction({
-  chain,
-  calls: [changeThreshold(2)],
-})
-```
-
-</Tab>
-</Tabs>
-
-### Get Owners
-
-To retrieve the current list of owners along with the signature threshold:
-
-```ts
-// Get the list of owners
-const owners = await rhinestoneAccount.getOwners(chain)
-// → { "accounts": ["0xaaa…", "0xbbb…", "0xccc…"], "threshold": 2 }
-```
-
-## Example: 2-of-3 approval
-
-End to end: create a 2-of-3 ECDSA account, then approve a transaction with two of the three owners.
+With a 1-of-n threshold, any single owner can authorize a transaction on their own. Pick which owner signs with `signers`. A common use is a passkey per device, so the user can sign from any device without migrating keys.
 
 ```ts
 import { RhinestoneSDK } from '@rhinestone/sdk'
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import { toWebAuthnAccount } from 'viem/account-abstraction'
 import { base, arbitrum } from 'viem/chains'
 import { encodeFunctionData, erc20Abi, parseUnits } from 'viem'
 
-const accountA = privateKeyToAccount(generatePrivateKey())
-const accountB = privateKeyToAccount(generatePrivateKey())
-const accountC = privateKeyToAccount(generatePrivateKey())
+// One passkey per device, each registered via WebAuthn on that device
+const passkeyAccountA = toWebAuthnAccount({ credential: credentialFromDeviceA })
+const passkeyAccountB = toWebAuthnAccount({ credential: credentialFromDeviceB })
 
 const rhinestone = new RhinestoneSDK({
   apiKey: process.env.RHINESTONE_API_KEY as string,
 })
 
-// Any two of the three owners can approve
-const rhinestoneAccount = await rhinestone.createAccount({
+// Any single registered device can sign
+const account = await rhinestone.createAccount({
   owners: {
-    type: 'ecdsa',
-    accounts: [accountA, accountB, accountC],
-    threshold: 2,
+    type: 'passkey',
+    accounts: [passkeyAccountA, passkeyAccountB],
+    threshold: 1,
   },
 })
 
 const usdcAmount = parseUnits('0.1', 6)
-const prepared = await rhinestoneAccount.prepareTransaction({
+const prepared = await account.prepareTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
   calls: [
@@ -261,21 +89,114 @@ const prepared = await rhinestoneAccount.prepareTransaction({
     },
   ],
   tokenRequests: [{ address: 'USDC', amount: usdcAmount }],
-  // Sign with two owners to meet the threshold
+  // Sign from a single device
   signers: {
     type: 'owner',
-    kind: 'ecdsa',
-    accounts: [accountA, accountB],
+    kind: 'passkey',
+    accounts: [passkeyAccountA],
   },
 })
 
-const signed = await rhinestoneAccount.signTransaction(prepared)
-const transaction = await rhinestoneAccount.submitTransaction(signed)
-const result = await rhinestoneAccount.waitForExecution(transaction)
+const signed = await account.signTransaction(prepared)
+const transaction = await account.submitTransaction(signed)
+const result = await account.waitForExecution(transaction)
 ```
 
-Signing with only one owner would fail validation, since the account requires two.
+ECDSA works the same way — set `threshold: 1` and pass a single account under `signers`.
+
+## m-of-n: collect multiple signatures
+
+When the threshold is greater than one, you need signatures from several owners. There are two ways to collect them.
+
+### Co-located signing
+
+If every key is available in the same environment, sign with a subset of owners in a single call. List the signing owners under `signers` and call `signTransaction` once.
+
+```ts
+const prepared = await account.prepareTransaction({
+  sourceChains: [base],
+  targetChain: arbitrum,
+  calls: [
+    // …
+  ],
+  tokenRequests: [{ address: 'USDC', amount: usdcAmount }],
+  // Two of the three owners sign to meet the 2-of-3 threshold
+  signers: {
+    type: 'owner',
+    kind: 'ecdsa',
+    accounts: [signerA, signerB],
+  },
+})
+
+const signed = await account.signTransaction(prepared)
+const transaction = await account.submitTransaction(signed)
+```
+
+### Independent signing
+
+When owners are separate parties on different devices, each signs the same prepared transaction independently, and a coordinator merges the results. Prepare the transaction once and share it with each owner:
+
+<Tabs>
+<Tab title="ECDSA">
+
+```ts
+// Coordinator: prepare once, then share `prepared` with each owner
+const prepared = await account.prepareTransaction({
+  sourceChains: [base],
+  targetChain: arbitrum,
+  calls: [
+    // …
+  ],
+  tokenRequests: [{ address: 'USDC', amount: usdcAmount }],
+})
+
+// Each owner signs in their own environment
+const signatureA = await account.signTransaction(prepared, { owner: signerA })
+const signatureB = await account.signTransaction(prepared, { owner: signerB })
+
+// Coordinator: assemble the collected signatures and submit
+const signed = await account.assembleTransaction(prepared, [signatureA, signatureB])
+const transaction = await account.submitTransaction(signed)
+const result = await account.waitForExecution(transaction)
+```
+
+</Tab>
+<Tab title="Passkeys">
+
+```ts
+const prepared = await account.prepareTransaction({
+  sourceChains: [base],
+  targetChain: arbitrum,
+  calls: [
+    // …
+  ],
+  tokenRequests: [{ address: 'USDC', amount: usdcAmount }],
+})
+
+const signatureA = await account.signTransaction(prepared, { owner: passkeyAccountA })
+const signatureB = await account.signTransaction(prepared, { owner: passkeyAccountB })
+
+const signed = await account.assembleTransaction(prepared, [signatureA, signatureB])
+const transaction = await account.submitTransaction(signed)
+```
+
+</Tab>
+</Tabs>
+
+The signature returned by `signTransaction({ owner })` is JSON-serializable, so each owner can return it over the wire:
+
+```ts
+// On the owner's side
+const payload = JSON.stringify(await account.signTransaction(prepared, { owner: signerA }))
+
+// On the coordinator's side
+const signatureA = JSON.parse(payload)
+```
 
 <Note>
-For clarity this signs with both owners in a single call. In practice the owners are usually separate parties who each sign the same transaction independently, and their signatures are merged into the account's multisig signature. A dedicated helper for independent signing and merging is coming.
+Signatures can be collected in any order — `assembleTransaction` deduplicates them and orders them to match the account's owner set. Provide enough to meet the threshold, or assembly throws `InsufficientOwnerSignaturesError`. Every owner must sign the same prepared transaction, otherwise assembly throws `MismatchedOwnerSignaturesError`.
+</Note>
+
+<Note>
+Independent signing is supported for ECDSA, passkey, and multi-factor owners. For [multi-factor](/smart-wallet/advanced/multi-factor-authentication) accounts, also pass the `validatorId` of the factor the owner belongs to: `signTransaction(prepared, { owner, validatorId })`.
 </Note>
