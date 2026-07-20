@@ -434,7 +434,7 @@
           {
             "group": "Intents",
             "openapi": {
-              "source": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/orchestrator.json",
+              "source": "https://raw.githubusercontent.com/rhinestonewtf/openapi/refs/heads/main/orchestrator/blanc.json",
               "directory": "api-reference/orchestrator"
             }
           },
