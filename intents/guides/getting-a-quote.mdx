@@ -165,6 +165,27 @@ const payload = {
 ```
 </CodeGroup>
 
+## Custom fill deadline
+
+An intent's on-chain fill deadline defaults to 2 minutes. For **same-chain intents that settle without bridging**, extend it with `options.customDeadline` — an absolute unix timestamp in seconds. Use it when the user needs longer to approve, or you're fetching a quote now to submit later.
+
+<CodeGroup dropdown>
+```ts {5} Custom fill deadline
+const payload = {
+  // …
+  options: {
+    customDeadline: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
+  },
+};
+```
+</CodeGroup>
+
+The value must be between `now + 120s` and `now + 86400s` (24 hours); outside that range the request is rejected with a `400`. When honored, the intent's fill deadline and its claim/nonce expiry extend to match.
+
+<Note>
+  `customDeadline` is honored only on same-chain intents that settle without bridging. On any other route — cross-chain, or a same-chain swap that requires funding — it is silently ignored and the default 2-minute deadline applies. The only signal is a nearer expiry on the returned quote.
+</Note>
+
 ## Source chain / token
 
 Select which tokens and/or chains to use as the source of funds via `accountAccessList`.
