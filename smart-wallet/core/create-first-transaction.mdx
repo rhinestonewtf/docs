@@ -73,6 +73,26 @@ const result = await rhinestoneAccount.waitForExecution(transaction)
 
 <Note>To deploy the account on a specific chain before transacting, call `await rhinestoneAccount.deploy(chain)` first. Otherwise, any transaction triggers deployment as part of the intent — token transfers, contract calls, approvals, anything.</Note>
 
+## Custom fill deadline
+
+A transaction's on-chain fill deadline defaults to 2 minutes. For a **same-chain transaction that settles without bridging**, extend it with `customDeadline` — an absolute unix timestamp in seconds. Useful when a user needs longer to approve, or you prepare a quote now and submit it later.
+
+```ts
+const prepared = await rhinestoneAccount.prepareTransaction({
+  chain: baseSepolia,
+  calls: [
+    /* … */
+  ],
+  customDeadline: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
+})
+```
+
+The value must be between `now + 120s` and `now + 86400s` (24 hours); outside that range the request is rejected.
+
+<Note>
+  `customDeadline` is honored only on same-chain transactions that settle without bridging. On cross-chain transactions it is ignored and the default 2-minute deadline applies.
+</Note>
+
 ## Next steps
 
 <CardGroup cols={3}>
