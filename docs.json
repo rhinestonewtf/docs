@@ -223,6 +223,7 @@
                       "sdk-reference/account/transactions/prepare-transaction",
                       "sdk-reference/account/transactions/get-transaction-messages",
                       "sdk-reference/account/transactions/sign-transaction",
+                      "sdk-reference/account/transactions/assemble-transaction",
                       "sdk-reference/account/transactions/sign-authorizations",
                       "sdk-reference/account/transactions/sign-intent",
                       "sdk-reference/account/transactions/submit-transaction"
