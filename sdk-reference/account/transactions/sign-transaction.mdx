@@ -1,6 +1,6 @@
 ---
 title: "signTransaction"
-description: "Sign a prepared transaction."
+description: "Sign a prepared transaction as one configured owner. The returned signature can be serialized and shared with the party coordinating submission."
 ---
 
 Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
@@ -8,7 +8,7 @@ Method on an account instance returned by [`createAccount`](/sdk-reference/rhine
 ## Usage
 
 ```ts
-const transaction = await account.signTransaction(preparedTransaction)
+const transaction = await account.signTransaction(preparedTransaction, options)
 ```
 
 ## Parameters
@@ -17,17 +17,17 @@ const transaction = await account.signTransaction(preparedTransaction)
   Prepared transaction data
 </ParamField>
 
-<ParamField path="options" type="QuoteSelection">
-  Optional override; pass `{ intentId }` to sign a specific quote from `preparedTransaction.quotes.all`
+<ParamField path="options" type="SignAsOwnerOptions | QuoteSelection" required>
+  Owner account, optional quote, and multi-factor validator ID
 </ParamField>
 
 ## Returns
 
-<ResponseField name="transaction" type="SignedTransactionData">
-  The signed transaction data
+<ResponseField name="transaction" type="OwnerSignature | SignedTransactionData">
+  This owner's signature contribution
 </ResponseField>
 
 ## See also
 
 - [prepareTransaction](/sdk-reference/account/transactions/prepare-transaction) to prepare the transaction data for signing
-- [submitTransaction](/sdk-reference/account/transactions/submit-transaction) to submit the signed transaction
+- [assembleTransaction](/sdk-reference/account/transactions/assemble-transaction) to combine independent owner signatures

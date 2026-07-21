@@ -1,0 +1,33 @@
+---
+title: "assembleTransaction"
+description: "Assemble independently collected owner signatures into a signed transaction. Signatures are deduplicated and ordered according to the configured owner set. Account thresholds are read from the local configuration; an explicit transaction signer set determines active MFA IDs and contributing owners. Callers must keep these synchronized with onchain owner and threshold changes."
+---
+
+Method on an account instance returned by [`createAccount`](/sdk-reference/rhinestone-sdk/create-account).
+
+## Usage
+
+```ts
+const result = await account.assembleTransaction(preparedTransaction, signatures)
+```
+
+## Parameters
+
+<ParamField path="preparedTransaction" type="PreparedTransactionData" required>
+  The prepared transaction every owner signed
+</ParamField>
+
+<ParamField path="signatures" type="OwnerSignature[]" required>
+  Owner signatures returned by `signTransaction` with an `owner` option
+</ParamField>
+
+## Returns
+
+<ResponseField name="result" type="SignedTransactionData">
+  Signed transaction data ready for submission
+</ResponseField>
+
+## See also
+
+- [signTransaction](/sdk-reference/account/transactions/sign-transaction) to create each owner signature
+- [submitTransaction](/sdk-reference/account/transactions/submit-transaction) to submit the result
