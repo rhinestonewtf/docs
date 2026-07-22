@@ -136,6 +136,7 @@ Every webhook request body follows the same envelope structure:
 | [`bridge-delayed`](#bridge-delayed)                       | Bridge provider did not fill within the expected window; a refund is expected |
 | [`bridge-failed`](#bridge-failed)                         | Bridging failed                                                               |
 | [`deposit-refunded`](#deposit-refunded)                   | Deposit funds returned to a recipient on the source chain                     |
+| [`onramp-order`](#onramp-order)                           | A [fiat or CEX on-ramp](/deposits/api/onramp) order changed status            |
 | [`error`](#error)                                         | Unexpected error while processing a deposit (the settlement catch-all)        |
 
 #### `deposit-received`
@@ -336,6 +337,61 @@ Sent when funds from a deposit are returned to a recipient on the source chain. 
 | `refund.amount`           | `string` | Refund amount                     |
 | `refund.recipient`        | `string` | Address that received the refund  |
 
+#### `onramp-order`
+
+Sent when a [fiat or CEX on-ramp](/deposits/api/onramp) order moves through its lifecycle. Unlike the other events, it is tied to a Swapped order rather than a deposit — once the purchased crypto lands on-chain, the regular deposit events take over. Correlate `transactionId` here with `transactionHash` on the subsequent [`deposit-received`](#deposit-received).
+
+| Field                 | Type                  | Description                                                                                       |
+| --------------------- | --------------------- | -------------------------------------------------------------------------------------------------- |
+| `orderId`             | `string`              | Swapped order identifier                                                                            |
+| `orderUuid`           | `string`              | UUID minted with the checkout URL — the suffix of `externalCustomerId`                              |
+| `account`             | `string`              | Account address                                                                                     |
+| `source`              | `string`              | `"onramp"` (fiat widget) or `"exchange"` (CEX transfer)                                             |
+| `status`              | `string`              | Normalized [order status](/deposits/api/onramp#track-the-order): `"pending"`, `"processing"`, `"completed"`, or `"failed"` |
+| `rawStatus`           | `string`              | Swapped's raw order status                                                                          |
+| `terminal`            | `boolean`             | `true` once `status` is `"completed"` or `"failed"`                                                 |
+| `token`               | `string \| null`      | Purchased token symbol (e.g. `"USDC"`)                                                              |
+| `cryptoAmount`        | `string \| null`      | Purchased amount as a decimal string — **not** raw token units                                      |
+| `fiat`                | `object \| null`      | Fiat receipt; `null` until Swapped reports amounts                                                  |
+| `fiat.currency`       | `string`              | Fiat currency of the payment (`"USD"` or `"EUR"`)                                                   |
+| `fiat.amount`         | `string`              | Fiat amount before Swapped's fee (decimal string)                                                   |
+| `fiat.amountPlusFees` | `string \| null`      | Fiat amount including Swapped's fee                                                                 |
+| `fiat.feeUsd`         | `string \| null`      | Swapped's fee in USD, when derivable                                                                |
+| `transactionId`       | `string \| null`      | On-chain transaction hash of the crypto transfer, present once completed                            |
+| `method`              | `string \| null`      | Payment method when `source` is `"onramp"` (e.g. `"creditcard"`)                                    |
+| `exchange`            | `string \| null`      | Exchange slug when `source` is `"exchange"` (e.g. `"binance"`)                                      |
+
+```json
+{
+    "version": "1.0",
+    "type": "onramp-order",
+    "eventId": "12350",
+    "time": "2025-01-15T12:03:00.000Z",
+    "data": {
+        "orderId": "8f14e45f-ceea-4672-a1d5-6f3b2a7c9e01",
+        "orderUuid": "0b0e8f9c-2d4a-4e6b-9c1f-3a5d7e9b0c2d",
+        "account": "0x1234567890abcdef1234567890abcdef12345678",
+        "source": "onramp",
+        "status": "completed",
+        "rawStatus": "order_broadcasted",
+        "terminal": true,
+        "token": "USDC",
+        "cryptoAmount": "98.61",
+        "fiat": {
+            "currency": "USD",
+            "amount": "100.00",
+            "amountPlusFees": "101.75",
+            "feeUsd": "1.75"
+        },
+        "transactionId": "0xdef456...",
+        "method": "creditcard",
+        "exchange": null
+    }
+}
+```
+
+`onramp-order` is delivered at-least-once and only ever moves forward through the order lifecycle — you may receive a duplicate for the same stage, never an earlier one. Dedupe on `eventId`.
+
 #### `error`
 
 Sent when an unexpected, unhandled error occurs while processing a deposit — the catch-all in the settlement pipeline. It is not part of the normal lifecycle ordering and may arrive at any point. It carries whatever deposit / account / intent context was available at the point of failure; the optional fields are present only when that context was known.
@@ -398,7 +454,7 @@ function verifyWebhookSignature(
 ### Delivery behavior
 
 - **Retries** — failed deliveries are retried multiple times before the event is marked `failed`. Events that exhaust their retries can still be replayed on demand via [`POST /webhooks/events/{id}/resend`](/api-reference/deposit-service/webhooks/re-attempt-delivery-of-a-stored-webhook-event), which reuses the original `eventId`.
-- **Ordering** — events for a single deposit are sent in lifecycle order: `deposit-received` → `bridge-started` → `bridge-complete` when it proceeds, or `deposit-received` → `deposit-rejected` when it won't be bridged. There is no global ordering guarantee across deposits.
+- **Ordering** — events for a single deposit are sent in lifecycle order: `deposit-received` → `bridge-started` → `bridge-complete` when it proceeds, or `deposit-received` → `deposit-rejected` when it won't be bridged. `onramp-order` events are likewise ordered per order and only move forward. There is no global ordering guarantee across deposits or orders.
 - **URL validation** — the webhook URL must use HTTPS and must not target internal or private network addresses.
 - **Idempotency** — use `eventId` from the envelope as the canonical dedupe key.
 
@@ -430,5 +486,5 @@ For more details, see the API reference for [`GET /webhooks/events`](/api-refere
 ## Conventions
 
 - EVM addresses and token addresses are **lowercase**. Non-EVM addresses (Solana, Tron) preserve their original case.
-- All amounts are **strings** (raw token units, not human-readable).
+- Token amounts are **strings in raw token units** (not human-readable). Fiat amounts are **decimal strings** (e.g. `"101.75"`). The one crossover: `onramp-order.cryptoAmount` is reported by Swapped as a decimal string, not raw units.
 - Chains use [CAIP-2](https://chainagnostic.org/CAIPs/caip-2) identifiers (e.g. `"eip155:8453"` for Base).

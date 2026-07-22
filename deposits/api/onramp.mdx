@@ -1,0 +1,147 @@
+---
+title: "Fiat and CEX on-ramp"
+description: "Let users fund their account with a card, Apple Pay, a bank transfer, or a centralized exchange balance — powered by Swapped."
+---
+
+Users without crypto can fund their account directly inside your app. The deposit service mints a signed Swapped checkout URL for a registered account; the user pays in Swapped's hosted widget; the purchased crypto lands on the account and is processed like any other deposit — bridged to the account's target and reported through the same [status tracking](/deposits/api/status-tracking).
+
+## How it works
+
+1. Your backend requests a signed checkout URL for the user's account.
+2. You show the URL in an iframe or in-app browser.
+3. The user completes payment (and KYC, when required) with Swapped.
+4. You receive [`onramp-order`](/deposits/api/status-tracking#onramp-order) webhooks as the order progresses.
+5. Swapped sends the purchased crypto — currently USDC on Base — to the account. From here the standard pipeline takes over: the deposit is detected, bridged to the account's target, and reported via the regular [deposit webhooks](/deposits/api/status-tracking#webhooks).
+
+## Prerequisites
+
+- The account is [registered](/deposits/api/account-registration) — minting a checkout URL for an account that isn't registered to your project returns `403 Unauthorized`.
+- A [webhook URL](/deposits/api/initial-setup#configure-a-webhook) is configured if you want order updates pushed rather than polled.
+- Calls are made from your backend. The endpoints require your API key, which never ships in client-side code.
+
+## Mint a checkout URL
+
+```ts
+const DEPOSIT_SERVICE_URL =
+    "https://v1.orchestrator.rhinestone.dev/deposit-processor";
+const API_KEY = "YOUR_RHINESTONE_API_KEY";
+
+const response = await fetch(`${DEPOSIT_SERVICE_URL}/onramp/swapped/widget-url`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": API_KEY },
+    body: JSON.stringify({
+        smartAccount: "0xUSER_ACCOUNT_ADDRESS",
+        baseCurrencyCode: "EUR",
+        baseCurrencyAmount: 100,
+        method: "apple-pay",
+    }),
+});
+
+const { url, externalCustomerId, expiresAt } = await response.json();
+```
+
+Only `smartAccount` is required. The optional fields prefill the widget:
+
+| Field                | Type     | Description                                                        |
+| -------------------- | -------- | ------------------------------------------------------------------ |
+| `smartAccount`       | `string` | The registered account that receives the crypto                    |
+| `email`              | `string` | Prefills the user's email                                          |
+| `baseCountry`        | `string` | User's country (ISO 3166-1 alpha-2, e.g. `"DE"`)                   |
+| `baseCurrencyCode`   | `string` | Fiat currency to charge in (e.g. `"EUR"`)                          |
+| `baseCurrencyAmount` | `number` | Prefilled purchase amount in the fiat currency                     |
+| `locale`             | `string` | Widget language                                                    |
+| `method`             | `string` | Preselected payment method: `"creditcard"`, `"apple-pay"`, or `"bank-transfer"` |
+
+The response carries the signed URL:
+
+| Field                | Type      | Description                                                                 |
+| -------------------- | --------- | ---------------------------------------------------------------------------- |
+| `url`                | `string`  | The checkout URL to embed                                                    |
+| `currencyCode`       | `string`  | Asset the purchase settles in, as `ASSET_NETWORK` (currently `"USDC_BASE"`)  |
+| `sandbox`            | `boolean` | `true` when the service runs against Swapped's sandbox                      |
+| `externalCustomerId` | `string`  | `<account>:<orderUuid>` — correlates the checkout with its webhooks          |
+| `expiresAt`          | `string`  | End of the order-tracking window (ISO 8601)                                  |
+
+The URL is signed by the service, so its parameters — destination wallet and asset — can't be modified client-side. Mint a fresh URL for each checkout session. The purchase always settles in the asset reported by `currencyCode`; when the account's target differs, the bridge hop happens automatically.
+
+Full request and response schemas: [`POST /onramp/swapped/widget-url`](/api-reference/deposit-service/onramp/mint-a-signed-swapped-widget-url-fiat-on-ramp).
+
+### Fund from an exchange
+
+To let users transfer from a centralized exchange balance (Binance, Coinbase, and others) instead of paying with fiat, mint a Connect URL. The request takes a subset of the widget fields — `smartAccount` plus optional `baseCountry`, `baseCurrencyCode`, `locale`, and a `connection` preselecting the exchange. There's no amount or payment-method prefill; the user chooses those inside the exchange flow. The response shape is identical:
+
+```ts
+const response = await fetch(`${DEPOSIT_SERVICE_URL}/onramp/swapped/connect-url`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": API_KEY },
+    body: JSON.stringify({
+        smartAccount: "0xUSER_ACCOUNT_ADDRESS",
+        connection: "binance",
+    }),
+});
+```
+
+List the supported exchanges with [`GET /onramp/swapped/connect-exchanges`](/api-reference/deposit-service/onramp/list-centralized-exchanges-for-the-connect-picker); full schema at [`POST /onramp/swapped/connect-url`](/api-reference/deposit-service/onramp/mint-a-signed-swapped-connect-url-cex-funding).
+
+## Show the widget
+
+Embed the URL in an iframe with payment and camera permissions — Apple Pay and camera-based KYC need them:
+
+```html
+<iframe src={url} allow="payment; camera; microphone; clipboard-write" />
+```
+
+In a mobile app, open the URL in an in-app browser (`SFSafariViewController` on iOS, Chrome Custom Tabs on Android) rather than a plain WebView — Apple Pay and camera access are restricted in bare WebViews.
+
+The URL carries no redirect or callback parameter. Detect completion through the [`onramp-order`](/deposits/api/status-tracking#onramp-order) webhook or by [polling order status](#track-the-order), then dismiss the widget from your own UI.
+
+<Warning>
+    A user who abandons checkout produces no terminal event — the order simply
+    never progresses. Apply your own timeout when waiting on an order.
+</Warning>
+
+## Track the order
+
+Orders move through a normalized lifecycle:
+
+| Status       | Meaning                                    | Terminal |
+| ------------ | ------------------------------------------ | -------- |
+| `pending`    | Order created; awaiting payment or KYC     | no       |
+| `processing` | Payment captured; crypto not yet sent      | no       |
+| `completed`  | Crypto sent on-chain                       | yes      |
+| `failed`     | Order cancelled or declined                | yes      |
+
+Each transition fires an [`onramp-order`](/deposits/api/status-tracking#onramp-order) webhook carrying the normalized `status`, Swapped's `rawStatus`, the fiat receipt, and — once completed — the on-chain `transactionId`.
+
+You can also poll the account's latest order:
+
+```ts
+const response = await fetch(
+    `${DEPOSIT_SERVICE_URL}/onramp/swapped/status/0xUSER_ACCOUNT_ADDRESS`,
+    { headers: { "x-api-key": API_KEY } },
+);
+const order = await response.json();
+// {
+//     ok: true,
+//     orderId: "…",
+//     status: "order_broadcasted",
+//     orderCrypto: "USDC",
+//     orderCryptoAmount: "98.61",
+//     transactionId: "0xdef456…",
+//     paidAmountUsd: 101.75,
+//     onrampFeeUsd: 1.75,
+//     paymentMethod: "creditcard",
+//     receivedAt: "2025-01-15T12:03:00.000Z"
+// }
+```
+
+Polling reflects the account's most recent order and returns `{ ok: false, reason: "no_order" }` before the first order update arrives. Full schema: [`GET /onramp/swapped/status/{smartAccount}`](/api-reference/deposit-service/onramp/poll-the-latest-swapped-order-status-for-a-smart-account).
+
+Once the order completes, the on-ramp hands off to the regular pipeline: `transactionId` reappears as the `transactionHash` on the [`deposit-received`](/deposits/api/status-tracking#deposit-received) event, followed by the usual bridge events. Card and Apple Pay orders typically complete within minutes; bank transfers can take days. Orders stay trackable for 7 days.
+
+## Good to know
+
+- **Session coverage** — on-ramp purchases land on Base, so the account's session set must include Base. The default [registration flow](/deposits/api/account-registration) covers every supported chain; if you restrict `sessionChainIds`, include Base or landed funds can't be bridged.
+- **Deposit whitelist** — if you [restrict accepted deposits](/deposits/api/initial-setup#restrict-accepted-deposits), allow USDC on Base above your minimum. Otherwise every on-ramp purchase is rejected with [`deposit-rejected`](/deposits/api/status-tracking#deposit-rejected).
+- **Same-chain target** — when the account's target is USDC on Base paid to the account itself, the purchase is already at its destination: no bridge events fire, and `onramp-order` with `status: "completed"` is your terminal signal.
+- **KYC and limits** — identity verification and purchase limits are handled by Swapped inside the widget.
