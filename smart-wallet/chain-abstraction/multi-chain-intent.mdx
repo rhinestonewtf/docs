@@ -16,6 +16,7 @@ Learn more about how Rhinestone intents work [here](../../home/introduction/rhin
 We will make a cross-chain token transfer using multi-chain intents.
 
 ```tsx
+const usdcOnArbitrum = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' // Arbitrum
 const amount = parseUnits('100', 6) // 100 USDC
 
 const prepared = await rhinestoneAccount.prepareTransaction({
@@ -23,7 +24,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
   targetChain: arbitrum,
   calls: [
     {
-      to: 'USDC',
+      to: usdcOnArbitrum,
       data: encodeFunctionData({
         abi: erc20Abi,
         functionName: 'transfer',
@@ -33,7 +34,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
   ],
   tokenRequests: [
     {
-      address: 'USDC',
+      address: usdcOnArbitrum,
       amount,
     },
   ],
@@ -74,7 +75,10 @@ const transaction = await rhinestoneAccount.prepareTransaction({
 
 You can specify what token (or tokens) to use as an input asset:
 
-```ts {10}
+```ts {13}
+const usdc = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // Base
+const eth = '0x0000000000000000000000000000000000000000' // Native ETH
+
 const transaction = await rhinestoneAccount.prepareTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
@@ -84,13 +88,15 @@ const transaction = await rhinestoneAccount.prepareTransaction({
   tokenRequests: [
     // …
   ],
-  sourceAssets: ['USDC', 'ETH']
+  sourceAssets: [usdc, eth]
 })
 ```
 
 You can also specify source assets on a per-chain basis:
 
-```ts {9-12}
+```ts {11-14}
+const usdc = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // Base
+
 const transaction = await rhinestoneAccount.prepareTransaction({
   targetChain: arbitrum,
   calls: [
@@ -100,7 +106,7 @@ const transaction = await rhinestoneAccount.prepareTransaction({
     // …
   ],
   sourceAssets: {
-    [base.id]: ['USDC'],
+    [base.id]: [usdc],
     [optimism.id]: ['0x4200000000000000000000000000000000000006'], // WETH
   },
 })

@@ -163,6 +163,9 @@ Once funded, the companion account executes the crosschain intent using the sess
 ```ts
 import { encodeFunctionData, erc20Abi } from "viem";
 
+// USDC on Arbitrum — token inputs are addresses, not symbols
+const usdc = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
+
 const prepared = await companionAccount.prepareTransaction({
   sourceChains: [ethereum],
   targetChain: arbitrum,
@@ -187,7 +190,7 @@ const prepared = await companionAccount.prepareTransaction({
   ],
   tokenRequests: [
     {
-      address: "USDC",
+      address: usdc,
       amount: depositAmount,
     },
   ],
@@ -258,6 +261,9 @@ await companionAccount.submitTransaction(signedPull);
 **Execute the crosschain intent** (bridge + vault deposit):
 
 ```ts
+// USDC on Arbitrum — token inputs are addresses, not symbols
+const usdc = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
+
 const preparedExecute = await companionAccount.prepareTransaction({
   sourceChains: [ethereum],
   targetChain: arbitrum,
@@ -281,7 +287,7 @@ const preparedExecute = await companionAccount.prepareTransaction({
   ],
   tokenRequests: [
     {
-      address: "USDC",
+      address: usdc,
       amount: depositAmount,
     },
   ],
@@ -304,11 +310,14 @@ This two-step flow can potentially be simplified to a single step using source c
 You can sponsor the gas and bridging costs for the intent execution by passing `sponsored: true`:
 
 ```ts
+// USDC on Arbitrum — token inputs are addresses, not symbols
+const usdc = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
+
 const data = await companionAccount.prepareTransaction({
   sourceChains: [ethereum],
   targetChain: arbitrum,
   calls: vaultDepositCalls,
-  tokenRequests: [{ address: "USDC", amount: depositAmount }],
+  tokenRequests: [{ address: usdc, amount: depositAmount }],
   sponsored: true,
   signers: sessionSigners,
 });
