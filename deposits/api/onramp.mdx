@@ -50,7 +50,9 @@ Only `smartAccount` is required — every other field, including `method`, is op
 | `baseCurrencyCode`   | `string` | Fiat currency to charge in (e.g. `"EUR"`)                          |
 | `baseCurrencyAmount` | `number` | Prefilled purchase amount in the fiat currency                     |
 | `locale`             | `string` | Widget language                                                    |
-| `method`             | `string` | **Optional.** Preselects a payment method: `"creditcard"`, `"apple-pay"`, or `"bank-transfer"`. Omit it to let Swapped auto-select the best method for the user. |
+| `method`             | `string` | **Optional.** Preselects a payment method — accepts any method Swapped supports (see the list below). Omit it to let Swapped auto-select the best method for the user. |
+
+`method` takes a Swapped **payment group**. Swapped offers 40+ methods and the set available depends on the user's region — common values include `"creditcard"`, `"apple-pay"`, `"bank-transfer"`, `"skrill"`, `"pix"`, and `"sepa-bank-transfer"`. Pass a method's `payment_group`; the authoritative, up-to-date list for your account is Swapped's [Get Payment Methods](https://docs.swapped.com/swapped-ramp/endpoints/onramp-endpoints/get-payment-methods) endpoint. A value Swapped doesn't support for the user is ignored rather than rejected — the widget falls back to the best available method, so an unrecognized `method` never blocks checkout.
 
 The response carries the signed URL:
 
