@@ -59,9 +59,9 @@ To enable a session, you need to get the session details and enable data. This s
 
 ```ts
 const sessionDetails =
-  await rhinestoneAccount.experimental_getSessionDetails(sessions)
+  await rhinestoneAccount.getSessionDetails(sessions)
 const enableSignature =
-  await rhinestoneAccount.experimental_signEnableSession(sessionDetails)
+  await rhinestoneAccount.signEnableSession(sessionDetails)
 const sessionIndex = 0 // Which session to enable
 ```
 
@@ -93,7 +93,7 @@ const data = await rhinestoneAccount.prepareTransaction({
     },
   ],
   signers: {
-    type: 'experimental_session',
+    type: 'session',
     session: sessions[sessionIndex],
     enableData: {
       userSignature: enableSignature,
@@ -155,14 +155,14 @@ const sessions = await Promise.all([
 
 // Get the session details and sign once
 const sessionDetails =
-  await rhinestoneAccount.experimental_getSessionDetails(sessions)
+  await rhinestoneAccount.getSessionDetails(sessions)
 const enableSignature =
-  await rhinestoneAccount.experimental_signEnableSession(sessionDetails)
+  await rhinestoneAccount.signEnableSession(sessionDetails)
 
 // Build the per-chain sessions map with enable data
 // The SDK resolves the right session and enable data automatically per chain
 const signers = {
-  type: 'experimental_session' as const,
+  type: 'session' as const,
   sessions: {
     [baseSepolia.id]: {
       session: sessions[0],

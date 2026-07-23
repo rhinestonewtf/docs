@@ -137,7 +137,7 @@ const config: RhinestoneAccountConfig = {
     type: "ecdsa",
     accounts: [userSigner],
   },
-  experimental_sessions: { enabled: true },
+  sessions: { enabled: true },
 };
 
 const account = await rhinestone.createAccount(config);
@@ -163,8 +163,8 @@ const sessions = sourceChains.map((chain) => ({
   chain,
 }));
 
-const sessionDetails = await account.experimental_getSessionDetails(sessions);
-const signature = await account.experimental_signEnableSession(sessionDetails);
+const sessionDetails = await account.getSessionDetails(sessions);
+const signature = await account.signEnableSession(sessionDetails);
 
 const enableSessionDetails = {
   hashesAndChainIds: sessionDetails.hashesAndChainIds,
@@ -231,9 +231,9 @@ const newSessions = [
   },
 ];
 const newSessionDetails =
-  await account.experimental_getSessionDetails(newSessions);
+  await account.getSessionDetails(newSessions);
 const newSignature =
-  await account.experimental_signEnableSession(newSessionDetails);
+  await account.signEnableSession(newSessionDetails);
 
 await fetch(`${DEPOSIT_SERVICE_URL}/account/${address}/session`, {
   method: "POST",

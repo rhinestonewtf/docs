@@ -9,8 +9,6 @@ This tutorial walks through a one-click trading scenario: the user grants your a
 
 This tutorial builds on the [Quickstart](../quickstart). You'll need a working smart account before continuing.
 
-<Warning>Smart Sessions are **experimental**. Expect breaking changes.</Warning>
-
 ## Prerequisites
 
 - Completed the [Quickstart](../quickstart)
@@ -36,7 +34,7 @@ const rhinestoneAccount = await rhinestone.createAccount({
     type: 'ecdsa',
     accounts: [ownerAccount],
   },
-  experimental_sessions: {
+  sessions: {
     enabled: true,
   },
 })
@@ -45,11 +43,11 @@ const rhinestoneAccount = await rhinestone.createAccount({
 If the account is already deployed, you can install the module in a separate transaction:
 
 ```ts
-import { experimental_enable } from '@rhinestone/sdk/actions/smart-sessions'
+import { enable } from '@rhinestone/sdk/actions/smart-sessions'
 
 const transaction = await rhinestoneAccount.prepareTransaction({
   chain: base,
-  calls: [experimental_enable()],
+  calls: [enable()],
 })
 const signed = await rhinestoneAccount.signTransaction(transaction)
 const result = await rhinestoneAccount.submitTransaction(signed)
@@ -115,17 +113,17 @@ const session = await rhinestone.createSession({
 The account owner signs to approve the session. This is the one-time approval the user sees:
 
 ```ts
-import { experimental_enableSession } from '@rhinestone/sdk/actions/smart-sessions'
+import { enableSession } from '@rhinestone/sdk/actions/smart-sessions'
 
 const sessions = [session]
-const sessionDetails = await rhinestoneAccount.experimental_getSessionDetails(sessions)
-const enableSignature = await rhinestoneAccount.experimental_signEnableSession(sessionDetails)
+const sessionDetails = await rhinestoneAccount.getSessionDetails(sessions)
+const enableSignature = await rhinestoneAccount.signEnableSession(sessionDetails)
 const sessionIndex = 0
 
 const transaction = await rhinestoneAccount.prepareTransaction({
   chain: base,
   calls: [
-    experimental_enableSession(
+    enableSession(
       session,
       enableSignature,
       sessionDetails.hashesAndChainIds,
@@ -163,7 +161,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
     },
   ],
   signers: {
-    type: 'experimental_session',
+    type: 'session',
     session,
   },
 })

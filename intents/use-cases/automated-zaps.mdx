@@ -32,7 +32,7 @@ const companionAccount = await rhinestone.createAccount({
     type: "ecdsa",
     accounts: [ownerAccount],
   },
-  experimental_sessions: {
+  sessions: {
     enabled: true,
   },
 });
@@ -110,10 +110,10 @@ The user signs once to authorize all sessions across all chains:
 
 ```ts
 const sessionDetails =
-  await companionAccount.experimental_getSessionDetails(sessions);
+  await companionAccount.getSessionDetails(sessions);
 
 const enableSignature =
-  await companionAccount.experimental_signEnableSession(sessionDetails);
+  await companionAccount.signEnableSession(sessionDetails);
 ```
 
 Persist the session credentials for your service to use later:
@@ -194,7 +194,7 @@ const prepared = await companionAccount.prepareTransaction({
     },
   ],
   signers: {
-    type: "experimental_session",
+    type: "session",
     session: sessions[0],
     enableData: {
       userSignature: enableSignature,
@@ -248,7 +248,7 @@ const preparedPull = await companionAccount.prepareTransaction({
     },
   ],
   signers: {
-    type: "experimental_session",
+    type: "session",
     session: vaultSession,
     enableData: sessionEnableData,
   },
@@ -291,7 +291,7 @@ const preparedExecute = await companionAccount.prepareTransaction({
     },
   ],
   signers: {
-    type: "experimental_session",
+    type: "session",
     session: vaultSession,
     enableData: sessionEnableData,
   },
