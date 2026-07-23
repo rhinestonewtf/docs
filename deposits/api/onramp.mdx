@@ -33,14 +33,14 @@ const response = await fetch(`${DEPOSIT_SERVICE_URL}/onramp/swapped/widget-url`,
         smartAccount: "0xUSER_ACCOUNT_ADDRESS",
         baseCurrencyCode: "EUR",
         baseCurrencyAmount: 100,
-        method: "apple-pay",
+        method: "apple-pay", // optional — omit to let Swapped choose the best method
     }),
 });
 
 const { url, externalCustomerId, expiresAt } = await response.json();
 ```
 
-Only `smartAccount` is required. The optional fields prefill the widget:
+Only `smartAccount` is required — every other field, including `method`, is optional and simply prefills the widget. If you omit `method`, Swapped auto-selects the best payment method for the user based on their location and other signals:
 
 | Field                | Type     | Description                                                        |
 | -------------------- | -------- | ------------------------------------------------------------------ |
@@ -50,7 +50,7 @@ Only `smartAccount` is required. The optional fields prefill the widget:
 | `baseCurrencyCode`   | `string` | Fiat currency to charge in (e.g. `"EUR"`)                          |
 | `baseCurrencyAmount` | `number` | Prefilled purchase amount in the fiat currency                     |
 | `locale`             | `string` | Widget language                                                    |
-| `method`             | `string` | Preselected payment method: `"creditcard"`, `"apple-pay"`, or `"bank-transfer"` |
+| `method`             | `string` | **Optional.** Preselects a payment method: `"creditcard"`, `"apple-pay"`, or `"bank-transfer"`. Omit it to let Swapped auto-select the best method for the user. |
 
 The response carries the signed URL:
 
