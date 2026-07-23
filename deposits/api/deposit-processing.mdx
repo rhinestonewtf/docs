@@ -88,6 +88,7 @@ These are transient failures. The service retries automatically, or you can trig
 | `BRIDGE-9` | Bridge rejected |
 | `SWAP-1` | Post-bridge swap failed |
 | `INTERNAL-1` | Unexpected service error |
+| `SPONSORSHIP-1` | A per-intent sponsorship cap (overall, gas-fee, or bridge-fee) would be exceeded; the deposit is held (`delayed`) and re-quoted automatically until the sponsored cost fits — as fees fluctuate or the cap is raised — or the hold window (~24h) elapses. See [`deposit-delayed`](/deposits/api/status-tracking#deposit-delayed) |
 
 ### Non-retryable
 

@@ -46,7 +46,7 @@ Each item in the `deposits` array has the following shape:
 | `account`           | `string`         | Registered account address                                                       |
 | `targetChain`       | `string`         | Destination chain (CAIP-2)                                                       |
 | `targetToken`       | `string`         | Destination token address                                                        |
-| `status`            | `string`         | In-progress: `"processing"`, `"expecting_refund"`. Terminal: `"completed"`, `"failed"`, `"rejected"`, `"refunded"`, `"ignored"` |
+| `status`            | `string`         | In-progress: `"processing"`, `"delayed"`, `"expecting_refund"`. Terminal: `"completed"`, `"failed"`, `"rejected"`, `"refunded"`, `"ignored"` |
 | `sourceTxHash`      | `string \| null` | Bridge source transaction hash                                                   |
 | `destinationTxHash` | `string \| null` | Bridge destination transaction hash                                              |
 | `sourceAmount`      | `string \| null` | Bridge source amount                                                             |
@@ -131,6 +131,7 @@ Every webhook request body follows the same envelope structure:
 | --------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | [`deposit-received`](#deposit-received)                   | Token transfer detected on a registered account                               |
 | [`deposit-rejected`](#deposit-rejected)                   | Detected deposit will not be bridged — deposit whitelist or minimum violation  |
+| [`deposit-delayed`](#deposit-delayed)                     | Deposit held because a per-intent sponsorship cap would be exceeded; retried automatically |
 | [`bridge-started`](#bridge-started)                       | Bridging intent created and submitted to the Orchestrator                     |
 | [`bridge-complete`](#bridge-complete)                     | Tokens arrived on the target chain                                            |
 | [`bridge-delayed`](#bridge-delayed)                       | Bridge provider did not fill within the expected window; a refund is expected |
@@ -207,6 +208,50 @@ Compare `deposit.amount` (what was deposited) against `limits` (the configured b
             "chain": "eip155:8453",
             "token": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
             "amount": "500000",
+            "sender": "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+        }
+    }
+}
+```
+
+#### `deposit-delayed`
+
+Sent when a deposit is temporarily **held** because sponsoring the bridge right now would exceed one of the per-intent sponsorship caps configured for the account — the overall sponsored amount, the sponsored gas fees, or the sponsored bridge fees. These are USD caps on how much sponsorship a single intent may consume; there are no gas-price or gas-amount limits. It follows a [`deposit-received`](#deposit-received) event and is **not** terminal: the deposit enters the `"delayed"` status and is re-quoted automatically on a backoff. Because the sponsored cost varies over time (gas and bridge fees fluctuate) and the cap can be raised, a later quote may fit — then it proceeds as normal ([`bridge-started`](#bridge-started) → [`bridge-complete`](#bridge-complete)). The deposit is held patiently through sustained congestion (up to a hold window, ~24h by default); only if it still hasn't cleared when that window elapses does it end as [`bridge-failed`](#bridge-failed) with error code `SPONSORSHIP-1`.
+
+Fired **once**, when the deposit first enters the delayed state — not on every retry. No action is required on your side; use it to surface a "waiting to settle" state to your users, and check `limitKey` if you want to raise the relevant cap. Distinct from [`bridge-delayed`](#bridge-delayed), which means a bridge already claimed funds and a refund is pending.
+
+| Field                     | Type                  | Description                                                        |
+| ------------------------- | --------------------- | ----------------------------------------------------------------- |
+| `reason`                  | `string`              | Human-readable explanation of the hold                            |
+| `errorCode`               | `string`              | Always `"SPONSORSHIP-1"`                                           |
+| `limitKey`                | `string \| undefined` | Which per-intent cap was exceeded: `perIntentUSD` (overall sponsorship), `gasPerIntentUSD` (sponsored gas fees), or `bridgeFeePerIntentUSD` (sponsored bridge fees) |
+| `capUsd`                  | `number \| undefined` | The configured cap, in USD, when reported                         |
+| `coverageUsd`            | `number \| undefined` | The sponsored amount the quote would have needed, in USD, when reported |
+| `account`                 | `string`              | Account address                                                   |
+| `deposit.transactionHash` | `string`              | Deposit transaction hash                                          |
+| `deposit.chain`           | `string`              | Deposit chain (CAIP-2)                                            |
+| `deposit.token`           | `string`              | Deposit token address                                             |
+| `deposit.amount`          | `string`              | Deposit amount (raw token units)                                  |
+| `deposit.sender`          | `string`              | Sender address                                                    |
+
+```json
+{
+    "version": "1.0",
+    "type": "deposit-delayed",
+    "eventId": "12348",
+    "time": "2025-01-15T12:00:01.000Z",
+    "data": {
+        "reason": "Sponsorship cap exceeded for this intent; deposit delayed",
+        "errorCode": "SPONSORSHIP-1",
+        "limitKey": "gasPerIntentUSD",
+        "capUsd": 5,
+        "coverageUsd": 8,
+        "account": "0x1234567890abcdef1234567890abcdef12345678",
+        "deposit": {
+            "transactionHash": "0xabc123...",
+            "chain": "eip155:1",
+            "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            "amount": "1000000",
             "sender": "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
         }
     }
@@ -454,7 +499,7 @@ function verifyWebhookSignature(
 ### Delivery behavior
 
 - **Retries** — failed deliveries are retried multiple times before the event is marked `failed`. Events that exhaust their retries can still be replayed on demand via [`POST /webhooks/events/{id}/resend`](/api-reference/deposit-service/webhooks/re-attempt-delivery-of-a-stored-webhook-event), which reuses the original `eventId`.
-- **Ordering** — events for a single deposit are sent in lifecycle order: `deposit-received` → `bridge-started` → `bridge-complete` when it proceeds, or `deposit-received` → `deposit-rejected` when it won't be bridged. `onramp-order` events are likewise ordered per order and only move forward. There is no global ordering guarantee across deposits or orders.
+- **Ordering** — events for a single deposit are sent in lifecycle order: `deposit-received` → `bridge-started` → `bridge-complete` when it proceeds, or `deposit-received` → `deposit-rejected` when it won't be bridged. A `deposit-delayed` may appear after `deposit-received` (before `bridge-started`) when the deposit is held under a sponsorship cap; it still resolves to `bridge-complete` or, on expiry, `bridge-failed`. `onramp-order` events are likewise ordered per order and only move forward. There is no global ordering guarantee across deposits or orders.
 - **URL validation** — the webhook URL must use HTTPS and must not target internal or private network addresses.
 - **Idempotency** — use `eventId` from the envelope as the canonical dedupe key.
 
