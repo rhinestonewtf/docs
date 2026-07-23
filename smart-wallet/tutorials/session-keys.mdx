@@ -76,13 +76,12 @@ const sessionOwnerAccount = privateKeyToAccount(sessionPrivateKey)
 Specify what the session key is allowed to do. Here we restrict it to USDC transfers only, with a 100 USDC spending limit:
 
 ```ts
-import { toSession } from '@rhinestone/sdk/smart-sessions'
 import { erc20Abi, parseUnits } from 'viem'
 import { base } from 'viem/chains'
 
 const usdcAddress = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // USDC on Base
 
-const session = toSession({
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',

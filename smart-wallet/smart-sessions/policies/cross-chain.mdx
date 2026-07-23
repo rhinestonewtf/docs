@@ -11,8 +11,11 @@ You set them at the session level via `crossChainPermits`, not per function. Eac
 
 Restrict a session to only bridge USDC from Base to Arbitrum:
 
-```ts {7-12}
-const session = toSession({
+```ts {10-15}
+const usdcOnBase = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+const usdcOnArbitrum = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',
@@ -20,14 +23,14 @@ const session = toSession({
   },
   crossChainPermits: [
     {
-      from: [{ chain: base, token: 'USDC' }],
-      to: [{ chain: arbitrum, token: 'USDC' }],
+      from: [{ chain: base, token: usdcOnBase }],
+      to: [{ chain: arbitrum, token: usdcOnArbitrum }],
     },
   ],
 })
 ```
 
-A token can be a symbol (resolved to the per-chain address) or an explicit address. Pass a single leg or an array, and omit a side entirely to leave it unrestricted — the settlement-layer allowlist, deadlines, and recipient rules still apply.
+Pass each token's address on its corresponding chain. Pass a single leg or an array, and omit a side entirely to leave it unrestricted — the settlement-layer allowlist, deadlines, and recipient rules still apply.
 
 | Field | Description |
 | --- | --- |
@@ -38,8 +41,11 @@ A token can be a symbol (resolved to the per-chain address) or an explicit addre
 
 Tighten a permit with optional bounds:
 
-```ts {8-14}
-const session = toSession({
+```ts {11-17}
+const usdcOnBase = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+const usdcOnArbitrum = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',
@@ -47,8 +53,8 @@ const session = toSession({
   },
   crossChainPermits: [
     {
-      from: [{ chain: base, token: 'USDC', maxAmount: parseUnits('100', 6) }],
-      to: [{ chain: arbitrum, token: 'USDC' }],
+      from: [{ chain: base, token: usdcOnBase, maxAmount: parseUnits('100', 6) }],
+      to: [{ chain: arbitrum, token: usdcOnArbitrum }],
       validAfter: new Date('2026-01-01'),
       validUntil: new Date('2027-01-01'),
       fillDeadline: [{ chain: arbitrum, max: new Date('2027-01-01') }],
@@ -65,8 +71,11 @@ const session = toSession({
 
 By default a cross-chain permit enforces **bridge-to-self** on-chain: the destination recipient must be the smart account itself. This stops a leaked session key from routing funds to an attacker-controlled address. Opt out explicitly only when you need to bridge to a different recipient:
 
-```ts {10-11}
-const session = toSession({
+```ts {13-14}
+const usdcOnBase = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+const usdcOnArbitrum = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',
@@ -74,8 +83,8 @@ const session = toSession({
   },
   crossChainPermits: [
     {
-      from: [{ chain: base, token: 'USDC' }],
-      to: [{ chain: arbitrum, token: 'USDC', recipient: payoutAddress }],
+      from: [{ chain: base, token: usdcOnBase }],
+      to: [{ chain: arbitrum, token: usdcOnArbitrum, recipient: payoutAddress }],
       allowRecipientNotAccount: true,
     },
   ],
@@ -86,8 +95,11 @@ const session = toSession({
 
 A permit allows any supported settlement layer by default. Pass `settlementLayers` to narrow it to a subset:
 
-```ts {11}
-const session = toSession({
+```ts {14}
+const usdcOnBase = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+const usdcOnArbitrum = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',
@@ -95,8 +107,8 @@ const session = toSession({
   },
   crossChainPermits: [
     {
-      from: [{ chain: base, token: 'USDC' }],
-      to: [{ chain: arbitrum, token: 'USDC' }],
+      from: [{ chain: base, token: usdcOnBase }],
+      to: [{ chain: arbitrum, token: usdcOnArbitrum }],
       settlementLayers: ['ECO'],
     },
   ],

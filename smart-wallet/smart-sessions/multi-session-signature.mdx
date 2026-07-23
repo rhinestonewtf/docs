@@ -25,10 +25,9 @@ First, define your sessions for different chains. Each session can have differen
 
 ```ts
 import { baseSepolia, optimismSepolia } from 'viem/chains'
-import { toSession } from '@rhinestone/sdk/smart-sessions'
 
-const sessions = [
-  toSession({
+const sessions = await Promise.all([
+  rhinestone.createSession({
     chain: baseSepolia,
     owners: {
       type: 'ecdsa',
@@ -36,21 +35,21 @@ const sessions = [
     },
     // Add specific policies and permissions as needed
   }),
-  toSession({
+  rhinestone.createSession({
     chain: baseSepolia,
     owners: {
       type: 'ecdsa',
       accounts: [sessionOwnerAccountB],
     },
   }),
-  toSession({
+  rhinestone.createSession({
     chain: optimismSepolia,
     owners: {
       type: 'ecdsa',
       accounts: [sessionOwnerAccountB],
     },
   }),
-]
+])
 ```
 
 </Step>
@@ -119,7 +118,6 @@ Here's a complete working example that demonstrates the full multi-chain session
 
 ```ts
 import { RhinestoneSDK } from '@rhinestone/sdk'
-import { toSession } from '@rhinestone/sdk/smart-sessions'
 import { zeroAddress } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { baseSepolia, optimismSepolia } from 'viem/chains'
@@ -138,22 +136,22 @@ const rhinestoneAccount = await rhinestone.createAccount({
 })
 
 // Define the sessions, one per chain
-const sessions = [
-  toSession({
+const sessions = await Promise.all([
+  rhinestone.createSession({
     chain: baseSepolia,
     owners: {
       type: 'ecdsa',
       accounts: [sessionOwnerAccount],
     },
   }),
-  toSession({
+  rhinestone.createSession({
     chain: optimismSepolia,
     owners: {
       type: 'ecdsa',
       accounts: [sessionOwnerAccount],
     },
   }),
-]
+])
 
 // Get the session details and sign once
 const sessionDetails =

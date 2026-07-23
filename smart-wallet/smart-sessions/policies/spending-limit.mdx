@@ -6,7 +6,7 @@ sidebarTitle: "Spending limit"
 You can limit the amount of ERC20 tokens transferable through a session function. Attach the policy at the function level — it caps the cumulative amount across all uses of that function.
 
 ```ts {13-16}
-const session = toSession({
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',

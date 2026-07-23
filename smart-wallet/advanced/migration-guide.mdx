@@ -111,6 +111,8 @@ const session = toSession(definition, {
 })
 ```
 
+<Info>For normal online usage, prefer [`RhinestoneSDK.createSession`](/sdk-reference/rhinestone-sdk/create-session) so the SDK resolves the wrapped-native token for you.</Info>
+
 ### Session policies are declarative
 
 In 1.x, each `action` carried a raw `policies` array that you assembled by hand. Those arrays are gone — policies are now expressed through fields on the permission's function config, and `createSession` compiles them into the right on-chain policies:

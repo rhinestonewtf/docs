@@ -8,30 +8,7 @@ Many public providers are heavily throttled and are not suitable for high traffi
 
 For production use, we recommend setting up a custom JSON-RPC provider with your own API key.
 
-<Tabs>
-<Tab title="Alchemy">
-
-To use [Alchemy](https://www.alchemy.com), provide an API key during SDK initialization:
-
-```ts {2-5}
-const rhinestone = new RhinestoneSDK({
-  provider: {
-    type: 'alchemy',
-    apiKey: alchemyApiKey,
-  }
-})
-const rhinestoneAccount = await rhinestone.createAccount({
-  owners: {
-    type: 'ecdsa',
-    accounts: [signer],
-  },
-})
-```
-
-</Tab>
-<Tab title="Custom URLs">
-
-To use custom JSON-RPC URLs, provide a mapping of chain IDs to RPC URLs:
+Provide a mapping of chain IDs to full RPC URLs from your provider:
 
 ```ts {2-9}
 const rhinestone = new RhinestoneSDK({
@@ -52,9 +29,7 @@ const rhinestoneAccount = await rhinestone.createAccount({
 })
 ```
 
-</Tab>
-</Tabs>
-
 <Note>
-  Need support for a different RPC provider? [Open an issue](https://github.com/rhinestonewtf/sdk/issues) and we'll take a look.
+  The SDK does not construct provider-specific URLs from an API key. Include the
+  API key in each URL when your provider requires one.
 </Note>

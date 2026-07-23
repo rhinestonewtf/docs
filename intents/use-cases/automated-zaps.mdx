@@ -45,7 +45,6 @@ Since the user's EOA is the sole owner, the account is fully non-custodial. Your
 Define multi-chain sessions scoped to the vault contracts your app supports. The session key is controlled by your app's service.
 
 ```ts
-import { toSession } from "@rhinestone/sdk/smart-sessions";
 import { erc20Abi } from "viem";
 import { arbitrum, optimism } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
@@ -53,8 +52,8 @@ import { privateKeyToAccount } from "viem/accounts";
 // Session key controlled by your app's service
 const sessionOwnerAccount = privateKeyToAccount(appSessionKey);
 
-const sessions = [
-  toSession({
+const sessions = await Promise.all([
+  rhinestone.createSession({
     chain: arbitrum,
     owners: {
       type: "ecdsa",
@@ -84,7 +83,7 @@ const sessions = [
       },
     ],
   }),
-  toSession({
+  rhinestone.createSession({
     chain: optimism,
     owners: {
       type: "ecdsa",
@@ -104,7 +103,7 @@ const sessions = [
       // Plus the ERC-20 permissions, as above.
     ],
   }),
-];
+]);
 ```
 
 The user signs once to authorize all sessions across all chains:
