@@ -199,10 +199,10 @@
                 "pages": [
                   "sdk-reference/rhinestone-sdk/rhinestone-sdk",
                   "sdk-reference/rhinestone-sdk/create-account",
-                  "sdk-reference/rhinestone-sdk/create-session",
                   "sdk-reference/rhinestone-sdk/get-intent-status",
                   "sdk-reference/rhinestone-sdk/split-intents",
-                  "sdk-reference/rhinestone-sdk/get-app-fee-balances"
+                  "sdk-reference/rhinestone-sdk/get-app-fee-balances",
+                  "sdk-reference/rhinestone-sdk/create-session"
                 ]
               },
               {
@@ -265,9 +265,9 @@
                   {
                     "group": "Smart sessions",
                     "pages": [
-                      "sdk-reference/account/smart-sessions/experimental-get-session-details",
-                      "sdk-reference/account/smart-sessions/experimental-is-session-enabled",
-                      "sdk-reference/account/smart-sessions/experimental-sign-enable-session"
+                      "sdk-reference/account/smart-sessions/get-session-details",
+                      "sdk-reference/account/smart-sessions/is-session-enabled",
+                      "sdk-reference/account/smart-sessions/sign-enable-session"
                     ]
                   }
                 ]
@@ -316,10 +316,10 @@
                   {
                     "group": "Smart sessions",
                     "pages": [
-                      "sdk-reference/actions/smart-sessions/experimental-enable",
-                      "sdk-reference/actions/smart-sessions/experimental-disable",
-                      "sdk-reference/actions/smart-sessions/experimental-enable-session",
-                      "sdk-reference/actions/smart-sessions/experimental-disable-session"
+                      "sdk-reference/actions/smart-sessions/enable",
+                      "sdk-reference/actions/smart-sessions/disable",
+                      "sdk-reference/actions/smart-sessions/enable-session",
+                      "sdk-reference/actions/smart-sessions/disable-session"
                     ]
                   }
                 ]

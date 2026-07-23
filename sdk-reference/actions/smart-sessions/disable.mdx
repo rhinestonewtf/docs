@@ -1,14 +1,12 @@
 ---
-title: "experimental_disable"
+title: "disable"
 description: "Disable smart sessions"
 ---
-
-<Warning>This API is experimental and may change in a future release.</Warning>
 
 ## Import
 
 ```ts
-import { experimental_disable } from '@rhinestone/sdk/actions/smart-sessions'
+import { disable } from '@rhinestone/sdk/actions/smart-sessions'
 ```
 
 ## Usage
@@ -16,7 +14,7 @@ import { experimental_disable } from '@rhinestone/sdk/actions/smart-sessions'
 ```ts
 const transaction = await account.prepareTransaction({
   chain,
-  calls: [experimental_disable()],
+  calls: [disable()],
 })
 ```
 
