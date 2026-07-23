@@ -275,6 +275,8 @@ import { useState } from 'react'
 import { encodeFunctionData, parseUnits, erc20Abi } from 'viem'
 import { baseSepolia, arbitrumSepolia } from 'viem/chains'
 
+const usdc = '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d' // USDC on Arbitrum Sepolia
+
 function CrossChainTransfer({ rhinestoneAccount }) {
   const [isTransacting, setIsTransacting] = useState(false)
   const [txResult, setTxResult] = useState(null)
@@ -293,7 +295,7 @@ function CrossChainTransfer({ rhinestoneAccount }) {
         targetChain: arbitrumSepolia,
         calls: [
           {
-            to: "USDC", // This resolves to the USDC address on the target chain
+            to: usdc,
             data: encodeFunctionData({
               abi: erc20Abi,
               functionName: "transfer",
@@ -303,7 +305,7 @@ function CrossChainTransfer({ rhinestoneAccount }) {
         ],
         tokenRequests: [
           {
-            address: "USDC",
+            address: usdc,
             amount: parseUnits("10", 6),
           },
         ],

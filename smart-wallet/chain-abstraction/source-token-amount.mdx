@@ -8,21 +8,24 @@ This can be helpful if you want to limit the amount of tokens to bridge, or if y
 
 To bridge a specific amount of tokens:
 
-```ts  {4-10}
+```ts  {7-13}
+const usdcOnOptimism = '0x0b2c639c533813F4AA9D7837CAF62653d097Ff85' // Optimism
+const usdcOnBase = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // Base
+
 const transaction = await rhinestoneAccount.prepareTransaction({
   sourceChains: [optimism],
   targetChain: base,
   sourceAssets: [
     {
       chain: optimism,
-      address: 'USDC',
+      address: usdcOnOptimism,
       amount: parseUnits('10', 6),
     }
   ],
   tokenRequests: [
     {
       // Note: no amount specified for the target token
-      address: 'USDC',
+      address: usdcOnBase,
     },
   ],
 })
@@ -34,10 +37,11 @@ This will bridge 10 USDC from Optimism to Base.
 
 To bridge the entire balance of a token:
 
-```ts {9-14,23}
+```ts {10-15,24}
 const sourceChain = optimism
 const targetChain = base
-const usdcOnOptimism = '0x0b2c639c533813F4AA9D7837CAF62653d097Ff85'
+const usdcOnOptimism = '0x0b2c639c533813F4AA9D7837CAF62653d097Ff85' // Optimism
+const usdcOnBase = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // Base
 
 const publicClient = createPublicClient({
   chain: sourceChain,
@@ -56,13 +60,13 @@ const transaction = await rhinestoneAccount.prepareTransaction({
   sourceAssets: [
     {
       chain: sourceChain,
-      address: 'USDC',
+      address: usdcOnOptimism,
       amount: usdcBalance,
     },
   ],
   tokenRequests: [
     {
-      address: 'USDC',
+      address: usdcOnBase,
     },
   ],
 })
@@ -74,25 +78,29 @@ This will sweep the user's USDC balance on Optimism to Base.
 
 You can specify exact source amounts from multiple source chains:
 
-```ts {4-15}
+```ts {8-19}
+const usdcOnOptimism = '0x0b2c639c533813F4AA9D7837CAF62653d097Ff85' // Optimism
+const usdcOnBase = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // Base
+const usdcOnArbitrum = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' // Arbitrum
+
 const transaction = await rhinestoneAccount.prepareTransaction({
   sourceChains: [optimism, base],
   targetChain: arbitrum,
   sourceAssets: [
     {
       chain: optimism,
-      address: 'USDC',
+      address: usdcOnOptimism,
       amount: parseUnits('50', 6),
     },
     {
       chain: base,
-      address: 'USDC',
+      address: usdcOnBase,
       amount: parseUnits('30', 6),
     },
   ],
   tokenRequests: [
     {
-      address: 'USDC',
+      address: usdcOnArbitrum,
     },
   ],
 })

@@ -8,6 +8,7 @@ You can make multiple calls in a single transaction:
 import { baseSepolia } from 'viem/chains'
 
 const chain = baseSepolia
+const usdc = '0x036CbD53842c5426634e7929541eC2318f3dCF7e' // USDC on Base Sepolia
 const usdcAmount = 1n
 const ethAmount = 2n
 const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
@@ -16,7 +17,7 @@ const transaction = await rhinestoneAccount.prepareTransaction({
   chain,
   calls: [
     {
-      to: 'USDC',
+      to: usdc,
       data: encodeFunctionData({
         abi: erc20Abi,
         functionName: 'transfer',

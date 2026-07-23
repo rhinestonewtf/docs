@@ -105,12 +105,14 @@ The Rhinestone account will automatically use the Turnkey signer for all transac
 import { encodeFunctionData, parseUnits, erc20Abi } from 'viem'
 import { baseSepolia, arbitrumSepolia } from 'viem/chains'
 
+const usdc = '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d' // USDC on Arbitrum Sepolia
+
 const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [baseSepolia],
   targetChain: arbitrumSepolia,
   calls: [
     {
-      to: "USDC",
+      to: usdc,
       data: encodeFunctionData({
         abi: erc20Abi,
         functionName: "transfer",
@@ -120,7 +122,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
   ],
   tokenRequests: [
     {
-      address: "USDC",
+      address: usdc,
       amount: parseUnits("10", 6),
     },
   ],

@@ -117,13 +117,14 @@ Transfer USDC on the target chain, sourced from the ETH you funded on the source
 
 ```ts
 const usdcAmount = parseUnits('0.1', 6)
+const usdc = '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d' // USDC on Arbitrum Sepolia
 
 const prepared = await rhinestoneAccount.prepareTransaction({
   sourceChains: [sourceChain],
   targetChain,
   calls: [
     {
-      to: 'USDC',
+      to: usdc,
       value: 0n,
       data: encodeFunctionData({
         abi: erc20Abi,
@@ -134,7 +135,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
   ],
   tokenRequests: [
     {
-      address: 'USDC',
+      address: usdc,
       amount: usdcAmount,
     },
   ],

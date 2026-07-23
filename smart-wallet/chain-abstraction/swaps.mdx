@@ -14,6 +14,7 @@ Request ETH on the target chain via `tokenRequests`. If the user only holds anot
 ```ts
 import { baseSepolia, arbitrumSepolia } from 'viem/chains'
 
+const eth = '0x0000000000000000000000000000000000000000' // Native ETH
 const ethAmount = 2n
 const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 
@@ -28,7 +29,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
   ],
   tokenRequests: [
     {
-      address: 'ETH',
+      address: eth,
       amount: ethAmount,
     },
   ],

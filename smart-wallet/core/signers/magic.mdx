@@ -349,13 +349,15 @@ Once initialized, both wallet types use the same Rhinestone API:
 import { encodeFunctionData, parseUnits, erc20Abi } from 'viem'
 import { baseSepolia, arbitrumSepolia } from 'viem/chains'
 
+const usdc = '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d' // USDC on Arbitrum Sepolia
+
 async function handleCrossChainTransfer(rhinestoneAccount) {
   const prepared = await rhinestoneAccount.prepareTransaction({
     sourceChains: [baseSepolia],
     targetChain: arbitrumSepolia,
     calls: [
       {
-        to: "USDC",
+        to: usdc,
         data: encodeFunctionData({
           abi: erc20Abi,
           functionName: "transfer",
@@ -365,7 +367,7 @@ async function handleCrossChainTransfer(rhinestoneAccount) {
     ],
     tokenRequests: [
       {
-        address: "USDC",
+        address: usdc,
         amount: parseUnits("10", 6),
       },
     ],

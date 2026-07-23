@@ -301,6 +301,21 @@ const response = await fetch('https://v1.orchestrator.rhinestone.dev/chains', {
 const chains = await response.json()
 ```
 
+### Token inputs are addresses
+
+SDK token inputs no longer accept symbols like `'USDC'` — pass the token's **address** for the relevant chain. This applies to `calls[].to`, `tokenRequests[].address`, `sourceAssets` (both the token-list and per-chain-map forms), and cross-chain permit legs (`from` / `to`).
+
+```ts
+// Before
+tokenRequests: [{ address: 'USDC', amount }]
+
+// After — use the token's address on the target chain
+const usdc = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // USDC on Base
+tokenRequests: [{ address: usdc, amount }]
+```
+
+Look up token addresses per chain from the orchestrator's `/chains` endpoint (see [Token registry helpers removed](#token-registry-helpers-removed)).
+
 ### `deployAccountsForOwners` removed
 
 Create a backend deployer account, take a view-only reference to each user account, and submit a sponsored intent that calls `deploy(userAccount)`. Pass multiple `deploy(...)` calls in one intent to batch deployments.
@@ -819,12 +834,15 @@ Now, you can call `prepareTransaction`:
 ```ts
 const usdcAmount = 2n;
 const recipient = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
+// Token inputs are addresses now (symbols are no longer accepted).
+// Look up the token address for your target chain via GET /chains.
+const usdcAddress = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'; // USDC on Base
 
 const transactionData = await rhinestoneAccount.prepareTransaction({
   targetChain,
   calls: [
     {
-      to: 'USDC',
+      to: usdcAddress,
       data: encodeFunctionData({
         abi: erc20Abi,
         functionName: 'transfer',
@@ -834,7 +852,7 @@ const transactionData = await rhinestoneAccount.prepareTransaction({
   ],
   tokenRequests: [
     {
-      address: 'USDC',
+      address: usdcAddress,
       amount: usdcAmount,
     },
   ],

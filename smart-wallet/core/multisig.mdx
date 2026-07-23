@@ -74,12 +74,13 @@ const account = await rhinestone.createAccount({
 })
 
 const usdcAmount = parseUnits('0.1', 6)
+const usdc = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' // USDC on Arbitrum
 const prepared = await account.prepareTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
   calls: [
     {
-      to: 'USDC',
+      to: usdc,
       value: 0n,
       data: encodeFunctionData({
         abi: erc20Abi,
@@ -88,7 +89,7 @@ const prepared = await account.prepareTransaction({
       }),
     },
   ],
-  tokenRequests: [{ address: 'USDC', amount: usdcAmount }],
+  tokenRequests: [{ address: usdc, amount: usdcAmount }],
   // Sign from a single device
   signers: {
     type: 'owner',
@@ -113,13 +114,14 @@ When the threshold is greater than one, you need signatures from several owners.
 If every key is available in the same environment, sign with a subset of owners in a single call. List the signing owners under `signers` and call `signTransaction` once — the SDK requests a signature from each account in the list in parallel and packs them into the account's multisig signature. Every listed key must be reachable in this environment; if the owners sign from separate devices, use [independent signing](#independent-signing) instead.
 
 ```ts
+const usdc = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' // USDC on Arbitrum
 const prepared = await account.prepareTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
   calls: [
     // …
   ],
-  tokenRequests: [{ address: 'USDC', amount: usdcAmount }],
+  tokenRequests: [{ address: usdc, amount: usdcAmount }],
   // Two of the three owners sign to meet the 2-of-3 threshold
   signers: {
     type: 'owner',
@@ -138,13 +140,14 @@ When owners are separate parties on different devices, each signs the same prepa
 
 ```ts
 // Coordinator: prepare once, then share `prepared` with each owner
+const usdc = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' // USDC on Arbitrum
 const prepared = await account.prepareTransaction({
   sourceChains: [base],
   targetChain: arbitrum,
   calls: [
     // …
   ],
-  tokenRequests: [{ address: 'USDC', amount: usdcAmount }],
+  tokenRequests: [{ address: usdc, amount: usdcAmount }],
 })
 
 // Each owner signs in their own environment
