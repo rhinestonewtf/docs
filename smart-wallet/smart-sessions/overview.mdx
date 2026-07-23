@@ -62,8 +62,6 @@ When defining multiple policies within a function, a transaction that passes **e
 
 ## Usage
 
-<Warning>Smart session support is **experimental**. Expect breaking changes.</Warning>
-
 ### Installing the validation
 
 You can install the validator during account deployment:
@@ -74,7 +72,7 @@ const rhinestoneAccount = await rhinestone.createAccount({
     type: 'ecdsa',
     accounts: [ownerAccount],
   },
-  experimental_sessions: {
+  sessions: {
     enabled: true,
   },
 })
@@ -83,22 +81,22 @@ const rhinestoneAccount = await rhinestone.createAccount({
 You can also install it when the account is already deployed:
 
 ```ts
-import { experimental_enable } from '@rhinestone/sdk/actions/smart-sessions'
+import { enable } from '@rhinestone/sdk/actions/smart-sessions'
 
 const transaction = await rhinestoneAccount.prepareTransaction({
   chain: base,
-  calls: [experimental_enable()],
+  calls: [enable()],
 })
 ```
 
 To uninstall the validator:
 
 ```ts
-import { experimental_disable } from '@rhinestone/sdk/actions/smart-sessions'
+import { disable } from '@rhinestone/sdk/actions/smart-sessions'
 
 const transaction = await rhinestoneAccount.prepareTransaction({
   chain: base,
-  calls: [experimental_disable()],
+  calls: [disable()],
 })
 ```
 
@@ -193,19 +191,19 @@ See [Cross-chain permits](./policies/cross-chain) for guardrails, recipient safe
 To enable a session:
 
 ```ts
-import { experimental_enableSession } from '@rhinestone/sdk/actions/smart-sessions'
+import { enableSession } from '@rhinestone/sdk/actions/smart-sessions'
 
 const sessions = [session]
 const sessionDetails =
-  await rhinestoneAccount.experimental_getSessionDetails(sessions)
+  await rhinestoneAccount.getSessionDetails(sessions)
 const enableSignature =
-  await rhinestoneAccount.experimental_signEnableSession(sessionDetails)
+  await rhinestoneAccount.signEnableSession(sessionDetails)
 const sessionIndex = 0
 
 const transaction = await rhinestoneAccount.prepareTransaction({
   chain,
   calls: [
-    experimental_enableSession(
+    enableSession(
       session,
       enableSignature,
       sessionDetails.hashesAndChainIds,
@@ -222,7 +220,7 @@ You can also enable session with a signature. See [Multi-Session Signature](./mu
 To check if a session is enabled:
 
 ```ts
-const isEnabled = await rhinestoneAccount.experimental_isSessionEnabled(session)
+const isEnabled = await rhinestoneAccount.isSessionEnabled(session)
 ```
 
 ### Using sessions
@@ -243,7 +241,7 @@ const prepared = await rhinestoneAccount.prepareTransaction({
     },
   ],
   signers: {
-    type: 'experimental_session',
+    type: 'session',
     session,
   },
 })
@@ -257,14 +255,14 @@ This will prompt the signature request from the session owner(s) and submit the 
 
 ### Disabling a session
 
-To disable a single enabled session, use `experimental_disableSession`. This only removes a single session: to uninstall the validator entirely (and every session with it), use [`experimental_disable`](#installing-the-validation) instead.
+To disable a single enabled session, use `disableSession`. This only removes a single session: to uninstall the validator entirely (and every session with it), use [`disable`](#installing-the-validation) instead.
 
 ```ts
-import { experimental_disableSession } from '@rhinestone/sdk/actions/smart-sessions'
+import { disableSession } from '@rhinestone/sdk/actions/smart-sessions'
 
 const transaction = await rhinestoneAccount.prepareTransaction({
   chain,
-  calls: [experimental_disableSession(session)],
+  calls: [disableSession(session)],
 })
 ```
 

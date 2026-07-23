@@ -1,9 +1,7 @@
 ---
-title: "experimental_enableSession"
+title: "enableSession"
 description: "Enable a smart session"
 ---
-
-<Warning>This API is experimental and may change in a future release.</Warning>
 
 The `session` must be a resolved `Session` (the return value of
 `toSession(...)`). Re-resolving it here would drop the explicit
@@ -15,7 +13,7 @@ signed in `getSessionDetails`, causing the emissary to reject the enable.
 ## Import
 
 ```ts
-import { experimental_enableSession } from '@rhinestone/sdk/actions/smart-sessions'
+import { enableSession } from '@rhinestone/sdk/actions/smart-sessions'
 ```
 
 ## Usage
@@ -23,7 +21,7 @@ import { experimental_enableSession } from '@rhinestone/sdk/actions/smart-sessio
 ```ts
 const transaction = await account.prepareTransaction({
   chain,
-  calls: [experimental_enableSession(session, enableSessionSignature, hashesAndChainIds, sessionToEnableIndex)],
+  calls: [enableSession(session, enableSessionSignature, hashesAndChainIds, sessionToEnableIndex)],
 })
 ```
 

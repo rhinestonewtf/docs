@@ -247,6 +247,17 @@ await rhinestoneAccount.waitForExecution(result, false)
 await rhinestoneAccount.waitForExecution(result)
 ```
 
+### `experimental_` prefix dropped from the smart session API
+
+The smart session API is now stable, so the `experimental_` prefix is gone. Drop it across your integration:
+
+| Area | Before | After |
+| --- | --- | --- |
+| Account config | `experimental_sessions` | `sessions` |
+| Signer set | `type: 'experimental_session'` | `type: 'session'` |
+| Account methods | `experimental_getSessionDetails`, `experimental_isSessionEnabled`, `experimental_signEnableSession` | `getSessionDetails`, `isSessionEnabled`, `signEnableSession` |
+| `@rhinestone/sdk/actions/smart-sessions` | `experimental_enable`, `experimental_disable`, `experimental_enableSession`, `experimental_disableSession` | `enable`, `disable`, `enableSession`, `disableSession` |
+
 ### `verifyExecutions` removed from session signers
 
 `SingleSessionSignerSet`, `PerChainSessionSignerSet`, and `ChainSessionConfig` no longer accept `verifyExecutions`. The SDK now derives it from the session shape — sessions with `permissions` use emissary execution validation, claim-only sessions use the EIP-1271 path — so the flag is redundant. Drop it from your signer set:
@@ -262,7 +273,7 @@ const signers = {
 
 // After
 const signers = {
-  type: 'experimental_session',
+  type: 'session',
   session,
   enableData,
 }

@@ -1,14 +1,12 @@
 ---
-title: "experimental_enable"
+title: "enable"
 description: "Enable smart sessions"
 ---
-
-<Warning>This API is experimental and may change in a future release.</Warning>
 
 ## Import
 
 ```ts
-import { experimental_enable } from '@rhinestone/sdk/actions/smart-sessions'
+import { enable } from '@rhinestone/sdk/actions/smart-sessions'
 ```
 
 ## Usage
@@ -16,7 +14,7 @@ import { experimental_enable } from '@rhinestone/sdk/actions/smart-sessions'
 ```ts
 const transaction = await account.prepareTransaction({
   chain,
-  calls: [experimental_enable()],
+  calls: [enable()],
 })
 ```
 
