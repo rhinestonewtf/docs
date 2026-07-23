@@ -1,0 +1,24 @@
+---
+title: "createSession"
+description: "Create a smart session, resolving the chain's wrapped-native token from the orchestrator's chain catalog (GET /chains) so native-token wrapping is permitted automatically. Project-scoped — needs the API key but no account. For a fully offline build, use the standalone toSession and pass wrappedNativeToken yourself."
+---
+
+Method on a [`RhinestoneSDK`](/sdk-reference/rhinestone-sdk/rhinestone-sdk) instance.
+
+## Usage
+
+```ts
+const session = await sdk.createSession(definition)
+```
+
+## Parameters
+
+<ParamField path="definition" type="SessionDefinition<TAbis>" required>
+  The session definition
+</ParamField>
+
+## Returns
+
+<ResponseField name="session" type="Session">
+  The resolved session
+</ResponseField>
