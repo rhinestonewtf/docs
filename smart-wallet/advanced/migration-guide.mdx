@@ -283,6 +283,15 @@ const signers = {
 
 `account.type: 'passport'` is no longer accepted. The `PassportAccount` type and the `passport` member of `AccountType` / `AccountProviderConfig` are removed.
 
+### Older account versions removed
+
+The selectable `account.version` values are trimmed to the versions we actively support:
+
+- **Nexus** keeps `1.2.0` and `1.2.1` (default `1.2.1`). Removed `1.0.2`, `rhinestone-1.0.0-beta`, and `rhinestone-1.0.0`.
+- **Kernel** keeps `3.3` only. Removed `3.1` and `3.2`.
+
+If you pinned a removed version, omit `version` to use the default, or pin a supported one.
+
 ### Intent status by ID
 
 `getIntentStatus` now takes a `string` instead of a `bigint`. If you persist intent IDs across runs, switch the storage type to string.
