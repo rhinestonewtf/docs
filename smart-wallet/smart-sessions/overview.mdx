@@ -104,12 +104,10 @@ const transaction = await rhinestoneAccount.prepareTransaction({
 
 ### Creating Sessions
 
-To create a session, use `toSession`:
+To create a session, use `RhinestoneSDK.createSession`:
 
 ```ts
-import { toSession } from '@rhinestone/sdk/smart-sessions'
-
-const session = toSession({
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',
@@ -121,7 +119,7 @@ const session = toSession({
 You can also limit the session to specific allowed permissions:
 
 ```ts {7-13}
-const session = toSession({
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',
@@ -140,7 +138,7 @@ const session = toSession({
 Finally, you can constrain function parameters. The SDK derives the selector and parameter offsets from the ABI, so you reference parameters by name:
 
 ```ts {11-20}
-const session = toSession({
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',
@@ -169,8 +167,11 @@ const session = toSession({
 
 Use `crossChainPermits` to scope which routes, tokens, amounts, and recipients it may bridge:
 
-```ts {7-12}
-const session = toSession({
+```ts {10-15}
+const usdcOnBase = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+const usdcOnArbitrum = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',
@@ -178,8 +179,8 @@ const session = toSession({
   },
   crossChainPermits: [
     {
-      from: [{ chain: base, token: 'USDC' }],
-      to: [{ chain: arbitrum, token: 'USDC' }],
+      from: [{ chain: base, token: usdcOnBase }],
+      to: [{ chain: arbitrum, token: usdcOnArbitrum }],
     },
   ],
 })

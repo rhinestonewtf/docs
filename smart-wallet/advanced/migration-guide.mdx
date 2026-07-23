@@ -40,11 +40,9 @@ const result = await rhinestoneAccount.submitTransaction(signed)
 
 ### Session permissions are ABI-driven
 
-`Session.actions` is gone. Build sessions with `toSession({ chain, owners, permissions })` instead — an ABI-driven definition the SDK resolves into a low-level `Session`. Each permission is an `{ abi, address, functions }` entry; function selectors and param calldata offsets are derived from the ABI, and param value types are checked against ABI input types:
+`Session.actions` is gone. Build sessions with `rhinestone.createSession({ chain, owners, permissions })` instead — an ABI-driven definition the SDK resolves into a low-level `Session`. Each permission is an `{ abi, address, functions }` entry; function selectors and param calldata offsets are derived from the ABI, and param value types are checked against ABI input types:
 
 ```ts
-import { toSession } from '@rhinestone/sdk/smart-sessions'
-
 // Before
 const session: Session = {
   chain: base,
@@ -72,7 +70,7 @@ const session: Session = {
 }
 
 // After
-const session = toSession({
+const session = await rhinestone.createSession({
   chain: base,
   owners: { type: 'ecdsa', accounts: [sessionOwner] },
   permissions: [
@@ -91,11 +89,33 @@ const session = toSession({
 })
 ```
 
-The hand-written shape is now `SessionDefinition`; `Session` is the resolved output of `toSession`.
+The hand-written shape is now `SessionDefinition`; `Session` is the resolved output of `createSession`.
+
+### Session creation resolves wrapped-native tokens
+
+`toSession` no longer reads bundled chain data. Calling `toSession(definition)` without options omits the wrapped-native `deposit()` permission, so a session that later needs to wrap native tokens can fail.
+
+Use the project-scoped `RhinestoneSDK.createSession` method for the normal online flow. It resolves the chain's wrapped-native token from the orchestrator and fails if the chain is unsupported or does not advertise one:
+
+```ts
+const session = await rhinestone.createSession(definition)
+```
+
+For a fully offline flow, keep using `toSession` and pass the wrapped-native token explicitly:
+
+```ts
+import { toSession } from '@rhinestone/sdk/smart-sessions'
+
+const session = toSession(definition, {
+  wrappedNativeToken,
+})
+```
+
+<Info>For normal online usage, prefer [`RhinestoneSDK.createSession`](/sdk-reference/rhinestone-sdk/create-session) so the SDK resolves the wrapped-native token for you.</Info>
 
 ### Session policies are declarative
 
-In 1.x, each `action` carried a raw `policies` array that you assembled by hand. Those arrays are gone — policies are now expressed through fields on the permission's function config, and `toSession` compiles them into the right on-chain policies:
+In 1.x, each `action` carried a raw `policies` array that you assembled by hand. Those arrays are gone — policies are now expressed through fields on the permission's function config, and `createSession` compiles them into the right on-chain policies:
 
 - `params: { x: { anyOf: [a, b] } }` — allowlist a parameter against several values (compiles to an arg-policy OR chain). A single `{ condition, value }` stays a cheaper universal-action.
 - `maxUses` — cap how many times the function may be called.
@@ -104,7 +124,7 @@ In 1.x, each `action` carried a raw `policies` array that you assembled by hand.
 - `spendingLimit: { token, amount }` — cap cumulative ERC-20 spend (only on `transfer` / `transferFrom` / `approve` / `increaseAllowance`-shaped functions).
 
 ```ts
-const session = toSession({
+const session = await rhinestone.createSession({
   chain: base,
   owners: { type: 'ecdsa', accounts: [sessionOwner] },
   permissions: [
@@ -127,12 +147,12 @@ Passing a raw `policies` array on a permission now throws instead of being silen
 
 ### Session policy addresses
 
-The smart session policies were redeployed, and `toSession` now bakes the new addresses into the session digest by default. If an account already enabled sessions against the previous deployments, trying to use the existing session with the new policies results in an onchain revert due to the digest mismatch.
+The smart session policies were redeployed, and `createSession` now bakes the new addresses into the session digest by default. If an account already enabled sessions against the previous deployments, trying to use the existing session with the new policies results in an onchain revert due to the digest mismatch.
 
 Pin the affected policies back to the addresses the account was enabled against via `SessionDefinition.policyAddresses`:
 
 ```ts
-const session = toSession({
+const session = await rhinestone.createSession({
   chain: base,
   owners: { type: 'ecdsa', accounts: [sessionOwner] },
   permissions: [/* … */],
@@ -260,6 +280,33 @@ const signers = {
 
 `PortfolioToken` no longer carries a token-level `decimals` or aggregate `balances`. `decimals` now lives on each per-chain `chains[]` entry alongside `address` and `amount`, since the same logical token can have different decimals across chains (e.g., USDC is 6 on Ethereum, 18 on BSC). Read the per-chain entry directly when rendering balances.
 
+### Alchemy provider config removed
+
+The SDK no longer builds Alchemy URLs from an API key. Supply the RPC URLs through the custom provider config, or omit `provider` to use viem's default transport:
+
+```ts
+// Before
+const rhinestone = new RhinestoneSDK({
+  apiKey,
+  provider: {
+    type: 'alchemy',
+    apiKey: alchemyApiKey,
+  },
+})
+
+// After
+const rhinestone = new RhinestoneSDK({
+  apiKey,
+  provider: {
+    type: 'custom',
+    urls: {
+      [base.id]: baseRpcUrl,
+      [arbitrum.id]: arbitrumRpcUrl,
+    },
+  },
+})
+```
+
 ### Permit2 claim policy renames
 
 If you constructed `Permit2ClaimPolicy` values directly, the type tag and field names changed to be chain-aware:
@@ -292,7 +339,9 @@ const policy: Permit2ClaimPolicy = {
 
 ### Token registry helpers removed
 
-`getSupportedTokens`, `getTokenAddress`, `getTokenDecimals`, and `getAllSupportedChainsAndTokens` are removed. Fetch the equivalent data from the orchestrator's `/chains` endpoint:
+The SDK no longer bundles the supported-chain and token registry. `SupportedChain` is now `number`, so code must not assume that the installed SDK contains an exhaustive union of chain IDs.
+
+`getSupportedTokens`, `getTokenAddress`, `getTokenDecimals`, `getAllSupportedChainsAndTokens`, `getWethAddress`, `getTokenSymbol`, and `isTokenAddressSupported` are removed. Fetch the supported chains, token metadata, and `wrappedNativeToken` from the orchestrator's `/chains` endpoint:
 
 ```ts
 const response = await fetch('https://v1.orchestrator.rhinestone.dev/chains', {

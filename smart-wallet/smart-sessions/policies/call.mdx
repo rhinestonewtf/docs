@@ -24,7 +24,7 @@ To restrict an ERC20 transfer to a single recipient:
 ```ts {15-17}
 const receiver = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 
-const session = toSession({
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',
@@ -53,7 +53,7 @@ Reference parameters by name — the SDK looks them up in the ABI. Only static t
 Cap the total accumulated value of a param across all session uses with `usageLimit`. Useful for capping cumulative spend across calls.
 
 ```ts {13-19}
-const session = toSession({
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',
@@ -86,7 +86,7 @@ This caps each transfer at 10 USDC and the total across the session lifetime at 
 To cap the ETH value sent on a single call, use `valueLimitPerUse` at the function level:
 
 ```ts {13}
-const session = toSession({
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',

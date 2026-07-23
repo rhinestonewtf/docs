@@ -6,7 +6,7 @@ sidebarTitle: "Usage limit"
 Limit how many times a session function can be called.
 
 ```ts {13}
-const session = toSession({
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',

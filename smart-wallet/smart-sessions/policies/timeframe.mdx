@@ -6,7 +6,7 @@ sidebarTitle: "Timeframe"
 Restrict when a session function can be called. Attach the policy at the function level.
 
 ```ts {13-14}
-const session = toSession({
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',

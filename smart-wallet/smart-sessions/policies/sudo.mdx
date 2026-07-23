@@ -6,7 +6,7 @@ sidebarTitle: "Sudo"
 Sudo allows any transaction to pass. It's the default — a session with no `permissions` accepts everything.
 
 ```ts
-const session = toSession({
+const session = await rhinestone.createSession({
   chain: base,
   owners: {
     type: 'ecdsa',
