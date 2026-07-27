@@ -203,6 +203,62 @@ Returns `null` only when the EOA has no Polymarket account. A transient failure
 account". Pass `rpcUrl` to override the default public Polygon RPC, or a
 `signal` (`AbortSignal`) to cancel the lookup.
 
+## Self-hosted backend
+
+The modal talks to a deposit-widget backend, which holds your Rhinestone API key
+and proxies requests to the deposit processor. `backendUrl` defaults to the
+Rhinestone-hosted instance; point it at your own deployment to keep user traffic
+on your infrastructure.
+
+### Version header pass-through
+
+Every request the modal makes carries its own package version:
+
+```http
+x-deposit-modal-version: 0.9.0
+```
+
+Rhinestone uses this to see which modal versions are live, so we can warn you
+about a version with a known bug and reproduce issues against the build you are
+actually running.
+
+Rhinestone's deposit-widget-backend handles both steps below for you. A custom
+proxy needs to apply them itself.
+
+**Allow the header (required).** Add it to your CORS allow-list. Browsers reject
+a request carrying a header the server did not allow on the preflight, so the
+modal cannot talk to a proxy that omits this:
+
+```ts
+allowHeaders: ["Content-Type", "x-api-key", "x-deposit-modal-version"]
+```
+
+**Forward it upstream (optional).** Copy it onto the request you make to the
+deposit processor:
+
+```ts
+const upstreamHeaders: Record<string, string> = {
+  "Content-Type": "application/json",
+  "x-api-key": process.env.RHINESTONE_API_KEY!,
+};
+
+const modalVersion = request.headers.get("x-deposit-modal-version");
+if (modalVersion) {
+  upstreamHeaders["x-deposit-modal-version"] = modalVersion;
+}
+```
+
+Skipping the forward breaks nothing — deposits work exactly the same, your
+traffic just shows up as an unknown modal version on our side.
+
+The same header is sent by the withdraw and claim modals, since all three share
+one backend client. To read the value in your own app (for a bug report, say),
+import it:
+
+```ts
+import { MODAL_VERSION } from "@rhinestone/deposit-modal/constants";
+```
+
 ## Display modes
 
 By default, the component renders as a centered modal overlay with a backdrop. Set `inline={true}` to render it without the overlay, fitting into your page layout.
@@ -267,7 +323,7 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `backendUrl` | `string` | Rhinestone production URL | URL of your deposit-widget-backend instance |
+| `backendUrl` | `string` | Rhinestone production URL | URL of your deposit-widget-backend instance. Self-hosting a custom proxy? See [version header pass-through](#version-header-pass-through) |
 | `rpcUrls` | `RpcUrlMap` | — | Per-chain RPC overrides keyed by EVM chain id or the literal `"solana"` key (e.g. `{ 8453: "https://…", solana: "https://…" }`). Applied to EVM public clients, the connected wallet, HyperEVM, and the Solana connection; chains left unset use their default RPC |
 
 ### Display
