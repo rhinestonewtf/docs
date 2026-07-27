@@ -101,12 +101,14 @@ The `allowedRoutes` prop accepts `{ sourceChains?: number[], sourceTokens?: stri
 
 ## Session configuration
 
-Sessions allow the widget to execute bridging on behalf of the user's smart account. These props control session behavior.
+From v0.9.0 the modal uses **service-managed accounts**: the deposit account is
+owned by Rhinestone and settles to your `recipient`, so there is no session key
+to configure and the user is never asked to sign during setup. The
+`signerAddress` and `sessionChainIds` props were removed in that release.
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `sessionChainIds` | `number[]` | All supported chains | Restrict which chains get session keys |
-| `forceRegister` | `boolean` | `false` | Force session re-creation even if the account is already registered |
+| `forceRegister` | `boolean` | `false` | Re-register even if the account already exists (bypasses the local cache; the call itself is idempotent) |
 
 ## Destination token routing
 
@@ -210,6 +212,43 @@ and proxies requests to the deposit processor. `backendUrl` defaults to the
 Rhinestone-hosted instance; point it at your own deployment to keep user traffic
 on your infrastructure.
 
+### Required routes
+
+Your proxy must forward every route the modal calls, attaching your
+`x-api-key` to the upstream request. Missing a route doesn't degrade the
+flow — the request 404s and that part of the modal stops working.
+
+| Method | Route | Used for |
+|---|---|---|
+| `POST` | `/register-managed` | Registering the deposit account. **Required from modal v0.9.0** |
+| `POST` | `/quotes/preview` | Indicative fee/time quote on the review screen |
+| `GET` | `/check/:address` | Registration + target lookup |
+| `GET` | `/portfolio/:address` | EVM balances |
+| `GET` | `/portfolio/solana/:address` | Solana balances |
+| `GET` | `/deposits` | Deposit status + history |
+| `GET` | `/liquidity` | Route liquidity check |
+| `GET` | `/prices` | USD pricing |
+| `GET` | `/setup` | Your client config (source-token allowlist, minimums) |
+| `GET` | `/tokens` | Static top-tokens list for the QR flow |
+| `POST` | `/safe/withdraw` | Withdraw modal |
+| `POST` | `/polymarket/withdraw` | Polymarket withdrawals |
+| `POST` | `/onramp/swapped/widget-url` | Fiat on-ramp |
+| `POST` | `/onramp/swapped/connect-url` | Exchange connect |
+| `GET` | `/onramp/swapped/connect-exchanges` | Exchange list |
+| `GET` | `/onramp/swapped/status/:smartAccount` | On-ramp order status |
+
+<Warning>
+**Upgrading to modal v0.9.0** — v0.9.0 moves to service-managed accounts and
+registers through `POST /register-managed` instead of `POST /setup-account` +
+`POST /register`. Deploy a proxy that forwards it **before** shipping the new
+modal, or registration 404s and deposits cannot start. Keep the old two routes
+while any earlier modal version is still in use.
+</Warning>
+
+Only `GET /setup` is proxied, never `POST /setup` — that is an admin write
+(it rotates the webhook secret and sponsorship config) and must not be
+reachable from a browser.
+
 ### Version header pass-through
 
 Every request the modal makes carries its own package version:
@@ -310,13 +349,11 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 | `dappImports` | `DappImportsConfig` | — | [Import balances](#import-from-other-apps) from third-party apps (e.g. `{ polymarket: true }`) |
 | `initialDappImport` | `keyof DappImportsConfig` | — | Open the modal pre-routed into a dapp import (e.g. `"polymarket"`), skipping the home screen. Must name an enabled `dappImports` key. |
 
-### Session
+### Account
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `sessionChainIds` | `number[]` | All supported | Chain IDs for session key creation |
-| `forceRegister` | `boolean` | `false` | Force session re-creation |
-| `signerAddress` | `Address` | Default signer | Session signer address |
+| `forceRegister` | `boolean` | `false` | Re-register even if the account already exists |
 | `rhinestoneApiKey` | `string` | — | API key for account setup |
 
 ### Backend
