@@ -97,13 +97,11 @@ Safe's `eth_sign` path requires adding 4 to the `v` value of a `personal_sign` s
 | `defaultAmount` | `string` | — | Pre-filled withdrawal amount |
 | `allowedRoutes` | `RouteConfig` | — | Restrict available routes |
 
-### Session
+### Account
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `sessionChainIds` | `number[]` | All supported | Chain IDs for session key creation |
-| `forceRegister` | `boolean` | `false` | Force session re-creation |
-| `signerAddress` | `Address` | Default signer | Session signer address |
+| `forceRegister` | `boolean` | `false` | Re-register even if the account already exists |
 | `rhinestoneApiKey` | `string` | — | API key for account setup |
 
 ### Backend
