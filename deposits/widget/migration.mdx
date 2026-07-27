@@ -1,7 +1,57 @@
 ---
 title: "Migration guide"
-description: "Upgrade @rhinestone/deposit-modal from v0.1.x / v0.2.x to v0.3.0."
+description: "Upgrade @rhinestone/deposit-modal to v0.9.0, and from v0.1.x / v0.2.x to v0.3.0."
 ---
+
+## v0.8.x → v0.9.0
+
+v0.9.0 moves both modals onto service-managed accounts and hands the withdrawal
+transfer to your app.
+
+**Both modals** — the `signerAddress` and `sessionChainIds` props are gone,
+along with the `DEFAULT_SIGNER_ADDRESS`, `EnableSessionDetails`, and
+`AccountInitData` exports. Registration now goes through
+`POST /register-managed`, which a self-hosted proxy **must** forward before you
+ship — see [required routes](/deposits/widget/deposit-modal#required-routes).
+There is no session key and no signature prompt during setup.
+
+**`<WithdrawModal>`** no longer moves funds. It previously built and submitted a
+Safe `execTransaction`, which only worked for apps whose funds sat in a Safe. It
+now asks your app to perform one transfer:
+
+```diff
+  <WithdrawModal
+-   safeAddress={userSafe}
++   accountAddress={userAccount}
+-   dappWalletClient={walletClient}
+-   dappPublicClient={publicClient}
+-   dappAddress={ownerEoa}
+-   reownAppId={projectId}
+-   onSignTransaction={async (request) => ({
+-     signature: await signer.signTypedData(request.typedData),
+-   })}
++   onSendTransaction={async ({ chainId, token, amount, to }) => ({
++     txHash: await myWallet.sendTransfer({ chainId, token, amount, to }),
++   })}
+  />
+```
+
+Send to `to` exactly, and return the **on-chain transaction hash** — not a
+userOp hash. See [executing the
+transfer](/deposits/widget/withdraw-modal#executing-the-transfer) for both rules
+and a Safe-backed example, including how to keep gas sponsored.
+
+Also on `<WithdrawModal>`: `onRequestConnect` is removed (the modal needs no
+wallet, so there is no connect step — it opens on the withdraw form), the
+`SafeTransactionRequest` export is replaced by `WithdrawTransferRequest`, and
+the `"submitted"` lifecycle event renames `safeAddress` to `accountAddress`.
+`<DepositModal>` keeps all of its wallet props.
+
+`POST /safe/withdraw` still exists — the modal simply stopped calling it.
+
+---
+
+## v0.1.x / v0.2.x → v0.3.0
 
 v0.3.0 collapses each modal's per-event callbacks into a single `onLifecycle`
 callback, renames the analytics event types, removes the `/reown` and `/safe`
@@ -75,7 +125,7 @@ the same names as before.
 +        trackConnected(event.address, event.smartAccount);
 +        break;
 +      case "submitted":
-+        trackSubmitted(event.txHash, event.sourceChain, event.amount, event.safeAddress);
++        trackSubmitted(event.txHash, event.sourceChain, event.amount, event.accountAddress);
 +        break;
 +      case "complete":
 +        trackComplete(event.txHash, event.destinationTxHash);
@@ -105,7 +155,7 @@ against both.
 | `sourceToken` on complete         | `string`, optional       | `Address`, required      |
 | `targetChain` on complete         | `number \| "solana"`     | `number`                 |
 | `targetToken` on complete         | `string`                 | `Address`                |
-| `safeAddress` on submit           | not present              | `Address`                |
+| `accountAddress` on submit        | not present              | `Address`                |
 | `"balance-changed"` variant       | yes                      | no                       |
 | `"smart-account-changed"` variant | yes                      | no                       |
 
@@ -143,8 +193,8 @@ renamed. The payload shape is unchanged.
   - import { DepositModal, disconnectWallet } from "@rhinestone/deposit-modal/reown";
   + import { DepositModal, disconnectWallet } from "@rhinestone/deposit-modal";
 
-  - import type { SafeTransactionRequest } from "@rhinestone/deposit-modal/safe";
-  + import type { SafeTransactionRequest } from "@rhinestone/deposit-modal";
+  - import type { WithdrawModalProps } from "@rhinestone/deposit-modal/safe";
+  + import type { WithdrawModalProps } from "@rhinestone/deposit-modal";
   ```
 
   The `./deposit`, `./withdraw`, `./constants`, and `./styles.css` subpaths
@@ -172,3 +222,10 @@ New in v0.3.0; existing code keeps working:
 `dappWalletClient` / `dappPublicClient` / `reownAppId`, `<WithdrawModal>`'s
 `onSignTransaction`, and the `@rhinestone/deposit-modal/styles.css` export all
 keep their names and signatures.
+
+<Note>
+Scoped to v0.3.0. v0.9.0 later removed `onRequestConnect`, `dappWalletClient`,
+`dappPublicClient`, and `reownAppId` from `<WithdrawModal>` and replaced
+`onSignTransaction` with `onSendTransaction` — see the v0.9.0 section at the top
+of this page. `<DepositModal>` still has all of them.
+</Note>

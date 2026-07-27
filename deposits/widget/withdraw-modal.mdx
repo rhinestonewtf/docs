@@ -1,29 +1,29 @@
 ---
 title: "Withdraw modal"
-description: "Let users withdraw tokens from a Safe to any supported chain using the withdraw modal."
+description: "Let users withdraw tokens from any account to any supported chain. Your app executes the transfer."
 ---
 
-<Warning>
-The withdraw modal currently only supports 1/1 Safe wallets.
-</Warning>
+The `WithdrawModal` component handles outbound transfers. The user selects a destination chain and token, enters a recipient and an amount, and the modal registers the account that routes the funds — then asks your app to perform one transfer.
 
-The `WithdrawModal` component handles outbound transfers from a Safe. The user selects a destination chain and token, enters an amount, and the modal constructs and signs the withdrawal transaction.
+The modal never holds a key and never moves funds itself, so it works with any account model: an EOA, a smart account, an embedded or in-app wallet, or a relayer.
 
 ## Basic usage
 
 ```tsx
-import { WithdrawModal } from "@rhinestone/deposit-modal";
+import { WithdrawModal } from "@rhinestone/deposit-modal/withdraw";
 import "@rhinestone/deposit-modal/styles.css";
 
 <WithdrawModal
   isOpen={isOpen}
   onClose={() => setIsOpen(false)}
-  safeAddress="0xYOUR_SAFE_ADDRESS"
+  accountAddress="0xACCOUNT_HOLDING_THE_FUNDS"
   sourceChain={8453}
   sourceToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   targetChain={10}
   targetToken="0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85"
-  reownAppId="YOUR_REOWN_PROJECT_ID"
+  onSendTransaction={async ({ chainId, token, amount, to }) => ({
+    txHash: await myWallet.sendTransfer({ chainId, token, amount, to }),
+  })}
   onLifecycle={(event) => {
     if (event.type === "complete") {
       console.log("Withdrawal complete:", event.destinationTxHash);
@@ -32,36 +32,63 @@ import "@rhinestone/deposit-modal/styles.css";
 />
 ```
 
-## Transaction signing
+`accountAddress` is the account holding the funds. The modal reads its balance and stops the user sending to themselves; it never transacts from it.
 
-By default, the modal uses Reown for wallet connection and signing. If your app manages wallets directly (e.g. Privy embedded wallets), pass `onSignTransaction` to handle Safe transaction signing yourself.
+## Executing the transfer
 
-The callback receives a `SafeTransactionRequest` containing the `safeTxHash` and EIP-712 typed data. Return a signature.
+`onSendTransaction` is required. The modal calls it once, when the user confirms on the review screen, with everything needed for a single transfer:
+
+```ts
+onSendTransaction: (request: WithdrawTransferRequest) => Promise<{ txHash: Hex }>
+
+interface WithdrawTransferRequest {
+  chainId: number;  // source chain to send from
+  token: Address;   // source token; NATIVE_TOKEN_ADDRESS for the native asset
+  amount: bigint;   // in the token's base units
+  to: Address;      // send here
+}
+```
+
+Two rules, both silent-failure modes if missed:
+
+<Warning>
+**Send to `to`, and nothing else.** It is the Rhinestone account that receives the funds and bridges them on to the recipient — except on a same-route withdrawal (source chain and token identical to the target), where the modal skips the bridge and `to` is the recipient directly. Substituting an address of your own either bypasses the bridge or strands the funds.
+
+**Return the on-chain transaction hash.** Progress is tracked by looking the deposit up by that hash. An ERC-4337 wallet must await the receipt and return the bundled transaction hash, **not** the userOp hash — returning the wrong one leaves the modal waiting on a withdrawal that already succeeded.
+</Warning>
+
+Reject the promise to surface a failure in the modal. The user can retry from the review screen.
+
+### If your funds are in a Safe
+
+A 1/1 Safe signs with `personal_sign` over the `SafeTx` hash, relayed by whoever pays the gas. Build the EIP-712 `SafeTx`, sign it, and submit `execTransaction`:
 
 ```tsx
-<WithdrawModal
-  // ...required props
-  dappAddress={embeddedWalletAddress}
-  onSignTransaction={async (request) => {
-    const provider = await getEmbeddedWalletProvider();
+onSendTransaction={async ({ chainId, token, amount, to }) => {
+  const safeTx = await buildSafeTransaction({ chainId, token, amount, to });
 
-    // Sign the Safe transaction hash
-    const signature = await provider.request({
-      method: "personal_sign",
-      params: [request.safeTxHash, embeddedWalletAddress],
-    });
+  const signature = await provider.request({
+    method: "personal_sign",
+    params: [safeTx.safeTxHash, ownerAddress],
+  });
 
-    // Adjust v value for Safe's eth_sign verification
-    const v = parseInt(signature.slice(-2), 16);
-    const adjusted = signature.slice(0, -2) + (v + 4).toString(16);
+  // Adjust v for Safe's eth_sign verification
+  const v = parseInt(signature.slice(-2), 16);
+  const adjusted = signature.slice(0, -2) + (v + 4).toString(16);
 
-    return { signature: adjusted };
-  }}
-/>
+  const { txHash } = await relaySafeTransaction(safeTx, adjusted);
+  return { txHash };
+}}
 ```
 
 <Note>
 Safe's `eth_sign` path requires adding 4 to the `v` value of a `personal_sign` signature. This adjustment is specific to Safe's signature verification — see the [Safe docs](https://docs.safe.global/advanced/smart-account-signatures#eth_sign-signature) for details.
+</Note>
+
+To keep gas sponsored, relay the signed transaction through `POST /safe/withdraw` on your proxy rather than submitting `execTransaction` from the user's wallet. Note that a relayed transaction cannot use Safe's pre-validated (`v = 1`) signature shortcut: that only validates when `msg.sender` is the owner, and for a relayed call the sender is the relayer.
+
+<Note>
+Before v0.9.0 the modal did all of this internally, behind a `safeAddress` prop and an `onSignTransaction` callback. See [migration](/deposits/widget/migration) if you are upgrading.
 </Note>
 
 ## Props reference
@@ -72,28 +99,18 @@ Safe's `eth_sign` path requires adding 4 to the `v` value of a `personal_sign` s
 |---|---|---|
 | `isOpen` | `boolean` | Controls modal visibility |
 | `onClose` | `() => void` | Called when the user closes the modal |
-| `safeAddress` | `Address` | The 1/1 Safe contract address |
-| `sourceChain` | `Chain \| number` | Chain where the Safe holds funds |
-| `sourceToken` | `Address` | Token to withdraw from the Safe |
-| `targetChain` | `Chain \| number` | Destination chain |
-| `targetToken` | `Address` | Token to receive on the destination chain |
-
-### Wallet
-
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `reownAppId` | `string` | — | Reown project ID for wallet connection |
-| `dappAddress` | `Address` | — | Owner address for embedded wallet flows |
-| `dappWalletClient` | `WalletClient` | — | Host-provided viem wallet client |
-| `dappPublicClient` | `PublicClient` | — | Host-provided viem public client |
-| `onSignTransaction` | `(request: SafeTransactionRequest) => Promise<{ signature: Hex }>` | — | Custom Safe transaction signer |
-| `onRequestConnect` | `() => void` | — | Called when wallet connection needed |
+| `accountAddress` | `Address` | Account holding the funds being withdrawn |
+| `sourceChain` | `Chain \| number` | Chain where the account holds funds |
+| `sourceToken` | `Address` | Token to withdraw |
+| `targetChain` | `Chain \| number` | Default destination chain — the user can change it |
+| `targetToken` | `Address` | Default token to receive — the user can change it |
+| `onSendTransaction` | `(request: WithdrawTransferRequest) => Promise<{ txHash: Hex }>` | Performs the transfer and returns its on-chain hash |
 
 ### Transfer
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `recipient` | `Address` | Smart account address | Delivery address on target chain |
+| `recipient` | `Address` | — | Pre-fills the delivery address; the user can edit it |
 | `defaultAmount` | `string` | — | Pre-filled withdrawal amount |
 | `allowedRoutes` | `RouteConfig` | — | Restrict available routes |
 
@@ -109,7 +126,7 @@ Safe's `eth_sign` path requires adding 4 to the `v` value of a `personal_sign` s
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `backendUrl` | `string` | Rhinestone production URL | URL of your deposit-widget-backend instance. Self-hosting a custom proxy? See [version header pass-through](/deposits/widget/deposit-modal#version-header-pass-through) |
-| `rpcUrls` | `RpcUrlMap` | Chain defaults | Per-chain RPC overrides keyed by EVM chain id. Applied to EVM public clients and the connected wallet; chains left unset use their default RPC |
+| `rpcUrls` | `RpcUrlMap` | Chain defaults | Per-chain RPC overrides keyed by EVM chain id. Used for balance reads; chains left unset use their default RPC |
 
 ### Display
 
@@ -131,4 +148,4 @@ Safe's `eth_sign` path requires adding 4 to the `v` value of a `personal_sign` s
 | `onError` | `(data: ErrorEventData) => void` | Error at any stage |
 | `onEvent` | `(event: WithdrawAnalyticsEvent) => void` | [Analytics event](/deposits/widget/status-tracking#analytics) |
 
-`WithdrawLifecycleEvent` has no `balance-changed` or `smart-account-changed` variants, and its payload types differ from the deposit union: `txHash` is `Hex`, `sourceChain` is always a `number`, `sourceToken` / `targetToken` are `Address`, and `"submitted"` carries a `safeAddress`.
+`WithdrawLifecycleEvent` has no `balance-changed` or `smart-account-changed` variants, and its payload types differ from the deposit union: `txHash` is `Hex`, `sourceChain` is always a `number`, `sourceToken` / `targetToken` are `Address`, and `"submitted"` carries an `accountAddress`.

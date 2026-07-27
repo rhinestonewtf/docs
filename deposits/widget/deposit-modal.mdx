@@ -230,7 +230,7 @@ flow — the request 404s and that part of the modal stops working.
 | `GET` | `/prices` | USD pricing |
 | `GET` | `/setup` | Your client config (source-token allowlist, minimums) |
 | `GET` | `/tokens` | Static top-tokens list for the QR flow |
-| `POST` | `/safe/withdraw` | Withdraw modal |
+| `POST` | `/safe/withdraw` | Relaying a signed Safe transfer with sponsored gas. **Not used by the modal from v0.9.0** — proxy it only if your own [`onSendTransaction`](/deposits/widget/withdraw-modal#executing-the-transfer) relays through it |
 | `POST` | `/polymarket/withdraw` | Polymarket withdrawals |
 | `POST` | `/onramp/swapped/widget-url` | Fiat on-ramp |
 | `POST` | `/onramp/swapped/connect-url` | Exchange connect |
