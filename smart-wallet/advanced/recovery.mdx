@@ -21,18 +21,18 @@ Guardians can only update the validator configuration, they are not permitted to
 
 ### Nexus accounts
 
-Nexus 1.2.0 and 1.2.1 accounts must use the following Ownable validator as their owner module for social recovery:
+Nexus accounts must use the following Ownable validator as their owner module for social recovery:
 
 ```ts {1,7,9-11}
-const nexusRecoveryOwnerModule =
+const ownableV0Address =
   '0x2483da3a338895199e5e538530213157e931bf06'
 
 const rhinestoneAccount = await rhinestone.createAccount({
-  account: { type: 'nexus', version: '1.2.1' },
+  account: { type: 'nexus' },
   owners: {
     type: 'ecdsa',
     accounts: [oldAccount],
-    module: nexusRecoveryOwnerModule,
+    module: ownableV0Address,
   },
   recovery: {
     guardians: [guardianAccount],
@@ -50,7 +50,7 @@ const recoveryCalls = await recoverEcdsaOwnership({
   newOwners: {
     type: 'ecdsa',
     accounts: [newOwnerAccount],
-    module: nexusRecoveryOwnerModule,
+    module: ownableV0Address,
   },
 })
 ```
@@ -96,11 +96,11 @@ You can also set multiple guardians for a single account, and use a custom signa
 
 ```ts {2,6,8-11}
 const rhinestoneAccount = await rhinestone.createAccount({
-  account: { type: 'nexus', version: '1.2.1' },
+  account: { type: 'nexus' },
   owners: {
     type: 'ecdsa',
     accounts: [oldAccount],
-    module: nexusRecoveryOwnerModule,
+    module: ownableV0Address,
   },
   recovery: {
     guardians: [guardianAccountA, guardianAccountB, guardianAccountC],
@@ -128,7 +128,7 @@ const recoveryCalls = await recoverEcdsaOwnership({
   newOwners: {
     type: 'ecdsa',
     accounts: [newOwnerAccount],
-    module: nexusRecoveryOwnerModule,
+    module: ownableV0Address,
   },
 })
 
@@ -151,12 +151,12 @@ After recovery, reconstruct the Nexus account with its deployed address and new 
 
 ```ts {3-4,8}
 const recoveredAccount = await rhinestone.createAccount({
-  account: { type: 'nexus', version: '1.2.1' },
+  account: { type: 'nexus' },
   initData: { address: rhinestoneAccount.getAddress() },
   owners: {
     type: 'ecdsa',
     accounts: [newOwnerAccount],
-    module: nexusRecoveryOwnerModule,
+    module: ownableV0Address,
   },
   recovery: {
     guardians: [guardianAccountA],
