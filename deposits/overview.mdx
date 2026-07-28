@@ -11,27 +11,29 @@ It supports a wide range of EVM chains and Solana — see [supported chains and 
 
 ## Two ways to integrate
 
+**Start with the widget.** It ships the whole deposit UI — funding methods, chain and token selection, status screens, withdrawals and refunds — and it uses the same API underneath, so nothing is closed off later. Reach for the API directly when you're not building in React, or when you want a deposit flow that doesn't look like a modal.
+
 <Tabs>
-<Tab title="Deposit API">
-
-A headless backend service for programmatic deposit handling. You register accounts, configure webhooks, and process deposits server-side. Full control over the deposit flow.
-
-<Frame caption="Example of an integration into a mobile app">
-  <video src="/images/deposits_api_integration.mp4" muted loop controls className="rounded-2xl" style={{ maxHeight: "500px", margin: "0 auto" }} />
-</Frame>
-
-[Get started with the Deposit API →](/deposits/api/quickstart)
-
-</Tab>
 <Tab title="Deposit Widget">
 
-A drop-in React modal that handles wallet connection, chain selection, and deposit execution out of the box. Minimal frontend effort for a polished deposit experience. It can also [import balances from other apps](/deposits/widget/deposit-modal#import-from-other-apps) (e.g. Polymarket) so users fund a deposit without transferring first.
+A React modal that handles funding method, chain and token selection, and deposit execution out of the box. Also covers [fiat and exchange funding](/deposits/widget/deposit-modal#funding-methods), [withdrawals](/deposits/widget/withdraw-modal), [refunds](/deposits/widget/claim-modal), and [migrating balances from other apps](/deposits/widget/deposit-modal#migrate-assets-from-other-apps) (e.g. Polymarket).
 
 <Frame caption="Widget UI">
   <video src="/images/deposits_widget_ui.mp4" muted loop controls className="rounded-2xl" style={{ maxHeight: "500px", margin: "0 auto" }} />
 </Frame>
 
 [Get started with the Deposit Widget →](/deposits/widget/quickstart)
+
+</Tab>
+<Tab title="Deposit API">
+
+A headless backend service for programmatic deposit handling. You register accounts, configure webhooks, and process deposits server-side, and you build the UI. Use it for native mobile, non-React frontends, or fully custom flows.
+
+<Frame caption="Example of an integration into a mobile app">
+  <video src="/images/deposits_api_integration.mp4" muted loop controls className="rounded-2xl" style={{ maxHeight: "500px", margin: "0 auto" }} />
+</Frame>
+
+[Get started with the Deposit API →](/deposits/api/quickstart)
 
 </Tab>
 </Tabs>
@@ -78,7 +80,7 @@ Under the hood, Rhinestone aggregates multiple bridging providers, solvers, and 
 
 From the user's perspective, depositing is a simple token transfer — send tokens to an address on any supported chain. There's no bridging UI, no gas token management, and no chain switching.
 
-With the **widget**, the experience is even more streamlined: the user connects their wallet, selects a chain and token, and confirms the deposit — all within a single modal. The widget also supports withdrawals.
+With the **widget**, the user picks how to fund — connected wallet, QR transfer, card, or an exchange — then confirms, all in one modal. Withdrawals and refunds have their own modals.
 
 With the **API**, you control the UX entirely. The user interacts with your app however you design it, and the deposit service handles everything behind the scenes.
 
@@ -135,9 +137,14 @@ Rhinestone Deposits supports a wide range of EVM chains plus Solana. Each chain 
 
 ## Which should you use?
 
-|                    | Deposit API                          | Deposit Widget                          |
-| ------------------ | ------------------------------------ | --------------------------------------- |
-| Integration effort | Moderate — backend + webhook handler | Low — drop in a React component         |
-| UI control         | Full — build your own                | Themed modal with customization options |
-| Deposit triggers   | Any transfer to the smart account    | User-initiated via the modal            |
-| Withdrawal support | Manual                               | Built-in withdraw modal                 |
+|                     | Deposit Widget                                                      | Deposit API                          |
+| ------------------- | ------------------------------------------------------------------- | ------------------------------------ |
+| Frontend            | React component, themeable, modal or inline                         | You build it                         |
+| Backend             | A [proxy holding your API key](/deposits/widget/backend) — ours or your own | Your service, holding the key        |
+| Deposit triggers    | Any transfer to the deposit account, plus in-modal funding          | Any transfer to the deposit account  |
+| Fiat / exchange     | Card, Apple Pay, bank and CEX funding, UI included                  | [Endpoints](/deposits/api/onramp); you build the UI |
+| Withdrawals         | [Withdraw modal](/deposits/widget/withdraw-modal); your app signs the transfer | You build it                         |
+| Refunds             | [Claim modal](/deposits/widget/claim-modal) for users, plus the dashboard | Dashboard, or build your own         |
+| Status              | Lifecycle callbacks in the browser                                  | [Webhooks](/deposits/api/status-tracking) server-side |
+
+Both need a backend, and both see the same deposits — a user who sends funds to the deposit address never touches your UI either way. Most widget integrations also want [webhooks](/deposits/widget/backend#webhooks), for fulfilment that can't depend on the modal being open.

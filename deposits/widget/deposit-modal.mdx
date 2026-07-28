@@ -3,24 +3,27 @@ title: "Deposit modal"
 description: "Configure the deposit modal for different wallet connection modes and deposit flows."
 ---
 
-The `DepositModal` component handles the full deposit flow: wallet connection, source chain and token selection, amount input, and cross-chain bridging. It supports three wallet integration modes depending on how your app manages wallets.
+The `DepositModal` component handles the full deposit flow: funding method, source chain and token selection, amount input, and cross-chain bridging.
 
-## recipient vs dappAddress
+## Where the funds go
 
-Two props look similar but serve different purposes:
+`recipient` (required) is the address that receives the bridged funds on the target chain.
 
-- **`recipient`** (required) — the address that receives the bridged funds on the target chain. This is a pure delivery target.
-- **`dappAddress`** (embedded wallet & QR modes) — the address that owns the deposit. The modal uses it to derive the smart account and, by default, as the delivery target. It is the user's identity in the flow, not a destination.
+The deposit account is [service-managed](#account-setup) and derived from `(recipient, targetChain, targetToken)`, so it doesn't depend on which wallet the user pays from — or on a wallet existing at all. Changing the target changes the deposit address.
 
-In external wallet mode, the connected wallet is the owner, so only `recipient` is needed. In embedded and QR modes, you must pass `dappAddress` because the modal has no other way to know who owns the deposit.
+<Note>
+Before v0.9.0 the account was derived from the connected wallet, and a `dappAddress`
+prop carried the user's identity through the flow. Both are gone — see
+[migration](/deposits/widget/migration).
+</Note>
 
-## Integration modes
+## Connecting a wallet
 
-### External wallet
+Three options. The wallet is optional in all of them.
 
-The user connects their own wallet via Reown (WalletConnect). The modal manages the wallet connection UI internally. Use this when your app doesn't have existing wallet infrastructure.
+### The modal connects one
 
-Pass a `reownAppId` to enable external wallet connection.
+The user connects their own wallet via Reown (WalletConnect). The modal manages the connection UI internally. Use this when your app has no wallet infrastructure of its own.
 
 ```tsx
 import { DepositModal } from "@rhinestone/deposit-modal";
@@ -37,33 +40,11 @@ import "@rhinestone/deposit-modal/styles.css";
 />
 ```
 
-### Embedded wallet
+### You supply one
 
-Your app manages the wallet (e.g. via Privy, Dynamic, or Turnkey) and passes the owner address to the modal. The modal skips its own wallet connection UI and uses your app's wallet context.
+Your app already has a wallet connected (via Privy, Dynamic, Turnkey, wagmi, or anything else). Pass its viem `walletClient` and the modal reuses that session instead of opening its own connect step.
 
-Pass `dappAddress` with the wallet owner address, and `onRequestConnect` to trigger your app's login flow when the modal needs a connected wallet.
-
-```tsx
-import { DepositModal } from "@rhinestone/deposit-modal";
-import "@rhinestone/deposit-modal/styles.css";
-
-<DepositModal
-  isOpen={isOpen}
-  onClose={() => setIsOpen(false)}
-  targetChain={8453}
-  targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
-  recipient="0xYOUR_RECIPIENT_ADDRESS"
-  dappAddress={embeddedWalletAddress}
-  onRequestConnect={() => login()}
-  onLifecycle={(event) => event.type === "complete" && console.log(event)}
-/>
-```
-
-### QR code deposit
-
-The modal displays a deposit address and QR code. The user sends funds from any wallet externally — no wallet connection is required inside the modal.
-
-Pass `dappAddress` without `onRequestConnect` or `reownAppId`.
+The modal reads the address off `walletClient.account`, so it cannot disagree with what your app thinks the user is connected as.
 
 ```tsx
 import { DepositModal } from "@rhinestone/deposit-modal";
@@ -75,10 +56,74 @@ import "@rhinestone/deposit-modal/styles.css";
   targetChain={8453}
   targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   recipient="0xYOUR_RECIPIENT_ADDRESS"
-  dappAddress={ownerAddress}
+  walletClient={walletClient}
+  publicClient={publicClient}
   onLifecycle={(event) => event.type === "complete" && console.log(event)}
 />
 ```
+
+Pass `onRequestConnect` as well if your app needs to run a login flow when the user picks the wallet row before one is connected.
+
+To disconnect a wallet the modal connected, call the exported `disconnectWallet()`. It no-ops with a warning if `@reown/appkit` isn't installed.
+
+<Tip>
+`walletClient={undefined}` is not the same as omitting the prop. Passing it while your
+wallet connects tells the modal one is coming, so it waits instead of deciding there
+is none.
+</Tip>
+
+### No wallet at all
+
+QR transfer, the fiat on-ramp and exchange connect need no wallet. Supply neither `walletClient` nor `reownAppId` and the modal opens straight into whichever [funding methods](#funding-methods) you enabled.
+
+```tsx
+import { DepositModal } from "@rhinestone/deposit-modal";
+import "@rhinestone/deposit-modal/styles.css";
+
+<DepositModal
+  isOpen={isOpen}
+  onClose={() => setIsOpen(false)}
+  targetChain={8453}
+  targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  recipient="0xYOUR_RECIPIENT_ADDRESS"
+  enableQrTransfer
+  onLifecycle={(event) => event.type === "complete" && console.log(event)}
+/>
+```
+
+## Funding methods
+
+Each method is a row on the modal's home screen. When exactly one is enabled there is nothing to choose, and the modal opens directly into it.
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `enableWallet` | `boolean` | `true` | Offer the connected wallet as a source. Turn off for a flow with no wallet even when a `walletClient` or `reownAppId` is supplied |
+| `enableQrTransfer` | `boolean` | `true` | Offer the "Transfer crypto" row — a deposit address and QR code the user sends to from anywhere |
+| `enableFiatOnramp` | `boolean` | `false` | Offer card / bank / Apple Pay payment via Swapped's embedded iframe |
+| `fiatMethods` | `FiatMethodsConfig` | all | Restrict which Swapped payment groups the on-ramp offers |
+| `enableExchangeConnect` | `boolean` | `false` | Offer "Connect exchange" — the user picks their CEX inside Swapped's iframe and withdraws from it |
+| `assetMigrations` | `AssetMigrationsConfig` | none | Offer [migrating balances](#migrate-assets-from-other-apps) the user already holds in a supported third-party app |
+
+`enableFiatOnramp` and `enableExchangeConnect` require Swapped keys on your backend.
+
+### Restricting fiat payment methods
+
+`fiatMethods` is a boolean map keyed by Swapped `payment_group`. Omit it to offer all of them, which also tracks Swapped's lineup without you redeploying.
+
+```tsx
+<DepositModal
+  // ...required props
+  enableFiatOnramp
+  fiatMethods={{ creditcard: true, "apple-pay": true }}
+/>
+```
+
+Valid keys are `creditcard`, `bank-transfer`, and `apple-pay`. Enabling one does not advertise the others.
+
+<Warning>
+An empty or all-false `fiatMethods` offers **no** payment methods, not all of them.
+To offer everything, omit the prop.
+</Warning>
 
 ## Transfer configuration
 
@@ -92,14 +137,31 @@ Control the deposit destination and optionally pre-fill source parameters.
 | `defaultAmount` | `string` | No | Pre-filled deposit amount. A USD number string (e.g. `"25"`) or the sentinel `"max"` to fill the full available balance. |
 | `sourceChain` | `Chain \| number` | No | Pre-selected source chain |
 | `sourceToken` | `Address` | No | Pre-selected source token |
-| `allowedRoutes` | `RouteConfig` | No | Restrict available source chains and tokens |
 | `outputTokenRules` | `OutputTokenRule[]` | No | Route the deposit to a different final token based on what the user deposited |
 | `rejectUnmapped` | `boolean` | No | Reject deposits that don't match any routing rule instead of falling back to `targetToken` |
 | `appBalanceUsd` | `number` | No | The user's current in-app balance (USD). When set, the amount screen shows a "Balance after deposit" row (`appBalanceUsd + amount`). |
 
-The `allowedRoutes` prop accepts `{ sourceChains?: number[], sourceTokens?: string[] }` to limit what the user can select. For supported chains and tokens, see [supported chains](/deposits/overview#supported-chains-and-tokens).
+For supported chains and tokens, see [supported chains](/deposits/overview#supported-chains-and-tokens).
 
-## Session configuration
+### HyperCore destinations
+
+HyperCore is `targetChain: 1337` (exported as `HYPERCORE_CHAIN_ID`), accepts USDC only, and **requires an EOA `recipient`**. The modal pre-screens the recipient on HyperEVM and shows an error if it's a contract; the orchestrator rejects it regardless, so a smart-account recipient cannot work here.
+
+The check fails open — an RPC error lets the flow continue rather than false-blocking a valid EOA.
+
+### Restricting which sources you accept
+
+Which chains and tokens you accept is your project's **deposit whitelist**, set via `POST /setup` and enforced by the processor when a deposit arrives. Configure it there rather than in the modal.
+
+<Note>
+The `allowedRoutes` prop was removed in v0.9.0. It filtered the pickers on the
+client only, with no enforcement behind it — so a whitelist and an `allowedRoutes`
+list that drifted apart would offer the user a source the processor then rejected.
+To offer a restricted subset, use an API key whose whitelist matches. See
+[migration](/deposits/widget/migration).
+</Note>
+
+## Account setup
 
 From v0.9.0 the modal uses **service-managed accounts**: the deposit account is
 owned by Rhinestone and settles to your `recipient`, so there is no session key
@@ -133,49 +195,59 @@ Deliver a different final token depending on what the user deposits. Pass `outpu
 
 When several rules match the same deposit, the most specific one wins: `chain + token` outranks `chain + symbol`, which outranks `token`, then `symbol`, then `chain` alone. See [token routing](/deposits/api/account-registration#optional-token-routing) for the full rule semantics, priority order, and additional examples.
 
-## Import from other apps
+## Migrate assets from other apps
 
 The modal can pull balances a user already holds in a supported third-party app
-and fund the deposit from there — no manual transfer first. Each source is
-**off by default**; opt in per source via `dappImports`.
+and fund the deposit from there — no manual transfer first. Each provider is
+**off by default**; opt in per provider via `assetMigrations`.
 
 ```tsx
 <DepositModal
   // ...required props
-  dappImports={{ polymarket: true }}
+  assetMigrations={{ polymarket: true }}
 />
 ```
 
-When enabled and the connected wallet has a balance in that app, a new row
-(e.g. "Transfer from Polymarket") appears on the deposit entry screen. The
-user picks it, and the modal pulls the funds into their smart account and
-bridges them to `targetChain` / `targetToken` like any other source.
+When at least one provider is enabled, a **Migrate assets** row appears on the
+deposit entry screen and opens a picker over that provider's positions. The user
+picks one, and the modal pulls the funds into their smart account and bridges
+them to `targetChain` / `targetToken` like any other source.
+
+| Key | Status |
+|---|---|
+| `polymarket` | Live |
+| `hyperliquid` | Coming soon |
+| `aave` | Coming soon |
+| `morpho` | Coming soon |
+
+Only the providers you enable are listed. Enabling one that isn't live yet shows it
+as a disabled "Coming soon" row rather than hiding it.
 
 ### Polymarket
 
-Set `dappImports={{ polymarket: true }}`. The modal looks up the connected
+Set `assetMigrations={{ polymarket: true }}`. The modal looks up the connected
 EOA's Polymarket proxy wallet on Polygon and surfaces any pUSD or USDC.e
 balance. pUSD is unwrapped to USDC.e on the way out; USDC.e is what lands in the
 smart account and what the orchestrator bridges from.
 
 Polymarket exposes two wallet types and the modal handles both: some transfer
 on-chain directly from the user's signed transaction, while others are relayed
-through your configured [`backendUrl`](#backend). The default Rhinestone
-backend handles both with no extra setup.
+through your [backend proxy](/deposits/widget/backend), which must forward
+`POST /polymarket/withdraw`.
 
 #### Open directly into Polymarket
 
 To skip the deposit-method home screen and land the user straight on the
-Polymarket transfer, pass `initialDappImport="polymarket"` alongside
-`dappImports={{ polymarket: true }}`. While balances load the modal shows a
+Polymarket transfer, pass `initialAssetMigration="polymarket"` alongside
+`assetMigrations={{ polymarket: true }}`. While balances load the modal shows a
 skeleton; if there's no account, no balance, or no connected wallet it falls
 back to the home screen.
 
 ```tsx
 <DepositModal
   // ...required props
-  dappImports={{ polymarket: true }}
-  initialDappImport="polymarket"
+  assetMigrations={{ polymarket: true }}
+  initialAssetMigration="polymarket"
 />
 ```
 
@@ -205,98 +277,20 @@ Returns `null` only when the EOA has no Polymarket account. A transient failure
 account". Pass `rpcUrl` to override the default public Polygon RPC, or a
 `signal` (`AbortSignal`) to cancel the lookup.
 
-## Self-hosted backend
+## Package entry points
 
-The modal talks to a deposit-widget backend, which holds your Rhinestone API key
-and proxies requests to the deposit processor. `backendUrl` defaults to the
-Rhinestone-hosted instance; point it at your own deployment to keep user traffic
-on your infrastructure.
+Everything is on the root entry; the subpaths exist so you only bundle what you use.
 
-### Required routes
-
-Your proxy must forward every route the modal calls, attaching your
-`x-api-key` to the upstream request. Missing a route doesn't degrade the
-flow — the request 404s and that part of the modal stops working.
-
-| Method | Route | Used for |
-|---|---|---|
-| `POST` | `/register-managed` | Registering the deposit account. **Required from modal v0.9.0** |
-| `POST` | `/quotes/preview` | Indicative fee/time quote on the review screen |
-| `GET` | `/check/:address` | Registration + target lookup |
-| `GET` | `/portfolio/:address` | EVM balances |
-| `GET` | `/portfolio/solana/:address` | Solana balances |
-| `GET` | `/deposits` | Deposit status + history |
-| `GET` | `/liquidity` | Route liquidity check |
-| `GET` | `/prices` | USD pricing |
-| `GET` | `/setup` | Your client config (source-token allowlist, minimums) |
-| `GET` | `/tokens` | Static top-tokens list for the QR flow |
-| `POST` | `/safe/withdraw` | Relaying a signed Safe transfer with sponsored gas. **Not used by the modal from v0.9.0** — proxy it only if your own [`onSendTransaction`](/deposits/widget/withdraw-modal#executing-the-transfer) relays through it |
-| `POST` | `/polymarket/withdraw` | Polymarket withdrawals |
-| `POST` | `/onramp/swapped/widget-url` | Fiat on-ramp |
-| `POST` | `/onramp/swapped/connect-url` | Exchange connect |
-| `GET` | `/onramp/swapped/connect-exchanges` | Exchange list |
-| `GET` | `/onramp/swapped/status/:smartAccount` | On-ramp order status |
-
-<Warning>
-**Upgrading to modal v0.9.0** — v0.9.0 moves to service-managed accounts and
-registers through `POST /register-managed` instead of `POST /setup-account` +
-`POST /register`. Deploy a proxy that forwards it **before** shipping the new
-modal, or registration 404s and deposits cannot start. Keep the old two routes
-while any earlier modal version is still in use.
-</Warning>
-
-Only `GET /setup` is proxied, never `POST /setup` — that is an admin write
-(it rotates the webhook secret and sponsorship config) and must not be
-reachable from a browser.
-
-### Version header pass-through
-
-Every request the modal makes carries its own package version:
-
-```http
-x-deposit-modal-version: 0.9.0
-```
-
-Rhinestone uses this to see which modal versions are live, so we can warn you
-about a version with a known bug and reproduce issues against the build you are
-actually running.
-
-Rhinestone's deposit-widget-backend handles both steps below for you. A custom
-proxy needs to apply them itself.
-
-**Allow the header (required).** Add it to your CORS allow-list. Browsers reject
-a request carrying a header the server did not allow on the preflight, so the
-modal cannot talk to a proxy that omits this:
-
-```ts
-allowHeaders: ["Content-Type", "x-api-key", "x-deposit-modal-version"]
-```
-
-**Forward it upstream (optional).** Copy it onto the request you make to the
-deposit processor:
-
-```ts
-const upstreamHeaders: Record<string, string> = {
-  "Content-Type": "application/json",
-  "x-api-key": process.env.RHINESTONE_API_KEY!,
-};
-
-const modalVersion = request.headers.get("x-deposit-modal-version");
-if (modalVersion) {
-  upstreamHeaders["x-deposit-modal-version"] = modalVersion;
-}
-```
-
-Skipping the forward breaks nothing — deposits work exactly the same, your
-traffic just shows up as an unknown modal version on our side.
-
-The same header is sent by the withdraw and claim modals, since all three share
-one backend client. To read the value in your own app (for a bug report, say),
-import it:
-
-```ts
-import { MODAL_VERSION } from "@rhinestone/deposit-modal/constants";
-```
+| Import | Contains |
+|---|---|
+| `@rhinestone/deposit-modal` | All three modals, types, chain and token helpers |
+| `@rhinestone/deposit-modal/deposit` | `DepositModal` and its types |
+| `@rhinestone/deposit-modal/withdraw` | `WithdrawModal` and its types |
+| `@rhinestone/deposit-modal/claim` | [`ClaimModal`](/deposits/widget/claim-modal) and its types |
+| `@rhinestone/deposit-modal/server` | `createRefundHandler`. **Server-only** — holds your API key |
+| `@rhinestone/deposit-modal/constants` | `MODAL_VERSION`, chain registry, token and explorer helpers |
+| `@rhinestone/deposit-modal/polymarket` | [`getPolymarketAccount`](#headless-account-lookup), headless |
+| `@rhinestone/deposit-modal/styles.css` | Stylesheet, required |
 
 ## Display modes
 
@@ -329,10 +323,10 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `reownAppId` | `string` | — | Reown project ID. Enables external wallet connection. |
-| `dappAddress` | `Address` | — | Owner address for embedded wallet or QR code flows |
-| `dappWalletClient` | `WalletClient` | — | Host-provided viem wallet client for signing |
-| `dappPublicClient` | `PublicClient` | — | Host-provided viem public client |
+| `reownAppId` | `string` | — | Reown project ID. Lets the modal connect a wallet itself. |
+| `walletClient` | `WalletClient \| null` | — | A wallet your app already has connected. The modal reuses the session and reads the address off `.account` |
+| `publicClient` | `PublicClient \| null` | — | Read client paired with `walletClient`. Defaults to the modal's own |
+| `enableWallet` | `boolean` | `true` | Offer the connected wallet as a funding source at all |
 | `onRequestConnect` | `() => void` | — | Called when the modal needs the user to connect a wallet |
 
 ### Transfer
@@ -343,24 +337,32 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 | `sourceChain` | `Chain \| number` | — | Pre-selected source chain |
 | `sourceToken` | `Address` | — | Pre-selected source token |
 | `appBalanceUsd` | `number` | — | In-app USD balance; enables the "Balance after deposit" row |
-| `allowedRoutes` | `RouteConfig` | — | `{ sourceChains?, sourceTokens? }` to restrict selection |
 | `outputTokenRules` | `OutputTokenRule[]` | — | Per-deposit output token routing rules |
 | `rejectUnmapped` | `boolean` | `false` | Reject deposits that don't match any `outputTokenRules` entry |
-| `dappImports` | `DappImportsConfig` | — | [Import balances](#import-from-other-apps) from third-party apps (e.g. `{ polymarket: true }`) |
-| `initialDappImport` | `keyof DappImportsConfig` | — | Open the modal pre-routed into a dapp import (e.g. `"polymarket"`), skipping the home screen. Must name an enabled `dappImports` key. |
+
+### Funding
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `enableWallet` | `boolean` | `true` | [Offer the connected wallet](#funding-methods) as a source |
+| `enableQrTransfer` | `boolean` | `true` | Offer the "Transfer crypto" deposit-address / QR row |
+| `enableFiatOnramp` | `boolean` | `false` | Offer fiat payment via Swapped's iframe. Requires backend Swapped keys |
+| `fiatMethods` | `FiatMethodsConfig` | all | [Restrict payment groups](#restricting-fiat-payment-methods) — `{ creditcard?, "bank-transfer"?, "apple-pay"? }`. Empty means none |
+| `enableExchangeConnect` | `boolean` | `false` | Offer "Connect exchange". Requires backend Swapped keys |
+| `assetMigrations` | `AssetMigrationsConfig` | — | [Migrate balances](#migrate-assets-from-other-apps) from third-party apps (e.g. `{ polymarket: true }`) |
+| `initialAssetMigration` | `keyof AssetMigrationsConfig` | — | Open the modal pre-routed into a migration provider (e.g. `"polymarket"`), skipping the home screen. Must name an enabled `assetMigrations` key. |
 
 ### Account
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `forceRegister` | `boolean` | `false` | Re-register even if the account already exists |
-| `rhinestoneApiKey` | `string` | — | API key for account setup |
 
 ### Backend
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `backendUrl` | `string` | Rhinestone production URL | URL of your deposit-widget-backend instance. Self-hosting a custom proxy? See [version header pass-through](#version-header-pass-through) |
+| `backendUrl` | `string` | — | Your [backend proxy](/deposits/widget/backend). Treat as required — the default is Rhinestone-internal |
 | `rpcUrls` | `RpcUrlMap` | — | Per-chain RPC overrides keyed by EVM chain id or the literal `"solana"` key (e.g. `{ 8453: "https://…", solana: "https://…" }`). Applied to EVM public clients, the connected wallet, HyperEVM, and the Solana connection; chains left unset use their default RPC |
 
 ### Display
@@ -385,8 +387,27 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 
 See [status tracking](/deposits/widget/status-tracking) for lifecycle event payloads.
 
-### Solana
+<Note>
+`enableSolana` was removed in v0.9.0. Solana sources follow your project's deposit
+whitelist like every other source, so there is no separate client-side toggle.
+</Note>
 
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `enableSolana` | `boolean` | `true` | Enable Solana wallet support and QR flows |
+## Content security policy
+
+The modal loads chain, token and exchange logos from Rhinestone's asset CDN. **If your app sets an explicit `img-src` policy, it must allow the CDN:**
+
+```
+img-src 'self' data: https://s3.rhinestone.dev;
+```
+
+<Warning>
+A blocked image fails **silently** — the icon renders blank with no console error
+naming the policy, so this is easy to misread as a modal bug. Apps with no explicit
+`img-src` (or `img-src *`) need no change.
+</Warning>
+
+If you enable the [fiat on-ramp or exchange connect](#funding-methods), the modal embeds Swapped's widget in an iframe, which needs `frame-src`:
+
+```
+frame-src https://widget.swapped.com https://sandbox.swapped.com https://connect.swapped.com;
+```

@@ -16,8 +16,8 @@ sequenceDiagram
     participant Chain as Blockchain
 
     Modal->>App: onReady
-    Note over Modal: User connects wallet
-    Modal->>App: onLifecycle "connected"
+    Note over Modal: User picks a funding method
+    Modal->>App: onLifecycle "connected" (wallet only)
     Note over Modal: User selects chain, token, amount
     Modal->>Chain: Submit deposit tx
     Modal->>App: onLifecycle "submitted"
@@ -27,9 +27,8 @@ sequenceDiagram
 ```
 
 1. The modal initializes and fires `onReady`
-2. The user connects a wallet (or is connected via an embedded wallet). The
-   modal creates a smart account and emits `"connected"` with the EOA `address`
-   and `smartAccount` address.
+2. If the user funds from a wallet, `"connected"` fires with the EOA `address` and
+   the `smartAccount` the deposit lands on
 3. The user selects a source chain, token, and amount, then confirms
 4. The modal submits the transaction on the source chain and emits `"submitted"`
 5. The bridge routes funds to the target chain. Once they arrive, the modal
@@ -37,6 +36,13 @@ sequenceDiagram
 
 If the bridge fails after submission, `"failed"` is emitted instead of
 `"complete"`.
+
+<Warning>
+`"connected"` fires only for wallet funding. QR transfer, fiat on-ramp and exchange
+connect involve no wallet, so it never fires — use `onReady` if you need a "flow
+started" signal. Before v0.9.0 it fired with the declared address as though a wallet
+had connected.
+</Warning>
 
 ## onLifecycle
 
@@ -79,14 +85,19 @@ import type { DepositLifecycleEvent } from "@rhinestone/deposit-modal";
 
 | `event.type` | Fields | Description |
 |---|---|---|
-| `"connected"` | `address: Address`, `smartAccount: Address` | Smart account created for the deposit |
-| `"submitted"` | `txHash: string`, `sourceChain: ChainId \| "unknown"`, `amount: string` | Deposit transaction submitted on the source chain |
-| `"complete"` | `txHash: string`, `destinationTxHash?: string`, `amount: string`, `sourceChain: ChainId \| "unknown"`, `sourceToken?: string`, `targetChain: number \| "solana"`, `targetToken: string` | Tokens arrived on the target chain |
+| `"connected"` | `address: Address`, `smartAccount: Address` | A wallet was connected as the funding source |
+| `"submitted"` | `txHash: string`, `sourceChain: ChainId \| "unknown"`, `amount: string`, `sourceDecimals?: number`, `amountUsd?: string` | Deposit transaction submitted on the source chain |
+| `"complete"` | `txHash: string`, `destinationTxHash?: string`, `amount: string`, `sourceChain: ChainId \| "unknown"`, `sourceToken?: string`, `sourceDecimals?: number`, `amountUsd?: string`, `targetChain: number \| "solana"`, `targetToken: string` | Tokens arrived on the target chain |
 | `"failed"` | `txHash: string`, `error?: string` | Bridge or transfer failed after submission |
 | `"balance-changed"` | `totalUsd: number` | The user's total portfolio balance (USD) changed |
 | `"smart-account-changed"` | `evm: Address \| null`, `solana: string \| null` | The resolved smart account addresses changed |
 
-`amount` is the deposit amount in the token's smallest unit.
+`amount` is in the source token's base units — divide by `sourceDecimals` to display
+it. `sourceDecimals` is omitted when the token isn't recognised, which happens for a
+QR deposit of an unlisted token.
+
+`amountUsd` is the USD value as entered in the modal. It is omitted for flows with no
+amount input: QR transfer, fiat on-ramp, and exchange connect.
 
 <Warning>
 `sourceChain: "unknown"` is deposit-only. When a webhook-detected deposit
@@ -100,7 +111,13 @@ explorer URL.
 `WithdrawLifecycleEvent` carries the same `type` values minus `"balance-changed"`
 and `"smart-account-changed"`. Its `txHash` is `Hex`, `sourceChain` is always a
 `number`, `sourceToken` / `targetToken` are `Address`, and `"submitted"` adds an
-`accountAddress: Address` field.
+`accountAddress: Address` field. `"connected"` means the deposit account for the
+chosen target is registered and fundable, not that a wallet connected.
+
+### Claim events
+
+`ClaimLifecycleEvent` is a separate union — `lookup`, `refund_requested`, `complete`,
+`failed`. See [claim modal](/deposits/widget/claim-modal#lifecycle-events).
 
 ## onReady
 
@@ -126,7 +143,19 @@ onError={(data) => console.error(`[${data.code}] ${data.message}`)}
 | `message` | `string` | Error description |
 | `code` | `string \| undefined` | Error code, if available |
 
-For bridge-level error codes, see [deposit processing error codes](/deposits/api/deposit-processing#error-codes).
+### Codes
+
+| `code` | Meaning |
+|---|---|
+| `HYPERCORE_RECIPIENT_NOT_EOA` | [HyperCore](/deposits/widget/deposit-modal#hypercore-destinations) target with a contract `recipient`. The deposit cannot settle |
+| `WITHDRAW_MISSING_SEND_TRANSACTION` | `<WithdrawModal>` opened without an `onSendTransaction` function |
+| `WITHDRAW_REGISTER_FAILED` | Registering the withdrawal's deposit account failed |
+| `WITHDRAW_FLOW_ERROR` | The withdrawal failed after the form was submitted |
+| `CLAIM_LOOKUP_FAILED` | `<ClaimModal>` could not look up the pasted transaction hash |
+| `CLAIM_FAILED` | The refund request failed |
+| `SWAPPED_CONNECT_EXCHANGES_FAILED` | The exchange list could not be fetched |
+
+Errors without a code carry only `message`. For bridge-level codes, see [deposit processing error codes](/deposits/api/deposit-processing#error-codes).
 
 ## Error handling
 
@@ -144,8 +173,8 @@ After the source chain transaction confirms, the deposit service may
 ## Analytics
 
 The `onEvent` callback fires on granular user interactions for your analytics
-pipeline. Its payload type is `DepositAnalyticsEvent` (or
-`WithdrawAnalyticsEvent`).
+pipeline. Its payload type is `DepositAnalyticsEvent`, `WithdrawAnalyticsEvent`, or
+`ClaimAnalyticsEvent`.
 
 ```tsx
 import type { DepositAnalyticsEvent } from "@rhinestone/deposit-modal";

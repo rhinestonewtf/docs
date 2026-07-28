@@ -1,18 +1,26 @@
 ---
 title: "Migration guide"
-description: "Upgrade @rhinestone/deposit-modal to v0.9.0, and from v0.1.x / v0.2.x to v0.3.0."
+description: "Upgrade @rhinestone/deposit-modal to v0.9.0 — managed accounts, the withdraw callback, and renamed props. Plus v0.1.x / v0.2.x to v0.3.0."
 ---
 
 ## v0.8.x → v0.9.0
 
-v0.9.0 moves both modals onto service-managed accounts and hands the withdrawal
-transfer to your app.
+v0.9.0 moves both modals onto service-managed accounts, hands the withdrawal
+transfer to your app, and renames or removes props that no longer described what
+they did. The account and withdraw changes need code; the
+[prop renames](#renamed-and-removed-props) are mechanical.
+
+<Warning>
+If you run your own proxy, deploy `POST /register-managed` **before** shipping the
+new modal. Registration 404s without it, which means no deposit address and no QR
+code — the flow does not degrade, it stops.
+</Warning>
 
 **Both modals** — the `signerAddress` and `sessionChainIds` props are gone,
 along with the `DEFAULT_SIGNER_ADDRESS`, `EnableSessionDetails`, and
 `AccountInitData` exports. Registration now goes through
 `POST /register-managed`, which a self-hosted proxy **must** forward before you
-ship — see [required routes](/deposits/widget/deposit-modal#required-routes).
+ship — see [required routes](/deposits/widget/backend#required-routes).
 There is no session key and no signature prompt during setup.
 
 **`<WithdrawModal>`** no longer moves funds. It previously built and submitted a
@@ -45,9 +53,117 @@ Also on `<WithdrawModal>`: `onRequestConnect` is removed (the modal needs no
 wallet, so there is no connect step — it opens on the withdraw form), the
 `SafeTransactionRequest` export is replaced by `WithdrawTransferRequest`, and
 the `"submitted"` lifecycle event renames `safeAddress` to `accountAddress`.
-`<DepositModal>` keeps all of its wallet props.
 
 `POST /safe/withdraw` still exists — the modal simply stopped calling it.
+
+### Renamed and removed props
+
+Renames, plus the removal of config the server already owns. Nothing here changes
+what the modal can do.
+
+| Before | After |
+| --- | --- |
+| `dappWalletClient` | `walletClient` |
+| `dappPublicClient` | `publicClient` |
+| `dappImports` | `assetMigrations` |
+| `initialDappImport` | `initialAssetMigration` |
+| `fiatOnrampMethods` | `fiatMethods` |
+| `DappImportsConfig` (type) | `AssetMigrationsConfig` |
+
+```diff
+  <DepositModal
+-   dappWalletClient={walletClient}
+-   dappPublicClient={publicClient}
+-   dappAddress={userAddress}
++   walletClient={walletClient}
++   publicClient={publicClient}
+-   dappImports={{ polymarket: true }}
+-   initialDappImport="polymarket"
++   assetMigrations={{ polymarket: true }}
++   initialAssetMigration="polymarket"
+  />
+```
+
+**`dappAddress` is removed with no replacement.** The modal reads the address off
+`walletClient.account`, which nothing previously validated it against — so the modal
+could read balances for one address while the user was connected as another.
+
+**`allowedRoutes` and the `RouteConfig` type are removed** from both modals. They
+filtered the pickers client-side with nothing enforcing it, so a list that drifted
+from your deposit whitelist offered the user a source the processor then rejected.
+Set the whitelist via `POST /setup`; to offer a restricted subset, use an API key
+whose whitelist matches.
+
+**`enableSolana` is removed** for the same reason — Solana sources follow the deposit
+whitelist.
+
+**`uiConfig.checkLiquidity` is removed.** It cost an orchestrator round trip per
+continue to compute a warning the review screen never rendered. The cap is still
+checked and shown on the QR / transfer screen.
+
+**`rhinestoneApiKey` is removed** from both modals. It was never read — the key
+belongs on your [backend proxy](/deposits/widget/backend), which attaches it upstream.
+Delete it; nothing consumed it.
+
+**`fiatOnrampMethods` becomes `fiatMethods`**, a boolean map keyed by Swapped
+`payment_group` instead of a list of row descriptors:
+
+```diff
+  <DepositModal
+    enableFiatOnramp
+-   fiatOnrampMethods={[
+-     { method: "creditcard", label: "Debit/Credit card", sublabel: "Instant - $10,000 limit", icon: "card" },
+-   ]}
++   fiatMethods={{ creditcard: true }}
+  />
+```
+
+The old prop made you supply each row's `label`, `sublabel` and `icon`, which meant
+pasting our copy and freezing a claim like `"Instant - $10,000 limit"` into your
+bundle.
+
+<Warning>
+`fiatOnrampMethods={[]}` used to fall through to offering **every** payment method.
+An empty or all-false `fiatMethods` now offers none. If you computed the list
+dynamically and could produce an empty one, check which you wanted.
+</Warning>
+
+### Optional where it was mandatory
+
+`<WithdrawModal>`'s `targetChain` and `targetToken` are now optional. They only ever
+seeded the form — the user can pick any supported destination — so omitting them
+opens on a same-chain, same-token withdrawal.
+
+`@reown/appkit` and `@reown/appkit-adapter-wagmi` are now **optional** peer
+dependencies. An app that passes its own `walletClient` never opens AppKit and no
+longer needs it installed. See [install](/deposits/widget/quickstart#install).
+
+### New
+
+- **`enableWallet?: boolean`** (default `true`) on `<DepositModal>` — turn off to
+  present a flow with no wallet even when a `walletClient` or `reownAppId` is supplied.
+- **[`<ClaimModal>`](/deposits/widget/claim-modal)** and the `./claim` subpath — a user
+  pastes a failed or rejected deposit's transaction hash and gets the funds returned.
+  Also adds `@rhinestone/deposit-modal/server` for the endpoint that authorizes it.
+
+### Behavior changes worth checking
+
+- **`connected` no longer fires for flows with no wallet** (QR, fiat, exchange). It
+  previously reported the declared address as though a wallet had connected. If you
+  used it as a "flow started" signal, switch to `onReady`.
+- **A QR-only integration no longer auto-locks to the wallet.** The connect step's
+  auto-skip never accounted for `enableQrTransfer` or asset migrations, so it could
+  skip past the only funding option you had enabled.
+- **Logos load from Rhinestone's asset CDN.** Apps with an explicit `img-src` CSP must
+  allow `https://s3.rhinestone.dev` — a blocked image fails silently. See
+  [content security policy](/deposits/widget/deposit-modal#content-security-policy).
+
+### Removed prop warnings
+
+Both modals log a `console.error` naming the replacement when passed any prop removed
+in this release. TypeScript already catches these; the runtime warning is for plain
+JavaScript hosts, spread props, and loosely typed call sites, where several of the
+removals fail silently rather than visibly.
 
 ---
 
@@ -208,7 +324,8 @@ New in v0.3.0; existing code keeps working:
   deposit" row (`appBalanceUsd + amount`) instead of fetching a portfolio
   balance.
 - **`dappImports?: DappImportsConfig`** on `<DepositModal>` — pull balances from
-  third-party apps. See [import from other apps](/deposits/widget/deposit-modal#import-from-other-apps).
+  third-party apps. Renamed to `assetMigrations` in v0.9.0; see
+  [migrate assets from other apps](/deposits/widget/deposit-modal#migrate-assets-from-other-apps).
 - **`defaultAmount: "max"`** — defaults the input to the user's full
   source-token balance.
 - **Solana destinations** — `targetChain: Chain | number | "solana"`,
@@ -224,8 +341,10 @@ New in v0.3.0; existing code keeps working:
 keep their names and signatures.
 
 <Note>
-Scoped to v0.3.0. v0.9.0 later removed `onRequestConnect`, `dappWalletClient`,
-`dappPublicClient`, and `reownAppId` from `<WithdrawModal>` and replaced
-`onSignTransaction` with `onSendTransaction` — see the v0.9.0 section at the top
-of this page. `<DepositModal>` still has all of them.
+Scoped to v0.3.0 — several of these changed again in v0.9.0. On `<WithdrawModal>`,
+`onRequestConnect`, `dappWalletClient`, `dappPublicClient` and `reownAppId` were
+removed and `onSignTransaction` became `onSendTransaction`. On `<DepositModal>`,
+`dappWalletClient` / `dappPublicClient` were renamed to `walletClient` /
+`publicClient`; `reownAppId`, `onRequestConnect` and the styles export are unchanged.
+See the v0.9.0 section at the top of this page.
 </Note>
