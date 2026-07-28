@@ -5,7 +5,7 @@ description: "Recover an account using guardians"
 
 ## Overview
 
-Social Recovery allows users to set one or multiple accounts as _guardians_. Guardians can recover access to the account by approving a change to the validator configuration.
+Social recovery allows users to set one or multiple accounts as _guardians_. Guardians can recover access to the account by approving a change to the validator configuration.
 
 For example, if a user loses access to their key, guardians are able to rotate the signer to a new ECDSA key. Or if a smart account has a multisig configuration, guardians can be used to recover a signer of the multisig or change the threshold.
 
@@ -13,9 +13,9 @@ Guardians can only update the validator configuration, they are not permitted to
 
 <Warning>Set guardians carefully! They can change the ownership of a smart account without any approval from the previous owner. There is no timelock for the recovery transaction. Prefer setting multiple trusted guardians with a higher signature threshold.</Warning>
 
-<Note>Making recovery transactions requires setting up [ERC-4337](../advanced/erc4337).</Note>
+<Note>Recovery runs over [ERC-4337](../advanced/erc4337), so it needs a bundler. Guardians can only sign user operations — passing them to `prepareTransaction`, `signMessage`, or `signTypedData` throws, since the recovery module cannot verify signatures on those paths.</Note>
 
-<Note>Account recovery may result in multiple account calls, each of them should be done separately (batching is not supported).</Note>
+<Note>Recovery produces multiple account calls. Send each one as its own user operation, in the order returned — the recovery module authorizes a single call per user operation, so batching them is rejected onchain.</Note>
 
 ## Initialization
 
@@ -35,21 +35,21 @@ const rhinestoneAccount = await rhinestone.createAccount({
 
 To install the module separately (i.e., when the account is already deployed):
 
-```ts {3-6}
+```ts {5}
 import { enable as enableRecovery } from '@rhinestone/sdk/actions/recovery'
 
 const setUpTransaction = await rhinestoneAccount.sendUserOperation({
   chain,
-  calls: enableRecovery([guardianAccount]),
+  calls: [enableRecovery([guardianAccount])],
 })
 await rhinestoneAccount.waitForExecution(setUpTransaction)
 ```
 
-### Multiple Guardians
+### Multiple guardians
 
 You can also set multiple guardians for a single account, and use a custom signature threshold:
 
-```ts
+```ts {6-9}
 const rhinestoneAccount = await rhinestone.createAccount({
   owners: {
     type: 'ecdsa',
@@ -59,9 +59,10 @@ const rhinestoneAccount = await rhinestone.createAccount({
     guardians: [guardianAccountA, guardianAccountB, guardianAccountC],
     threshold: 2,
   },
-  rhinestoneApiKey,
 })
 ```
+
+Every guardian you pass to `signers` must sign, and you need at least as many as the configured `threshold`.
 
 ## Usage
 
@@ -70,22 +71,23 @@ const rhinestoneAccount = await rhinestone.createAccount({
 
 To recover access to the account:
 
-```ts {7,16-19}
+```ts {7-10,17-20}
 import { recoverEcdsaOwnership } from '@rhinestone/sdk/actions/recovery'
 
-const recoveryCalls = await recoverEcdsaOwnership(
-  address,
-  {
+const recoveryCalls = await recoverEcdsaOwnership({
+  accountAddress: rhinestoneAccount.getAddress(),
+  chain,
+  config: rhinestoneAccount.config,
+  newOwners: {
     type: 'ecdsa',
     accounts: [newOwnerAccount],
   },
-  chain,
-)
+})
+
 for (const call of recoveryCalls) {
   const transaction = await rhinestoneAccount.sendUserOperation({
     chain,
     calls: [call],
-    tokenRequests: [],
     signers: {
       type: 'guardians',
       guardians: [guardianAccountA],
@@ -95,47 +97,55 @@ for (const call of recoveryCalls) {
 }
 ```
 
-This will prompt a signature from the guardian account, and submit a transaction on its behalf to update the ownership.
+This prompts a signature from each guardian account and submits a transaction on their behalf to update the ownership. Existing owners not listed in `newOwners` are removed.
 
 </Tab>
 <Tab title="Passkey Account">
 
 To recover access to the account:
 
-```ts {7-10,15,24-27}
+```ts {6-11,28-31}
+import { slice } from 'viem'
 import { recoverPasskeyOwnership } from '@rhinestone/sdk/actions/recovery'
 
-const recoveryCalls = await recoverPasskeyOwnership(
-  address,
-  // List of existing owners: those will be removed
-  [
-    {
-      pubKeyX: BigInt(slice(passkeyAccountA.publicKey, 0, 32)),
-      pubKeyY: BigInt(slice(passkeyAccountA.publicKey, 32, 64)),
-    },
-  ],
-  // New owners: those will be added
+// The account's complete current credential set. The validator stores
+// credentials hashed, so the set cannot be read back onchain.
+const currentCredentials = [
   {
-    type: "passkey",
+    pubKeyX: BigInt(slice(passkeyAccountA.publicKey, 0, 32)),
+    pubKeyY: BigInt(slice(passkeyAccountA.publicKey, 32, 64)),
+  },
+]
+
+const recoveryCalls = await recoverPasskeyOwnership({
+  accountAddress: rhinestoneAccount.getAddress(),
+  chain,
+  config: rhinestoneAccount.config,
+  currentCredentials,
+  newOwners: {
+    type: 'passkey',
     accounts: [passkeyAccountB],
   },
-  chain
-);
+})
+
 for (const call of recoveryCalls) {
-  const transaction = await account.sendUserOperation({
+  const transaction = await rhinestoneAccount.sendUserOperation({
     chain,
     calls: [call],
-    tokenRequests: [],
     signers: {
-      type: "guardians",
+      type: 'guardians',
       guardians: [guardianAccountA],
     },
-  });
-  await account.waitForExecution(transaction);
+  })
+  await rhinestoneAccount.waitForExecution(transaction)
 }
 ```
 
-This will prompt a signature from the guardian account, and submit a transaction on its behalf to update the ownership.
+This prompts a signature from each guardian account and submits a transaction on their behalf to update the ownership.
+
+<Warning>Pass the account's **complete** current credential set as `currentCredentials`, not just the ones you are replacing. Credentials missing from `newOwners` are removed, and anything already listed is not added again — a partial set makes the recovery re-add an installed credential, which reverts.</Warning>
 
 </Tab>
 </Tabs>
+
+<Note>Ownership is only fully rotated once every call has landed. New owners are added before the old ones are removed, so until the final call executes both remain valid.</Note>
