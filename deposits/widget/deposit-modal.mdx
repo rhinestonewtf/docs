@@ -35,6 +35,7 @@ import "@rhinestone/deposit-modal/styles.css";
   targetChain={8453}
   targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   recipient="0xYOUR_RECIPIENT_ADDRESS"
+  backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL}
   reownAppId="YOUR_REOWN_PROJECT_ID"
   onLifecycle={(event) => event.type === "complete" && console.log(event)}
 />
@@ -56,6 +57,7 @@ import "@rhinestone/deposit-modal/styles.css";
   targetChain={8453}
   targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   recipient="0xYOUR_RECIPIENT_ADDRESS"
+  backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL}
   walletClient={walletClient}
   publicClient={publicClient}
   onLifecycle={(event) => event.type === "complete" && console.log(event)}
@@ -86,6 +88,7 @@ import "@rhinestone/deposit-modal/styles.css";
   targetChain={8453}
   targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   recipient="0xYOUR_RECIPIENT_ADDRESS"
+  backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL}
   enableQrTransfer
   onLifecycle={(event) => event.type === "complete" && console.log(event)}
 />
@@ -318,6 +321,7 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 | `targetChain` | `Chain \| number \| "solana"` | Destination chain (viem `Chain` object, chain ID, or `"solana"`) |
 | `targetToken` | `Address \| string` | Token address on the destination chain |
 | `recipient` | `Address \| string` | Where funds are delivered on the target chain |
+| `backendUrl` | `string` | Your [backend proxy](/deposits/widget/backend), which holds your API key |
 
 ### Wallet
 
@@ -362,7 +366,6 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `backendUrl` | `string` | — | Your [backend proxy](/deposits/widget/backend). Treat as required — the default is Rhinestone-internal |
 | `rpcUrls` | `RpcUrlMap` | — | Per-chain RPC overrides keyed by EVM chain id or the literal `"solana"` key (e.g. `{ 8453: "https://…", solana: "https://…" }`). Applied to EVM public clients, the connected wallet, HyperEVM, and the Solana connection; chains left unset use their default RPC |
 
 ### Display

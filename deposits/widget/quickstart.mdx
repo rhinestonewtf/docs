@@ -64,6 +64,7 @@ function App() {
         targetChain={8453}
         targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
         recipient="0xYOUR_RECIPIENT_ADDRESS"
+        backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL!}
         reownAppId={process.env.NEXT_PUBLIC_REOWN_PROJECT_ID!}
       />
     </>
@@ -86,6 +87,7 @@ Add the `onLifecycle` callback and react to the `"complete"` event when tokens a
   targetChain={8453}
   targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   recipient="0xYOUR_RECIPIENT_ADDRESS"
+  backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL!}
   reownAppId={process.env.NEXT_PUBLIC_REOWN_PROJECT_ID!}
   onLifecycle={(event) => {
     if (event.type === "complete") {
@@ -104,10 +106,9 @@ Add the `onLifecycle` callback and react to the `"complete"` event when tokens a
 
 ## Before production
 
-Two things this quickstart skips, both covered in [backend](/deposits/widget/backend):
+`backendUrl` above has to point at a real proxy — one you run, holding your API key. There is no default, because a default would put your users on someone else's key. See [backend](/deposits/widget/backend) for a minimal one and the routes it must forward.
 
-- **A proxy** on `backendUrl`. The modal can't hold your API key, and the built-in default is Rhinestone-internal.
-- **Webhooks**, for anything that must happen whether or not the modal is still open.
+You'll also want [webhooks](/deposits/widget/backend#webhooks) for anything that must happen whether or not the modal is still open.
 
 See it running in the [live demo](https://demo.rhinestone.dev), whose [source](https://github.com/rhinestonewtf/deposit-widget-demo) is a working integration you can read.
 

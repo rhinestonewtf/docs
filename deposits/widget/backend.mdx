@@ -3,18 +3,20 @@ title: "Backend"
 description: "The widget needs a proxy holding your Rhinestone API key. Write one, or deploy Rhinestone's."
 ---
 
-The widget runs in the browser, so it can't hold your Rhinestone API key — the key authorizes writes against your project, from registering accounts to spending sponsorship. Every request the modal makes goes to a proxy **you** run, which attaches the key and forwards to the deposit processor. Point the modals at it with `backendUrl`.
+The widget runs in the browser, so it can't hold your Rhinestone API key — the key authorizes writes against your project, from registering accounts to spending sponsorship. Every request the modal makes goes to a proxy **you** run, which attaches the key and forwards to the deposit processor.
+
+All three modals take it as a required `backendUrl`. There is deliberately no default: a Rhinestone-operated fallback would mean your users' deposits ride our key.
 
 Two ways to get one:
 
 - **Write your own.** A route table and a header — see [minimal proxy](#minimal-proxy).
 - **Deploy Rhinestone's.** We're open-sourcing the proxy we run for clients, so you can deploy it as-is. Coming soon.
 
-<Warning>
-`backendUrl` is typed as optional, but treat it as required. The built-in default is a
-Rhinestone-internal service running on our API key, not a client endpoint. Set
-`backendUrl` before you ship anything, including staging.
-</Warning>
+<Note>
+Before v0.9.0 `backendUrl` was optional and defaulted to a Rhinestone-internal
+service. If you never set it, you were using ours — set it now. See
+[migration](/deposits/widget/migration).
+</Note>
 
 ## Minimal proxy
 

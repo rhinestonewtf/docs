@@ -31,6 +31,7 @@ import "@rhinestone/deposit-modal/styles.css";
   isOpen={isOpen}
   onClose={() => setIsOpen(false)}
   refundEndpoint="/api/refund"
+  backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL}
 />
 ```
 
@@ -51,6 +52,7 @@ import "@rhinestone/deposit-modal/styles.css";
   isOpen={isOpen}
   onClose={() => setIsOpen(false)}
   refundEndpoint="https://proxy.example.com/deposits/refund"
+  backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL}
   getUserToken={async (request) => {
     const res = await fetch("/api/refund-token", {
       method: "POST",
@@ -83,7 +85,7 @@ export const POST = createRefundHandler({
   apiKey: process.env.RHINESTONE_API_KEY!,
   async authorize(request) {
     const session = await getSession(request);
-    return session ? { recipient: session.depositRecipient } : null;
+    return session ? { depositRecipient: session.depositRecipient } : null;
   },
 });
 ```
@@ -97,14 +99,16 @@ never reach the browser.
 
 ### authorize
 
-Return the recipient the caller owns, or `null` to reject with 401.
+Return the deposit recipient the caller owns, or `null` to reject with 401.
 
 | Field | Type | Description |
 |---|---|---|
-| `recipient` | `string` | The in-app recipient this user owns — the same value you pass the deposit modal. The deposit is checked against it |
-| `destination` | `string` | Optional. Overrides the destination the browser asked for |
+| `depositRecipient` | `string` | The deposit `recipient` this user owns — the same value you pass `<DepositModal>`. Used **only** to prove the deposit is theirs |
+| `refundDestination` | `string` | Optional. Where the refund is paid, overriding whatever the browser asked for |
 
-Set `destination` whenever you already know where the user's money should go. Without it the page picks, and it could pick anything.
+`depositRecipient` does not decide where money goes. The handler lists deposits settling to it and rejects a `txHash` that isn't among them — that's the whole job. One value covers every deposit account the user has, since the account salt includes the target chain and token.
+
+Set `refundDestination` whenever you already know where the user's money should go. Without it the page picks, and it could pick anything.
 
 <Warning>
 Never refund to an exchange deposit address. Exchanges don't credit arbitrary
@@ -133,6 +137,7 @@ The modal POSTs a `RefundRequest`. It comes from the page, so treat it as untrus
 | `isOpen` | `boolean` | Controls modal visibility |
 | `onClose` | `() => void` | Called when the user closes the modal |
 | `refundEndpoint` | `string` | Endpoint the modal POSTs the refund to |
+| `backendUrl` | `string` | Your [backend proxy](/deposits/widget/backend), which holds your API key |
 
 ### Authorization
 
@@ -145,13 +150,12 @@ The modal POSTs a `RefundRequest`. It comes from the page, so treat it as untrus
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `defaultTxHash` | `string` | — | Prefills the lookup field |
-| `defaultRecipient` | `Address` | — | Prefills the refund destination. Otherwise left empty |
+| `defaultRefundDestination` | `Address` | — | Prefills the refund destination — a seed the user can edit, unlike `refundDestination`. Otherwise left empty |
 
 ### Backend
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `backendUrl` | `string` | — | Your [backend proxy](/deposits/widget/backend). Treat as required — the default is Rhinestone-internal |
 | `rpcUrls` | `RpcUrlMap` | Chain defaults | Per-chain RPC overrides keyed by EVM chain id |
 
 ### Display

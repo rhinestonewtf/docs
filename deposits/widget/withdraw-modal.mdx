@@ -17,6 +17,7 @@ import "@rhinestone/deposit-modal/styles.css";
   isOpen={isOpen}
   onClose={() => setIsOpen(false)}
   accountAddress="0xACCOUNT_HOLDING_THE_FUNDS"
+  backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL}
   sourceChain={8453}
   sourceToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   targetChain={10}
@@ -103,6 +104,7 @@ Before v0.9.0 the modal did all of this internally, behind a `safeAddress` prop 
 | `sourceChain` | `Chain \| number` | Chain where the account holds funds |
 | `sourceToken` | `Address` | Token to withdraw |
 | `onSendTransaction` | `(request: WithdrawTransferRequest) => Promise<{ txHash: Hex }>` | Performs the transfer and returns its on-chain hash |
+| `backendUrl` | `string` | Your [backend proxy](/deposits/widget/backend), which holds your API key |
 
 ### Transfer
 
@@ -130,7 +132,6 @@ release; see [migration](/deposits/widget/migration).
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `backendUrl` | `string` | — | Your [backend proxy](/deposits/widget/backend). Treat as required — the default is Rhinestone-internal |
 | `rpcUrls` | `RpcUrlMap` | Chain defaults | Per-chain RPC overrides keyed by EVM chain id. Used for balance reads; chains left unset use their default RPC |
 
 ### Display

@@ -105,6 +105,25 @@ checked and shown on the QR / transfer screen.
 belongs on your [backend proxy](/deposits/widget/backend), which attaches it upstream.
 Delete it; nothing consumed it.
 
+**`backendUrl` is now required** on all three modals, and the `DEFAULT_BACKEND_URL`
+export is gone. The old default pointed at a Rhinestone-internal service running on
+**our** API key, so any integration that omitted the prop was silently routing its
+users' deposits through it.
+
+```diff
+  <DepositModal
+    targetChain={8453}
+    targetToken={USDC}
+    recipient={userAddress}
++   backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL}
+  />
+```
+
+If you already set `backendUrl`, nothing changes. If you didn't, you were on our key
+and need a [proxy](/deposits/widget/backend) before upgrading. TypeScript flags the
+omission; each modal also logs a `console.error` when the value is missing, empty or
+whitespace, since `backendUrl={process.env.X ?? ""}` typechecks fine.
+
 **`fiatOnrampMethods` becomes `fiatMethods`**, a boolean map keyed by Swapped
 `payment_group` instead of a list of row descriptors:
 
