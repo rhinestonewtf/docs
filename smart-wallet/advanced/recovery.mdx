@@ -148,7 +148,7 @@ This prompts a signature from each guardian account and submits a transaction on
 
 ## Nexus accounts
 
-<Info>Nexus accounts must use Ownable V0 as their owner module for social recovery. Pass the same module address in both the account configuration and `newOwners` when recovering the account.</Info>
+<Info>Nexus accounts must use Ownable V0 as their owner module for social recovery. Pass the same module address in both the account configuration and `newOwners` when recovering the account. Ownable V0 does not support legible EIP-712 signing, so the SDK uses its personal-sign fallback for typed data and intents.</Info>
 
 ```ts {1,9,23}
 const ownableV0Address =
