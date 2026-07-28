@@ -145,3 +145,39 @@ This prompts a signature from each guardian account and submits a transaction on
 </Tabs>
 
 <Note>Ownership is only fully rotated once every call has landed. New owners are added before the old ones are removed, so until the final call executes both remain valid.</Note>
+
+## Nexus accounts
+
+<Info>Nexus accounts must use Ownable V0 as their owner module for social recovery. Pass the same module address in both the account configuration and `newOwners` when recovering the account. Ownable V0 does not support legible EIP-712 signing; typed data and intents remain supported through the SDK's personal-sign fallback.</Info>
+
+```ts {1,9,23}
+const ownableV0Address =
+  '0x2483da3a338895199e5e538530213157e931bf06'
+
+const rhinestoneAccount = await rhinestone.createAccount({
+  account: { type: 'nexus' },
+  owners: {
+    type: 'ecdsa',
+    accounts: [oldAccount],
+    module: ownableV0Address,
+  },
+  recovery: {
+    guardians: [guardianAccount],
+  },
+})
+
+const recoveryCalls = await recoverEcdsaOwnership({
+  accountAddress: rhinestoneAccount.getAddress(),
+  chain,
+  config: rhinestoneAccount.config,
+  newOwners: {
+    type: 'ecdsa',
+    accounts: [newOwnerAccount],
+    module: ownableV0Address,
+  },
+})
+```
+
+<Warning>Adding `recovery` to an existing Nexus account that uses the default owner validator is not sufficient. The current owner must migrate the account before access is lost. An account whose owner is already unavailable cannot be migrated through guardian recovery.</Warning>
+
+<Warning>This flow does not support EIP-7702 Nexus accounts. Recovery modules cannot revoke the EOA's authority over its delegated account.</Warning>
