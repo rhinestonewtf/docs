@@ -141,6 +141,8 @@ installModule
 uninstallModule
 initData
 recoveryCalls
+currentCredentials
+newOwners
 tokenRequests
 sourceCalls
 transactionData
