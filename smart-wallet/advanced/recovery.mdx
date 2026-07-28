@@ -104,18 +104,14 @@ This prompts a signature from each guardian account and submits a transaction on
 
 To recover access to the account:
 
-```ts {6-11,28-31}
-import { slice } from 'viem'
+```ts {6-7,24-27}
 import { recoverPasskeyOwnership } from '@rhinestone/sdk/actions/recovery'
+import { parsePublicKey } from '@rhinestone/sdk/signing/passkeys'
 
 // The account's complete current credential set. The validator stores
 // credentials hashed, so the set cannot be read back onchain.
-const currentCredentials = [
-  {
-    pubKeyX: BigInt(slice(passkeyAccountA.publicKey, 0, 32)),
-    pubKeyY: BigInt(slice(passkeyAccountA.publicKey, 32, 64)),
-  },
-]
+const { x, y } = parsePublicKey(passkeyAccountA.publicKey)
+const currentCredentials = [{ pubKeyX: x, pubKeyY: y }]
 
 const recoveryCalls = await recoverPasskeyOwnership({
   accountAddress: rhinestoneAccount.getAddress(),
