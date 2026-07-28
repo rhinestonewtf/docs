@@ -19,10 +19,53 @@ Guardians can only update the validator configuration, they are not permitted to
 
 ## Initialization
 
-To install a social recovery module during account deployment:
+### Nexus accounts
 
-```ts {6-8}
+Nexus 1.2.0 and 1.2.1 accounts must use the following Ownable validator as their owner module for social recovery:
+
+```ts {1,7,9-11}
+const nexusRecoveryOwnerModule =
+  '0x2483da3a338895199e5e538530213157e931bf06'
+
 const rhinestoneAccount = await rhinestone.createAccount({
+  account: { type: 'nexus', version: '1.2.1' },
+  owners: {
+    type: 'ecdsa',
+    accounts: [oldAccount],
+    module: nexusRecoveryOwnerModule,
+  },
+  recovery: {
+    guardians: [guardianAccount],
+  },
+})
+```
+
+Use the same `module` when building the ownership recovery calls:
+
+```ts {7}
+const recoveryCalls = await recoverEcdsaOwnership({
+  accountAddress: rhinestoneAccount.getAddress(),
+  chain,
+  config: rhinestoneAccount.config,
+  newOwners: {
+    type: 'ecdsa',
+    accounts: [newOwnerAccount],
+    module: nexusRecoveryOwnerModule,
+  },
+})
+```
+
+<Warning>This configuration is for new Nexus proxy accounts. Adding `recovery` to an existing Nexus account that uses the default owner validator is not sufficient. The current owner must migrate the account before access is lost. An account whose owner is already unavailable cannot be migrated through guardian recovery.</Warning>
+
+<Warning>This flow does not support EIP-7702 Nexus accounts. Recovery modules cannot revoke the EOA's authority over its delegated account.</Warning>
+
+### Other smart accounts
+
+For supported account types other than Nexus, install the social recovery module during account deployment:
+
+```ts {2,7-9}
+const rhinestoneAccount = await rhinestone.createAccount({
+  account: { type: 'safe' },
   owners: {
     type: 'ecdsa',
     accounts: [oldAccount],
@@ -45,15 +88,19 @@ const setUpTransaction = await rhinestoneAccount.sendUserOperation({
 await rhinestoneAccount.waitForExecution(setUpTransaction)
 ```
 
+For an existing Nexus account that uses its default owner validator, this call only installs the recovery module. It does not make the default owner validator recoverable.
+
 ### Multiple guardians
 
 You can also set multiple guardians for a single account, and use a custom signature threshold:
 
-```ts {6-9}
+```ts {2,6,8-11}
 const rhinestoneAccount = await rhinestone.createAccount({
+  account: { type: 'nexus', version: '1.2.1' },
   owners: {
     type: 'ecdsa',
     accounts: [oldAccount],
+    module: nexusRecoveryOwnerModule,
   },
   recovery: {
     guardians: [guardianAccountA, guardianAccountB, guardianAccountC],
@@ -69,9 +116,9 @@ Every guardian you pass to `signers` must sign, and you need at least as many as
 <Tabs>
 <Tab title="ECDSA Account">
 
-To recover access to the account:
+To recover access to the account, pass the same custom owner module in `newOwners` when recovering a Nexus account. Omit `module` for other account types.
 
-```ts {7-10,17-20}
+```ts {7-11,18-21}
 import { recoverEcdsaOwnership } from '@rhinestone/sdk/actions/recovery'
 
 const recoveryCalls = await recoverEcdsaOwnership({
@@ -81,6 +128,7 @@ const recoveryCalls = await recoverEcdsaOwnership({
   newOwners: {
     type: 'ecdsa',
     accounts: [newOwnerAccount],
+    module: nexusRecoveryOwnerModule,
   },
 })
 
@@ -98,6 +146,25 @@ for (const call of recoveryCalls) {
 ```
 
 This prompts a signature from each guardian account and submits a transaction on their behalf to update the ownership. Existing owners not listed in `newOwners` are removed.
+
+After recovery, reconstruct the Nexus account with its deployed address and new owner:
+
+```ts {3-4,8}
+const recoveredAccount = await rhinestone.createAccount({
+  account: { type: 'nexus', version: '1.2.1' },
+  initData: { address: rhinestoneAccount.getAddress() },
+  owners: {
+    type: 'ecdsa',
+    accounts: [newOwnerAccount],
+    module: nexusRecoveryOwnerModule,
+  },
+  recovery: {
+    guardians: [guardianAccountA],
+  },
+})
+```
+
+Pinning `initData.address` keeps the deployed account address. Without it, changing the owner changes the counterfactual address.
 
 </Tab>
 <Tab title="Passkey Account">
