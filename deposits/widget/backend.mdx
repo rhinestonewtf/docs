@@ -47,8 +47,8 @@ const ROUTES: [method: "get" | "post", path: string][] = [
   ["post", "/onramp/swapped/connect-url"],
   ["get", "/onramp/swapped/connect-exchanges"],
   ["get", "/onramp/swapped/status/:smartAccount"],
-  // Add ["post", "/deposits/refund"] only if you run the claim flow, and
-  // ["post", "/safe/withdraw"] only if your onSendTransaction relays through it.
+  // Add ["post", "/safe/withdraw"] only if your onSendTransaction relays through
+  // it. Do NOT add /deposits/refund here — see below.
 ];
 
 const app = new Hono();
@@ -86,6 +86,22 @@ every write on the upstream — including `POST /setup`, which rotates your webh
 secret and sponsorship config. The route list is what stops that.
 </Warning>
 
+### Refunds are not a route-table entry
+
+`POST /deposits/refund` cannot be forwarded like the routes above. Every route in
+that loop passes the browser's body straight through with your API key attached —
+which for a refund means anyone could return any of your recoverable deposits to an
+address they chose.
+
+It needs a handler that authorizes the specific refund, and derives the upstream
+call from that authorization rather than from the request body:
+
+- **your own route** — use [`createRefundHandler`](/deposits/widget/claim-modal#implementing-the-endpoint), which checks the deposit belongs to the caller before spending the key
+- **a proxy** — verify a per-refund `x-user-token` and take *every* upstream field from the token, ignoring the body
+
+Register it only when that verification is in place. See
+[claim modal](/deposits/widget/claim-modal#why-your-app-authorizes-it).
+
 ## Required routes
 
 Missing a route doesn't degrade the flow — the request 404s and that part of the modal stops working.
@@ -102,7 +118,7 @@ Missing a route doesn't degrade the flow — the request 404s and that part of t
 | `GET` | `/prices` | USD pricing |
 | `GET` | `/setup` | Your client config (source-token allowlist, minimums) |
 | `GET` | `/tokens` | Static top-tokens list for the QR flow |
-| `POST` | `/deposits/refund` | [Self-service refunds](/deposits/widget/claim-modal). Opt-in — register it only when you've set a token secret, and accept `x-user-token` on this route alone |
+| `POST` | `/deposits/refund` | [Self-service refunds](/deposits/widget/claim-modal). **Not a plain passthrough** — needs a token-verifying handler, see [above](#refunds-are-not-a-route-table-entry) |
 | `POST` | `/polymarket/withdraw` | Polymarket withdrawals |
 | `POST` | `/onramp/swapped/widget-url` | Fiat on-ramp |
 | `POST` | `/onramp/swapped/connect-url` | Exchange connect |
