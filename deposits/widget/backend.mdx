@@ -5,18 +5,12 @@ description: "The widget needs a proxy holding your Rhinestone API key. Write on
 
 The widget runs in the browser, so it can't hold your Rhinestone API key — the key authorizes writes against your project, from registering accounts to spending sponsorship. Every request the modal makes goes to a proxy **you** run, which attaches the key and forwards to the deposit processor.
 
-All three modals take it as a required `backendUrl`. There is deliberately no default: a Rhinestone-operated fallback would mean your users' deposits ride our key.
+All three modals take it as a required `backendUrl`. There is no default — point it at a proxy you run, on your own key.
 
 Two ways to get one:
 
 - **Write your own.** A route table and a header — see [minimal proxy](#minimal-proxy).
 - **Deploy Rhinestone's.** We're open-sourcing the proxy we run for clients, so you can deploy it as-is. Coming soon.
-
-<Note>
-Before v0.9.0 `backendUrl` was optional and defaulted to a Rhinestone-internal
-service. If you never set it, you were using ours — set it now. See
-[migration](/deposits/widget/migration).
-</Note>
 
 ## Minimal proxy
 
@@ -108,7 +102,7 @@ Missing a route doesn't degrade the flow — the request 404s and that part of t
 
 | Method | Route | Used for |
 |---|---|---|
-| `POST` | `/register-managed` | Registering the deposit account. **Required from modal v0.9.0** |
+| `POST` | `/register-managed` | Registering the deposit account. **Required** |
 | `POST` | `/quotes/preview` | Indicative fee/time quote on the review screen |
 | `GET` | `/check/:address` | Registration + target lookup |
 | `GET` | `/portfolio/:address` | EVM balances |
@@ -124,7 +118,7 @@ Missing a route doesn't degrade the flow — the request 404s and that part of t
 | `POST` | `/onramp/swapped/connect-url` | Exchange connect |
 | `GET` | `/onramp/swapped/connect-exchanges` | Exchange list |
 | `GET` | `/onramp/swapped/status/:smartAccount` | On-ramp order status |
-| `POST` | `/safe/withdraw` | Relaying a signed Safe transfer with sponsored gas. **Not used by the modal from v0.9.0** — proxy it only if your own [`onSendTransaction`](/deposits/widget/withdraw-modal#executing-the-transfer) relays through it |
+| `POST` | `/safe/withdraw` | Relaying a signed Safe transfer with sponsored gas. Not used by the modal — proxy it only if your own [`onSendTransaction`](/deposits/widget/withdraw-modal#executing-the-transfer) relays through it |
 
 <Warning>
 Proxy `GET /setup` only, never `POST /setup`. The POST is an admin write — it rotates
@@ -147,7 +141,7 @@ header fails the **whole request** at preflight against a proxy with a fixed
 allow-list, not just the header. Deploy proxy changes before the modal that needs them.
 </Warning>
 
-The header tells us which versions are live, so we can warn you about one with a known bug and reproduce issues against the build you're running. Forwarding it upstream is optional. To read the value in your own app, for a bug report:
+Forwarding it upstream is optional, but it lets a support request be matched to the exact build you're running. To read the value in your own app, for a bug report:
 
 ```ts
 import { MODAL_VERSION } from "@rhinestone/deposit-modal/constants";

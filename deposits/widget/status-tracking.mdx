@@ -40,8 +40,7 @@ If the bridge fails after submission, `"failed"` is emitted instead of
 <Warning>
 `"connected"` fires only for wallet funding. QR transfer, fiat on-ramp and exchange
 connect involve no wallet, so it never fires — use `onReady` if you need a "flow
-started" signal. Before v0.9.0 it fired with the declared address as though a wallet
-had connected.
+started" signal.
 </Warning>
 
 ## onLifecycle

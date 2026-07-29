@@ -63,10 +63,3 @@ Toggle UI elements, set deposit constraints, and control fee display via `uiConf
 | `maxDepositUsd` | `number` | — | Maximum deposit amount in USD |
 | `feeSponsored` | `boolean` | `false` | When `true`, the network/protocol fee renders struck-through on the review, processing, and result screens, with a tooltip explaining the sponsorship |
 | `feeTooltip` | `string` | — | Custom copy for the fee info tooltip. Defaults to a generic message based on `feeSponsored`. |
-
-<Note>
-`checkLiquidity` was removed in v0.9.0. It cost an orchestrator round trip per
-continue to compute a warning the review screen never rendered. The liquidity cap
-is still checked and shown where it matters — on the QR / transfer screen. See
-[migration](/deposits/widget/migration).
-</Note>

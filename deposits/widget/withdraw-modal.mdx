@@ -88,10 +88,6 @@ Safe's `eth_sign` path requires adding 4 to the `v` value of a `personal_sign` s
 
 To keep gas sponsored, relay the signed transaction through `POST /safe/withdraw` on your proxy rather than submitting `execTransaction` from the user's wallet. Note that a relayed transaction cannot use Safe's pre-validated (`v = 1`) signature shortcut: that only validates when `msg.sender` is the owner, and for a relayed call the sender is the relayer.
 
-<Note>
-Before v0.9.0 the modal did all of this internally, behind a `safeAddress` prop and an `onSignTransaction` callback. See [migration](/deposits/widget/migration) if you are upgrading.
-</Note>
-
 ## Props reference
 
 ### Required
@@ -116,10 +112,9 @@ Before v0.9.0 the modal did all of this internally, behind a `safeAddress` prop 
 | `defaultAmount` | `string` | — | Pre-filled withdrawal amount |
 
 <Note>
-`targetChain` and `targetToken` became **optional** in v0.9.0 — they only ever
-seeded the form, which lets the user pick any supported destination. Omit them to
-open on a same-chain, same-token withdrawal. `allowedRoutes` was removed in the same
-release; see [migration](/deposits/widget/migration).
+`targetChain` and `targetToken` are optional — they seed the form, and the user can
+pick any supported destination. Omit them to open on a same-chain, same-token
+withdrawal.
 </Note>
 
 ### Account
