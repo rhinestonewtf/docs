@@ -9,8 +9,34 @@ All three modals take it as a required `backendUrl`. There is no default — poi
 
 Two ways to get one:
 
+- **Deploy Rhinestone's.** The proxy we run for clients, open source and configurable — see [deploy Rhinestone's proxy](#deploy-the-rhinestone-proxy).
 - **Write your own.** A route table and a header — see [minimal proxy](#minimal-proxy).
-- **Deploy Rhinestone's.** We're open-sourcing the proxy we run for clients, so you can deploy it as-is. Coming soon.
+
+## Deploy the Rhinestone proxy
+
+[`rhinestonewtf/deposit-widget-proxy`](https://github.com/rhinestonewtf/deposit-widget-proxy) is the proxy Rhinestone runs, packaged so you can deploy it as-is. It covers every route in the [table below](#required-routes), and adds two things a hand-written proxy doesn't get for free: [regional payment methods](#regional-payment-methods) and a verifying [refund route](/deposits/widget/claim-modal).
+
+It needs one variable — your API key:
+
+```bash
+git clone https://github.com/rhinestonewtf/deposit-widget-proxy
+cd deposit-widget-proxy
+docker build -t deposit-widget-proxy .
+docker run -p 4000:4000 -e RHINESTONE_API_KEY=your-key deposit-widget-proxy
+```
+
+Point `backendUrl` at it and check `GET /health`. Everything else is optional and documented in the repository's [README](https://github.com/rhinestonewtf/deposit-widget-proxy#configuration):
+
+| Variable | Purpose |
+|---|---|
+| `RHINESTONE_API_KEY` | Attached as `x-api-key` upstream. The process exits if it's unset |
+| `DEPOSIT_SERVICE_URL` | The upstream processor. Defaults to production |
+| `REFUND_TOKEN_SECRET` | Opts into [self-service refunds](/deposits/widget/claim-modal). Unset, that route isn't registered |
+| `TRUSTED_COUNTRY_HEADER`, `TRUSTED_PROXY_HOPS`, `TRUSTED_PROXY_CIDRS` | [Regional payment methods](#regional-payment-methods) |
+
+<Note>
+You still hold your own key, and the proxy still runs in your infrastructure — deploying ours changes who wrote the route table, not who the deposits ride on.
+</Note>
 
 ## Minimal proxy
 
@@ -35,11 +61,12 @@ const ROUTES: [method: "get" | "post", path: string][] = [
   ["get", "/liquidity"],
   ["get", "/prices"],
   ["get", "/setup"],
-  ["get", "/tokens"],
+  ["get", "/qr/tokens"],
   ["post", "/polymarket/withdraw"],
   ["post", "/onramp/swapped/widget-url"],
   ["post", "/onramp/swapped/connect-url"],
   ["get", "/onramp/swapped/connect-exchanges"],
+  ["get", "/onramp/swapped/payment-methods"],
   ["get", "/onramp/swapped/status/:smartAccount"],
   // Add ["post", "/safe/withdraw"] only if your onSendTransaction relays through
   // it. Do NOT add /deposits/refund here — see below.
@@ -111,7 +138,8 @@ Missing a route doesn't degrade the flow — the request 404s and that part of t
 | `GET` | `/liquidity` | Route liquidity check |
 | `GET` | `/prices` | USD pricing |
 | `GET` | `/setup` | Your client config (source-token allowlist, minimums) |
-| `GET` | `/tokens` | Static top-tokens list for the QR flow |
+| `GET` | `/qr/tokens` | Suggested source tokens for the QR flow, filtered to what your config accepts. Called `/tokens` before v0.9.0 |
+| `GET` | `/onramp/swapped/payment-methods` | Fiat methods for the user's region. See [regional payment methods](#regional-payment-methods) |
 | `POST` | `/deposits/refund` | [Self-service refunds](/deposits/widget/claim-modal). **Not a plain passthrough** — needs a token-verifying handler, see [above](#refunds-are-not-a-route-table-entry) |
 | `POST` | `/polymarket/withdraw` | Polymarket withdrawals |
 | `POST` | `/onramp/swapped/widget-url` | Fiat on-ramp |
@@ -146,6 +174,21 @@ Forwarding it upstream is optional, but it lets a support request be matched to 
 ```ts
 import { MODAL_VERSION } from "@rhinestone/deposit-modal/constants";
 ```
+
+## Regional payment methods
+
+Fiat on-ramp methods vary by country, and your proxy is the only component that can see the end user: the processor sits behind it and only ever observes your proxy's address. So `GET /onramp/swapped/payment-methods` returns the generic method set unless your proxy names the user's region.
+
+You do **not** need a GeoIP database — the processor owns the lookup. The proxy only names what it observed, which takes one of two variables:
+
+- `TRUSTED_COUNTRY_HEADER` — you're behind a CDN that already resolves country, so forward its header (`cf-ipcountry`, `x-vercel-ip-country`, `cloudfront-viewer-country`).
+- `TRUSTED_PROXY_HOPS` — nothing resolves it for you, so relay the client IP and let the processor resolve it.
+
+Either one also requires `TRUSTED_PROXY_CIDRS`, an allowlist of the peers permitted to set forwarding headers. Without it any browser could send `x-forwarded-for` or `cf-ipcountry` and choose its own region, so [Rhinestone's proxy](#deploy-the-rhinestone-proxy) refuses to start when you set one without the other. See its [README](https://github.com/rhinestonewtf/deposit-widget-proxy#regional-payment-methods) for the details, including why hops are counted from the right.
+
+<Note>
+Every path here fails closed. A wrong setting costs you localization, not correctness: you get the generic method set rather than a region that isn't the user's. A hand-written proxy that relays nothing behaves exactly as it does today.
+</Note>
 
 ## Webhooks
 
