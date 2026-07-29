@@ -343,8 +343,7 @@ New in v0.3.0; existing code keeps working:
   deposit" row (`appBalanceUsd + amount`) instead of fetching a portfolio
   balance.
 - **`dappImports?: DappImportsConfig`** on `<DepositModal>` — pull balances from
-  third-party apps. Renamed to `assetMigrations` in v0.9.0; see
-  [migrate assets from other apps](/deposits/widget/deposit-modal#migrate-assets-from-other-apps).
+  third-party apps. See [migrating assets](/deposits/widget/deposit-modal#migrate-assets-from-other-apps).
 - **`defaultAmount: "max"`** — defaults the input to the user's full
   source-token balance.
 - **Solana destinations** — `targetChain: Chain | number | "solana"`,
@@ -360,10 +359,6 @@ New in v0.3.0; existing code keeps working:
 keep their names and signatures.
 
 <Note>
-Scoped to v0.3.0 — several of these changed again in v0.9.0. On `<WithdrawModal>`,
-`onRequestConnect`, `dappWalletClient`, `dappPublicClient` and `reownAppId` were
-removed and `onSignTransaction` became `onSendTransaction`. On `<DepositModal>`,
-`dappWalletClient` / `dappPublicClient` were renamed to `walletClient` /
-`publicClient`; `reownAppId`, `onRequestConnect` and the styles export are unchanged.
-See the v0.9.0 section at the top of this page.
+Scoped to v0.3.0. Several of these changed again in v0.9.0 — see the v0.8.x → v0.9.0
+section at the top of this page.
 </Note>

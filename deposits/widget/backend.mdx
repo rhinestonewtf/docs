@@ -20,7 +20,7 @@ service. If you never set it, you were using ours — set it now. See
 
 ## Minimal proxy
 
-A proxy is a route table plus a header.
+A proxy is an explicit route table plus a header. The allowlist is the security boundary — see the warning below.
 
 ```ts
 import { Hono } from "hono";
@@ -29,33 +29,62 @@ import { cors } from "hono/cors";
 const UPSTREAM = "https://v1.orchestrator.rhinestone.dev/deposit-processor";
 const MODAL_VERSION_HEADER = "x-deposit-modal-version";
 
+// Every route the modal calls, and nothing else. `:param` segments are matched
+// by Hono, so a request can only reach a shape you listed here.
+const ROUTES: [method: "get" | "post", path: string][] = [
+  ["post", "/register-managed"],
+  ["post", "/quotes/preview"],
+  ["get", "/check/:address"],
+  ["get", "/portfolio/:address"],
+  ["get", "/portfolio/solana/:address"],
+  ["get", "/deposits"],
+  ["get", "/liquidity"],
+  ["get", "/prices"],
+  ["get", "/setup"],
+  ["get", "/tokens"],
+  ["post", "/polymarket/withdraw"],
+  ["post", "/onramp/swapped/widget-url"],
+  ["post", "/onramp/swapped/connect-url"],
+  ["get", "/onramp/swapped/connect-exchanges"],
+  ["get", "/onramp/swapped/status/:smartAccount"],
+  // Add ["post", "/deposits/refund"] only if you run the claim flow, and
+  // ["post", "/safe/withdraw"] only if your onSendTransaction relays through it.
+];
+
 const app = new Hono();
 app.use("*", cors());
 
-app.all("/*", async (c) => {
-  const url = new URL(c.req.url);
+for (const [method, path] of ROUTES) {
+  app[method](path, async (c) => {
+    const url = new URL(c.req.url);
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "x-api-key": process.env.RHINESTONE_API_KEY!,
-  };
-  const modalVersion = c.req.header(MODAL_VERSION_HEADER);
-  if (modalVersion) headers[MODAL_VERSION_HEADER] = modalVersion;
+    // A fresh header set, never the incoming one: the browser must not be able
+    // to set `x-api-key` itself.
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "x-api-key": process.env.RHINESTONE_API_KEY!,
+    };
+    const modalVersion = c.req.header(MODAL_VERSION_HEADER);
+    if (modalVersion) headers[MODAL_VERSION_HEADER] = modalVersion;
 
-  const res = await fetch(`${UPSTREAM}${url.pathname}${url.search}`, {
-    method: c.req.method,
-    headers,
-    body: c.req.method === "GET" ? undefined : await c.req.text(),
+    const res = await fetch(`${UPSTREAM}${url.pathname}${url.search}`, {
+      method: c.req.method,
+      headers,
+      body: method === "get" ? undefined : await c.req.text(),
+    });
+    return new Response(res.body, { status: res.status });
   });
-  return new Response(res.body, { status: res.status });
-});
+}
 
 export default app;
 ```
 
-Note that it builds a **fresh** header set rather than passing the incoming ones through — the browser must not be able to set `x-api-key` itself.
-
-Forward only the routes below, rather than everything. A blanket passthrough also exposes the admin writes on the same upstream.
+<Warning>
+Do **not** replace that loop with a wildcard passthrough (`app.all("/*", …)`). The
+proxy attaches your API key to whatever reaches it, so a wildcard hands the browser
+every write on the upstream — including `POST /setup`, which rotates your webhook
+secret and sponsorship config. The route list is what stops that.
+</Warning>
 
 ## Required routes
 
