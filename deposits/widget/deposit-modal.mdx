@@ -11,12 +11,6 @@ The `DepositModal` component handles the full deposit flow: funding method, sour
 
 The deposit account is [service-managed](#account-setup) and derived from `(recipient, targetChain, targetToken)`, so it doesn't depend on which wallet the user pays from — or on a wallet existing at all. Changing the target changes the deposit address.
 
-<Note>
-Before v0.9.0 the account was derived from the connected wallet, and a `dappAddress`
-prop carried the user's identity through the flow. Both are gone — see
-[migration](/deposits/widget/migration).
-</Note>
-
 ## Connecting a wallet
 
 Three options. The wallet is optional in all of them.
@@ -154,22 +148,19 @@ The check fails open — an RPC error lets the flow continue rather than false-b
 
 ### Restricting which sources you accept
 
-Which chains and tokens you accept is your project's **deposit whitelist**, set via `POST /setup` and enforced by the processor when a deposit arrives. Configure it there rather than in the modal.
+Which chains and tokens you accept is your project's **deposit whitelist**, set via `POST /setup` and enforced by the processor when a deposit arrives. Configure it there rather than in the modal. To offer a restricted subset, use an API key whose whitelist matches.
 
-<Note>
-The `allowedRoutes` prop was removed in v0.9.0. It filtered the pickers on the
-client only, with no enforcement behind it — so a whitelist and an `allowedRoutes`
-list that drifted apart would offer the user a source the processor then rejected.
-To offer a restricted subset, use an API key whose whitelist matches. See
-[migration](/deposits/widget/migration).
-</Note>
+<Warning>
+Filtering the pickers client-side instead offers the user a source the processor then
+rejects, as soon as the two lists drift apart. The whitelist is the only place the
+restriction is enforced.
+</Warning>
 
 ## Account setup
 
-From v0.9.0 the modal uses **service-managed accounts**: the deposit account is
-owned by Rhinestone and settles to your `recipient`, so there is no session key
-to configure and the user is never asked to sign during setup. The
-`signerAddress` and `sessionChainIds` props were removed in that release.
+The modal uses **service-managed accounts**: the deposit account is owned by
+Rhinestone and settles to your `recipient`, so there is no session key to configure
+and the user is never asked to sign during setup.
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
@@ -216,15 +207,9 @@ deposit entry screen and opens a picker over that provider's positions. The user
 picks one, and the modal pulls the funds into their smart account and bridges
 them to `targetChain` / `targetToken` like any other source.
 
-| Key | Status |
-|---|---|
-| `polymarket` | Live |
-| `hyperliquid` | Coming soon |
-| `aave` | Coming soon |
-| `morpho` | Coming soon |
-
-Only the providers you enable are listed. Enabling one that isn't live yet shows it
-as a disabled "Coming soon" row rather than hiding it.
+`polymarket` is the provider available today. Only the providers you enable are
+listed, and one that isn't available yet renders as a disabled row rather than being
+hidden.
 
 ### Polymarket
 
@@ -391,8 +376,8 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 See [status tracking](/deposits/widget/status-tracking) for lifecycle event payloads.
 
 <Note>
-`enableSolana` was removed in v0.9.0. Solana sources follow your project's deposit
-whitelist like every other source, so there is no separate client-side toggle.
+Solana sources follow your project's deposit whitelist like every other source —
+there is no separate client-side toggle.
 </Note>
 
 ## Content security policy
