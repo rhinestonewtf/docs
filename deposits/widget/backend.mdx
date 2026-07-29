@@ -155,7 +155,7 @@ Missing a route doesn't degrade the flow — the request 404s and that part of t
 | `GET` | `/qr/tokens` | Suggested source tokens for the QR flow, filtered to what your config accepts |
 | `GET` | `/onramp/swapped/payment-methods` | Fiat methods for the user's region. See [regional payment methods](#regional-payment-methods) |
 | `POST` | `/deposits/recover` | [Self-service recovery](/deposits/widget/claim-modal), authorized by the user's signature |
-| `GET` | `/positions/:address` | DeFi positions the user can migrate. Only for [asset migrations](/deposits/widget/deposit-modal#migrate-assets-from-other-apps) |
+| `GET` | `/positions/:address` | DeFi positions the user can migrate. Only for [asset migrations](/deposits/widget/asset-migrations) |
 | `POST` | `/positions/:address/unwind` | Builds the unsigned exit transaction for one position. Only for asset migrations |
 | `POST` | `/polymarket/withdraw` | Polymarket withdrawals |
 | `POST` | `/onramp/swapped/widget-url` | Fiat on-ramp |

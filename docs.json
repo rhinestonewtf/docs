@@ -403,6 +403,7 @@
               "deposits/widget/quickstart",
               "deposits/widget/backend",
               "deposits/widget/deposit-modal",
+              "deposits/widget/asset-migrations",
               "deposits/widget/withdraw-modal",
               "deposits/widget/claim-modal",
               "deposits/widget/customization",
