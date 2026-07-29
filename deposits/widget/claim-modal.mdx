@@ -44,6 +44,8 @@ The proxy takes **every** field of the upstream refund from the signed token and
 
 The route registers only when `REFUND_TOKEN_SECRET` is set. That's a registration gate rather than a 401 inside the handler, so bumping the proxy version can't silently expose an endpoint that spends your API key.
 
+[Rhinestone's proxy](/deposits/widget/backend#deploy-the-rhinestone-proxy) implements this already — see its [refund token contract](https://github.com/rhinestonewtf/deposit-widget-proxy#self-service-refunds) for the exact claims to sign. Note that `recipient` there is the user's in-app recipient, checked for ownership, while `destination` is where the money goes.
+
 ```tsx
 import { ClaimModal } from "@rhinestone/deposit-modal/claim";
 import "@rhinestone/deposit-modal/styles.css";
