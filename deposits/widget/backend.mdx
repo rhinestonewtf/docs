@@ -12,6 +12,11 @@ Two ways to get one:
 - **Deploy Rhinestone's.** Open source and configurable — see [deploy the Rhinestone proxy](#deploy-the-rhinestone-proxy).
 - **Write your own.** A route table and a header — see [minimal proxy](#minimal-proxy).
 
+<Warning>
+If you have a deployed integration that never set `backendUrl`, it is running on
+Rhinestone's API key rather than yours. Point it at your own proxy.
+</Warning>
+
 ## Deploy the Rhinestone proxy
 
 [`rhinestonewtf/deposit-widget-proxy`](https://github.com/rhinestonewtf/deposit-widget-proxy) is the proxy Rhinestone runs, packaged so you can deploy it as-is. It covers every route in the [table below](#required-routes), and adds [regional payment methods](#regional-payment-methods) — which a hand-written proxy can't do, since resolving the user's country needs the edge that actually sees them.
@@ -157,7 +162,7 @@ Missing a route doesn't degrade the flow — the request 404s and that part of t
 | `POST` | `/onramp/swapped/connect-url` | Exchange connect |
 | `GET` | `/onramp/swapped/connect-exchanges` | Exchange list |
 | `GET` | `/onramp/swapped/status/:smartAccount` | On-ramp order status |
-| `POST` | `/safe/withdraw` | Relaying a signed Safe transfer with sponsored gas. Not used by the modal — proxy it only if your own [`onSendTransaction`](/deposits/widget/withdraw-modal#executing-the-transfer) relays through it |
+| `POST` | `/safe/withdraw` | Relaying a signed Safe transfer with sponsored gas. **Not called by the modal** — proxy it only if your own [`onSendTransaction`](/deposits/widget/withdraw-modal#executing-the-transfer) relays through it |
 
 <Warning>
 Proxy `GET /setup` only, never `POST /setup`. The POST is an admin write — it rotates

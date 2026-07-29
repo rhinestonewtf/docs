@@ -32,9 +32,9 @@ npm install @reown/appkit-adapter-solana @solana/web3.js @solana/spl-token
 ```
 
 <Note>
-All five of the above are **optional** peers. An app that supplies its own wallet
-client never loads Reown — the modal imports it lazily, so it stays out of your
-bundle entirely.
+All five of the above are **optional** peer dependencies. An app that supplies its
+own wallet client never loads Reown — the modal imports it lazily, so it stays out
+of your bundle entirely.
 </Note>
 
 The modal ships with its own `wagmi` and `@tanstack/react-query` providers — you do not need to wrap your app with `WagmiProvider` or `QueryClientProvider`.

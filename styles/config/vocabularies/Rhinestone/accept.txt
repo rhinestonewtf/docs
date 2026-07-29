@@ -193,3 +193,12 @@ KYC
 iframes?
 WebViews?
 prefill(s|ed)?
+
+# Deposit widget (0.9.0 docs). Possessive forms follow the `validator('?s)?`
+# pattern already used above — Vale flags `Swapped's` even though `Swapped` is a
+# dictionary word.
+Swapped('?s)?
+widget('?s)?
+signable
+untrusted
+fundable
