@@ -27,6 +27,12 @@ If retry keeps failing, the funds may not be automatically recoverable — refun
 
 Refunds return a failed deposit's funds to an address you choose. Only Owners and Admins can refund.
 
+<Tip>
+To let users recover their own failed deposits without going through you, embed the
+[claim modal](/deposits/widget/claim-modal) — the user pastes the deposit's
+transaction hash and your app authorizes the refund.
+</Tip>
+
 <Steps>
 <Step title="Open the deposit and press Refund">
 

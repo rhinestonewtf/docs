@@ -397,7 +397,20 @@
         "tab": "Deposits",
         "pages": [
           "deposits/overview",
-          "deposits/demo",
+          {
+            "group": "Widget",
+            "pages": [
+              "deposits/widget/quickstart",
+              "deposits/widget/backend",
+              "deposits/widget/deposit-modal",
+              "deposits/widget/withdraw-modal",
+              "deposits/widget/claim-modal",
+              "deposits/widget/customization",
+              "deposits/widget/status-tracking",
+              "deposits/widget/migration",
+              "deposits/demo"
+            ]
+          },
           {
             "group": "API",
             "pages": [
@@ -409,17 +422,6 @@
               "deposits/api/fees",
               "deposits/api/sponsorship",
               "deposits/api/status-tracking"
-            ]
-          },
-          {
-            "group": "Widget",
-            "pages": [
-              "deposits/widget/quickstart",
-              "deposits/widget/deposit-modal",
-              "deposits/widget/withdraw-modal",
-              "deposits/widget/customization",
-              "deposits/widget/status-tracking",
-              "deposits/widget/migration"
             ]
           },
           "deposits/troubleshooting"

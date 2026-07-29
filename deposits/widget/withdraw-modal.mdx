@@ -17,6 +17,7 @@ import "@rhinestone/deposit-modal/styles.css";
   isOpen={isOpen}
   onClose={() => setIsOpen(false)}
   accountAddress="0xACCOUNT_HOLDING_THE_FUNDS"
+  backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL}
   sourceChain={8453}
   sourceToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   targetChain={10}
@@ -102,30 +103,35 @@ Before v0.9.0 the modal did all of this internally, behind a `safeAddress` prop 
 | `accountAddress` | `Address` | Account holding the funds being withdrawn |
 | `sourceChain` | `Chain \| number` | Chain where the account holds funds |
 | `sourceToken` | `Address` | Token to withdraw |
-| `targetChain` | `Chain \| number` | Default destination chain — the user can change it |
-| `targetToken` | `Address` | Default token to receive — the user can change it |
 | `onSendTransaction` | `(request: WithdrawTransferRequest) => Promise<{ txHash: Hex }>` | Performs the transfer and returns its on-chain hash |
+| `backendUrl` | `string` | Your [backend proxy](/deposits/widget/backend), which holds your API key |
 
 ### Transfer
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
+| `targetChain` | `Chain \| number` | `sourceChain` | Seeds the destination chain; the user can change it |
+| `targetToken` | `Address` | `sourceToken` | Seeds the token to receive; the user can change it |
 | `recipient` | `Address` | — | Pre-fills the delivery address; the user can edit it |
 | `defaultAmount` | `string` | — | Pre-filled withdrawal amount |
-| `allowedRoutes` | `RouteConfig` | — | Restrict available routes |
+
+<Note>
+`targetChain` and `targetToken` became **optional** in v0.9.0 — they only ever
+seeded the form, which lets the user pick any supported destination. Omit them to
+open on a same-chain, same-token withdrawal. `allowedRoutes` was removed in the same
+release; see [migration](/deposits/widget/migration).
+</Note>
 
 ### Account
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `forceRegister` | `boolean` | `false` | Re-register even if the account already exists |
-| `rhinestoneApiKey` | `string` | — | API key for account setup |
 
 ### Backend
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `backendUrl` | `string` | Rhinestone production URL | URL of your deposit-widget-backend instance. Self-hosting a custom proxy? See [version header pass-through](/deposits/widget/deposit-modal#version-header-pass-through) |
 | `rpcUrls` | `RpcUrlMap` | Chain defaults | Per-chain RPC overrides keyed by EVM chain id. Used for balance reads; chains left unset use their default RPC |
 
 ### Display

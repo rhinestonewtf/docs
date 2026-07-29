@@ -1,0 +1,158 @@
+---
+title: "Backend"
+description: "The widget needs a proxy holding your Rhinestone API key. Write one, or deploy Rhinestone's."
+---
+
+The widget runs in the browser, so it can't hold your Rhinestone API key — the key authorizes writes against your project, from registering accounts to spending sponsorship. Every request the modal makes goes to a proxy **you** run, which attaches the key and forwards to the deposit processor.
+
+All three modals take it as a required `backendUrl`. There is deliberately no default: a Rhinestone-operated fallback would mean your users' deposits ride our key.
+
+Two ways to get one:
+
+- **Write your own.** A route table and a header — see [minimal proxy](#minimal-proxy).
+- **Deploy Rhinestone's.** We're open-sourcing the proxy we run for clients, so you can deploy it as-is. Coming soon.
+
+<Note>
+Before v0.9.0 `backendUrl` was optional and defaulted to a Rhinestone-internal
+service. If you never set it, you were using ours — set it now. See
+[migration](/deposits/widget/migration).
+</Note>
+
+## Minimal proxy
+
+A proxy is an explicit route table plus a header. The allowlist is the security boundary — see the warning below.
+
+```ts
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+
+const UPSTREAM = "https://v1.orchestrator.rhinestone.dev/deposit-processor";
+const MODAL_VERSION_HEADER = "x-deposit-modal-version";
+
+// Every route the modal calls, and nothing else. `:param` segments are matched
+// by Hono, so a request can only reach a shape you listed here.
+const ROUTES: [method: "get" | "post", path: string][] = [
+  ["post", "/register-managed"],
+  ["post", "/quotes/preview"],
+  ["get", "/check/:address"],
+  ["get", "/portfolio/:address"],
+  ["get", "/portfolio/solana/:address"],
+  ["get", "/deposits"],
+  ["get", "/liquidity"],
+  ["get", "/prices"],
+  ["get", "/setup"],
+  ["get", "/tokens"],
+  ["post", "/polymarket/withdraw"],
+  ["post", "/onramp/swapped/widget-url"],
+  ["post", "/onramp/swapped/connect-url"],
+  ["get", "/onramp/swapped/connect-exchanges"],
+  ["get", "/onramp/swapped/status/:smartAccount"],
+  // Add ["post", "/safe/withdraw"] only if your onSendTransaction relays through
+  // it. Do NOT add /deposits/refund here — see below.
+];
+
+const app = new Hono();
+app.use("*", cors());
+
+for (const [method, path] of ROUTES) {
+  app[method](path, async (c) => {
+    const url = new URL(c.req.url);
+
+    // A fresh header set, never the incoming one: the browser must not be able
+    // to set `x-api-key` itself.
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "x-api-key": process.env.RHINESTONE_API_KEY!,
+    };
+    const modalVersion = c.req.header(MODAL_VERSION_HEADER);
+    if (modalVersion) headers[MODAL_VERSION_HEADER] = modalVersion;
+
+    const res = await fetch(`${UPSTREAM}${url.pathname}${url.search}`, {
+      method: c.req.method,
+      headers,
+      body: method === "get" ? undefined : await c.req.text(),
+    });
+    return new Response(res.body, { status: res.status });
+  });
+}
+
+export default app;
+```
+
+<Warning>
+Do **not** replace that loop with a wildcard passthrough (`app.all("/*", …)`). The
+proxy attaches your API key to whatever reaches it, so a wildcard hands the browser
+every write on the upstream — including `POST /setup`, which rotates your webhook
+secret and sponsorship config. The route list is what stops that.
+</Warning>
+
+### Refunds are not a route-table entry
+
+`POST /deposits/refund` cannot be forwarded like the routes above. Every route in
+that loop passes the browser's body straight through with your API key attached —
+which for a refund means anyone could return any of your recoverable deposits to an
+address they chose.
+
+It needs a handler that authorizes the specific refund, and derives the upstream
+call from that authorization rather than from the request body:
+
+- **your own route** — use [`createRefundHandler`](/deposits/widget/claim-modal#implementing-the-endpoint), which checks the deposit belongs to the caller before spending the key
+- **a proxy** — verify a per-refund `x-user-token` and take *every* upstream field from the token, ignoring the body
+
+Register it only when that verification is in place. See
+[claim modal](/deposits/widget/claim-modal#why-your-app-authorizes-it).
+
+## Required routes
+
+Missing a route doesn't degrade the flow — the request 404s and that part of the modal stops working.
+
+| Method | Route | Used for |
+|---|---|---|
+| `POST` | `/register-managed` | Registering the deposit account. **Required from modal v0.9.0** |
+| `POST` | `/quotes/preview` | Indicative fee/time quote on the review screen |
+| `GET` | `/check/:address` | Registration + target lookup |
+| `GET` | `/portfolio/:address` | EVM balances |
+| `GET` | `/portfolio/solana/:address` | Solana balances |
+| `GET` | `/deposits` | Deposit status + history |
+| `GET` | `/liquidity` | Route liquidity check |
+| `GET` | `/prices` | USD pricing |
+| `GET` | `/setup` | Your client config (source-token allowlist, minimums) |
+| `GET` | `/tokens` | Static top-tokens list for the QR flow |
+| `POST` | `/deposits/refund` | [Self-service refunds](/deposits/widget/claim-modal). **Not a plain passthrough** — needs a token-verifying handler, see [above](#refunds-are-not-a-route-table-entry) |
+| `POST` | `/polymarket/withdraw` | Polymarket withdrawals |
+| `POST` | `/onramp/swapped/widget-url` | Fiat on-ramp |
+| `POST` | `/onramp/swapped/connect-url` | Exchange connect |
+| `GET` | `/onramp/swapped/connect-exchanges` | Exchange list |
+| `GET` | `/onramp/swapped/status/:smartAccount` | On-ramp order status |
+| `POST` | `/safe/withdraw` | Relaying a signed Safe transfer with sponsored gas. **Not used by the modal from v0.9.0** — proxy it only if your own [`onSendTransaction`](/deposits/widget/withdraw-modal#executing-the-transfer) relays through it |
+
+<Warning>
+Proxy `GET /setup` only, never `POST /setup`. The POST is an admin write — it rotates
+your webhook secret and sponsorship config — and must not be reachable from a browser.
+</Warning>
+
+## CORS and the version header
+
+All three modals send `x-deposit-modal-version` on every request. Browsers reject a request carrying a header the server didn't allow on the preflight, so an explicit allow-list must include it:
+
+```ts
+allowHeaders: ["Content-Type", "x-deposit-modal-version"]
+```
+
+Bare `cors()` in Hono is fine — with no `allowHeaders` it reflects whatever the preflight asks for.
+
+<Warning>
+This bites on upgrade, not on first deploy. A modal version that starts sending a new
+header fails the **whole request** at preflight against a proxy with a fixed
+allow-list, not just the header. Deploy proxy changes before the modal that needs them.
+</Warning>
+
+The header tells us which versions are live, so we can warn you about one with a known bug and reproduce issues against the build you're running. Forwarding it upstream is optional. To read the value in your own app, for a bug report:
+
+```ts
+import { MODAL_VERSION } from "@rhinestone/deposit-modal/constants";
+```
+
+## Webhooks
+
+The widget's [lifecycle callbacks](/deposits/widget/status-tracking) fire only while the modal is open, so a user who closes it mid-bridge leaves your app unaware the deposit completed. Anything that must happen regardless — crediting a balance, sending a receipt — belongs on a [webhook](/deposits/api/status-tracking) handler. Configure it once with `POST /setup`.

@@ -5,25 +5,41 @@ description: "Add the deposit widget to your React app and accept cross-chain de
 
 Install the `@rhinestone/deposit-modal` package, render the modal, and handle a completed deposit.
 
-This quickstart uses **external wallet mode** with Reown for wallet connection. If you don't want to set up Reown, the modal also supports [QR code deposits](/deposits/widget/deposit-modal#qr-code-deposit) (no wallet connection) and [embedded wallets](/deposits/widget/deposit-modal#embedded-wallet) (Privy, Dynamic, Turnkey, etc.).
+This quickstart has the modal connect the wallet itself, via Reown. If you don't want to set up Reown, the modal also works with [a wallet your app already has connected](/deposits/widget/deposit-modal#you-supply-one) (Privy, Dynamic, Turnkey, wagmi) or [with no wallet at all](/deposits/widget/deposit-modal#no-wallet-at-all) — QR transfer, fiat on-ramp, or exchange connect.
 
 ## Prerequisites
 
 - A React 18+ app (Next.js, Vite, or similar)
 - A [Rhinestone API key](https://tally.so/r/wg22x4)
-- A [Reown](https://cloud.reown.com/) project ID (for wallet connection)
+- A [Reown](https://cloud.reown.com/) project ID, if the modal is connecting the wallet
 
 ## Install
 
 ```bash
-npm install @rhinestone/deposit-modal viem wagmi @tanstack/react-query @reown/appkit @reown/appkit-adapter-wagmi @solana/web3.js @solana/spl-token
+npm install @rhinestone/deposit-modal viem wagmi @tanstack/react-query
+```
+
+Add Reown only if you want the modal to connect the wallet — these are optional peer dependencies, so skip them when you pass your own `walletClient` or run a flow with no wallet:
+
+```bash
+npm install @reown/appkit @reown/appkit-adapter-wagmi
+```
+
+For Solana sources or destinations, add:
+
+```bash
+npm install @reown/appkit-adapter-solana @solana/web3.js @solana/spl-token
 ```
 
 <Note>
-`@solana/web3.js` and `@solana/spl-token` are required even for EVM-only apps because Solana support is enabled by default. To drop these dependencies, pass `enableSolana={false}` on the modal.
+All five of the above are **optional** peers as of v0.9.0. An app that supplies its
+own wallet client never loads Reown — the modal imports it lazily, so it stays out
+of your bundle entirely.
 </Note>
 
 The modal ships with its own `wagmi` and `@tanstack/react-query` providers — you do not need to wrap your app with `WagmiProvider` or `QueryClientProvider`.
+
+The package ships no `"use client"` directive, so in the Next.js App Router put it in a component that has one.
 
 <Steps>
 
@@ -48,6 +64,7 @@ function App() {
         targetChain={8453}
         targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
         recipient="0xYOUR_RECIPIENT_ADDRESS"
+        backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL!}
         reownAppId={process.env.NEXT_PUBLIC_REOWN_PROJECT_ID!}
       />
     </>
@@ -70,6 +87,7 @@ Add the `onLifecycle` callback and react to the `"complete"` event when tokens a
   targetChain={8453}
   targetToken="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
   recipient="0xYOUR_RECIPIENT_ADDRESS"
+  backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL!}
   reownAppId={process.env.NEXT_PUBLIC_REOWN_PROJECT_ID!}
   onLifecycle={(event) => {
     if (event.type === "complete") {
@@ -86,11 +104,19 @@ Add the `onLifecycle` callback and react to the `"complete"` event when tokens a
 
 </Steps>
 
+## Before production
+
+`backendUrl` above has to point at a real proxy — one you run, holding your API key. There is no default, because a default would put your users on someone else's key. See [backend](/deposits/widget/backend) for a minimal one and the routes it must forward.
+
+You'll also want [webhooks](/deposits/widget/backend#webhooks) for anything that must happen whether or not the modal is still open.
+
+See it running in the [live demo](https://demo.rhinestone.dev), whose [source](https://github.com/rhinestonewtf/deposit-widget-demo) is a working integration you can read.
+
 ## Next steps
 
 <CardGroup cols={2}>
   <Card title="Deposit modal" icon="arrow-down-to-line" href="/deposits/widget/deposit-modal">
-    Integration modes, transfer configuration, and full props reference.
+    Wallet options, funding methods, transfer configuration, and full props reference.
   </Card>
   <Card title="Customization" icon="palette" href="/deposits/widget/customization">
     Theme and UI configuration.
@@ -99,6 +125,9 @@ Add the `onLifecycle` callback and react to the `"complete"` event when tokens a
     Lifecycle events, callbacks, and error handling.
   </Card>
   <Card title="Withdraw modal" icon="arrow-up-from-line" href="/deposits/widget/withdraw-modal">
-    Withdraw tokens from a Safe to any supported chain.
+    Withdraw tokens to any supported chain, with your app performing the transfer.
+  </Card>
+  <Card title="Claim modal" icon="rotate-ccw" href="/deposits/widget/claim-modal">
+    Let users recover a failed or rejected deposit from its transaction hash.
   </Card>
 </CardGroup>

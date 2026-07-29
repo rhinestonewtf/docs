@@ -1,0 +1,201 @@
+---
+title: "Claim modal"
+description: "Let a user recover a failed or rejected deposit by pasting its transaction hash — no wallet connection."
+---
+
+The `ClaimModal` returns a failed or rejected EVM deposit to the user, on the chain it came from. The user pastes the deposit's transaction hash; the modal looks it up and asks your app to authorize the refund.
+
+No wallet is involved, and there is no source chain to pick — the hash is looked up across every chain, so a deposit that landed on a chain your deposit flow doesn't offer is still claimable.
+
+<Note>
+New in v0.9.0, on the `./claim` subpath. Applies to deposits in `failed` or `rejected`
+status; see [troubleshooting](/deposits/troubleshooting) for the dashboard equivalent.
+</Note>
+
+## Why your app authorizes it
+
+Deposit accounts are [service-managed](/deposits/widget/deposit-modal#account-setup), so no user wallet can sign for a refund, and an exchange-funded deposit has no signable sender either. Only your app knows which of its users a deposit belongs to, so `refundEndpoint` points at something you control.
+
+Two shapes, depending on where that endpoint lives:
+
+<Tabs>
+<Tab title="Your own route (same-origin)">
+
+The browser's session cookie travels with the request, so your route authenticates the user the way it always does. No token needed — omit `getUserToken`.
+
+```tsx
+import { ClaimModal } from "@rhinestone/deposit-modal/claim";
+import "@rhinestone/deposit-modal/styles.css";
+
+<ClaimModal
+  isOpen={isOpen}
+  onClose={() => setIsOpen(false)}
+  refundEndpoint="/api/refund"
+  backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL}
+/>
+```
+
+</Tab>
+<Tab title="A deposit-widget-proxy (cross-origin)">
+
+The cookie won't travel cross-origin, so `getUserToken` mints a short-lived token that the modal sends as `x-user-token`.
+
+The proxy takes **every** field of the upstream refund from the signed token and ignores the request body, so the token must carry the whole refund — not just the user's identity.
+
+The route registers only when `REFUND_TOKEN_SECRET` is set. That's a registration gate rather than a 401 inside the handler, so bumping the proxy version can't silently expose an endpoint that spends your API key.
+
+```tsx
+import { ClaimModal } from "@rhinestone/deposit-modal/claim";
+import "@rhinestone/deposit-modal/styles.css";
+
+<ClaimModal
+  isOpen={isOpen}
+  onClose={() => setIsOpen(false)}
+  refundEndpoint="https://proxy.example.com/deposits/refund"
+  backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL}
+  getUserToken={async (request) => {
+    const res = await fetch("/api/refund-token", {
+      method: "POST",
+      body: JSON.stringify(request),
+    });
+    return (await res.json()).token;
+  }}
+/>
+```
+
+<Warning>
+Bind the token to **this specific refund**, not to the user alone. An
+identity-only token is a bearer credential that can be spent on any destination —
+mint it from the `RefundRequest` you were handed and sign over its fields,
+including the destination.
+</Warning>
+
+</Tab>
+</Tabs>
+
+## Implementing the endpoint
+
+`@rhinestone/deposit-modal/server` exports `createRefundHandler`, which does everything except decide who the caller is. It verifies the deposit belongs to the recipient you name before spending your API key.
+
+```ts
+// app/api/refund/route.ts
+import { createRefundHandler } from "@rhinestone/deposit-modal/server";
+
+export const POST = createRefundHandler({
+  apiKey: process.env.RHINESTONE_API_KEY!,
+  async authorize(request) {
+    const session = await getSession(request);
+    return session ? { depositRecipient: session.depositRecipient } : null;
+  },
+});
+```
+
+It returns a `(Request) => Promise<Response>`, so it mounts in any fetch-based runtime — Next.js route handlers, Hono, `Bun.serve`, Cloudflare Workers.
+
+<Warning>
+Import from `@rhinestone/deposit-modal/server` only. It holds your API key and must
+never reach the browser.
+</Warning>
+
+### authorize
+
+Return the deposit recipient the caller owns, or `null` to reject with 401.
+
+| Field | Type | Description |
+|---|---|---|
+| `depositRecipient` | `string` | The deposit `recipient` this user owns — the same value you pass `<DepositModal>`. Used **only** to prove the deposit is theirs |
+| `refundDestination` | `string` | Optional. Where the refund is paid, overriding whatever the browser asked for |
+
+`depositRecipient` does not decide where money goes. The handler lists deposits settling to it and rejects a `txHash` that isn't among them — that's the whole job. One value covers every deposit account the user has, since the account salt includes the target chain and token.
+
+Set `refundDestination` whenever you already know where the user's money should go. Without it the page picks, and it could pick anything.
+
+<Warning>
+Never refund to an exchange deposit address. Exchanges don't credit arbitrary
+incoming transfers, so the funds **may be lost**. This is why the modal never defaults
+the destination to the deposit's sender.
+</Warning>
+
+### Request body
+
+The modal POSTs a `RefundRequest`. It comes from the page, so treat it as untrusted.
+
+| Field | Type | Description |
+|---|---|---|
+| `chain` | `string` | CAIP-2 source chain of the deposit, e.g. `"eip155:8453"` |
+| `txHash` | `string` | The deposit transaction the user pasted |
+| `account` | `string` | Managed account that received the deposit |
+| `token` | `string` | Source token address |
+| `destination` | `string` | Where the refunded funds should go, on the source chain |
+
+## Props reference
+
+### Required
+
+| Prop | Type | Description |
+|---|---|---|
+| `isOpen` | `boolean` | Controls modal visibility |
+| `onClose` | `() => void` | Called when the user closes the modal |
+| `refundEndpoint` | `string` | Endpoint the modal POSTs the refund to |
+| `backendUrl` | `string` | Your [backend proxy](/deposits/widget/backend), which holds your API key |
+
+### Authorization
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `getUserToken` | `(request: RefundRequest) => Promise<string>` | — | Mints a token authorizing exactly this refund, sent as `x-user-token`. Required when `refundEndpoint` is cross-origin |
+
+### Prefills
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `defaultTxHash` | `string` | — | Prefills the lookup field |
+| `defaultRefundDestination` | `Address` | — | Prefills the refund destination — a seed the user can edit, unlike `refundDestination`. Otherwise left empty |
+
+### Backend
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `rpcUrls` | `RpcUrlMap` | Chain defaults | Per-chain RPC overrides keyed by EVM chain id |
+
+### Display
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `inline` | `boolean` | `false` | Render without modal overlay |
+| `closeOnOverlayClick` | `boolean` | `true` | Close modal on backdrop click |
+| `className` | `string` | — | CSS class for the modal container |
+| `theme` | `DepositModalTheme` | — | [Theme configuration](/deposits/widget/customization#theme) |
+| `uiConfig` | `DepositModalUIConfig` | — | [UI configuration](/deposits/widget/customization#ui-configuration) |
+| `debug` | `boolean` | `false` | Enable debug logging |
+
+### Callbacks
+
+| Prop | Type | Description |
+|---|---|---|
+| `onReady` | `() => void` | Modal initialized |
+| `onLifecycle` | `(event: ClaimLifecycleEvent) => void` | Claim lifecycle — switch on `event.type` |
+| `onError` | `(data: ErrorEventData) => void` | Error at any stage |
+| `onEvent` | `(event: ClaimAnalyticsEvent) => void` | [Analytics event](/deposits/widget/status-tracking#analytics) |
+
+## Lifecycle events
+
+| `event.type` | Payload | Fired when |
+|---|---|---|
+| `lookup` | `txHash`, `matches` | The pasted hash was looked up. `matches` is how many deposits it resolved to |
+| `refund_requested` | `account`, `destination`, `chain` | The refund was submitted to your endpoint |
+| `complete` | `txHash`, `account`, `destination`, `chain`, `token`, `amount` | The refund succeeded |
+| `failed` | `status`, `error` | The refund failed. `status` is the HTTP status from your endpoint, or `0` if it was unreachable |
+
+```tsx
+<ClaimModal
+  // ...required props
+  onLifecycle={(event) => {
+    if (event.type === "complete") {
+      trackRefund(event.txHash, event.amount);
+    }
+  }}
+/>
+```
+
+`ClaimLifecycleEvent` shares no variants with the deposit or withdraw unions, so don't reuse a handler across them.
