@@ -16,12 +16,9 @@ status; see [troubleshooting](/deposits/troubleshooting) for the dashboard equiv
 
 Deposit accounts are [service-managed](/deposits/widget/deposit-modal#account-setup), so no user wallet can sign for a refund, and an exchange-funded deposit has no signable sender either. Only your app knows which of its users a deposit belongs to, so `refundEndpoint` points at something you control.
 
-Two shapes, depending on where that endpoint lives:
-
-<Tabs>
-<Tab title="Your own route (same-origin)">
-
-The browser's session cookie travels with the request, so your route authenticates the user the way it always does. No token needed — omit `getUserToken`.
+`refundEndpoint` is your own route, same-origin, so the browser's session cookie
+travels with the request and your route authenticates the user the way it always
+does.
 
 ```tsx
 import { ClaimModal } from "@rhinestone/deposit-modal/claim";
@@ -35,45 +32,15 @@ import "@rhinestone/deposit-modal/styles.css";
 />
 ```
 
-</Tab>
-<Tab title="A deposit-widget-proxy (cross-origin)">
+<Note>
+There is deliberately no cross-origin variant. A proxy authenticates nobody, so it
+cannot decide which user a deposit belongs to — and pointing `refundEndpoint` at
+another origin drops the session cookie anyway, since `fetch` omits credentials
+cross-origin. If you can authenticate the user, you can authorize the refund
+directly.
+</Note>
 
-The cookie won't travel cross-origin, so `getUserToken` mints a short-lived token that the modal sends as `x-user-token`.
-
-The proxy takes **every** field of the upstream refund from the signed token and ignores the request body, so the token must carry the whole refund — not just the user's identity.
-
-The route registers only when `REFUND_TOKEN_SECRET` is set. That's a registration gate rather than a 401 inside the handler, so bumping the proxy version can't silently expose an endpoint that spends your API key.
-
-[Rhinestone's proxy](/deposits/widget/backend#deploy-the-rhinestone-proxy) implements this already — see its [refund token contract](https://github.com/rhinestonewtf/deposit-widget-proxy#self-service-refunds) for the exact claims to sign. Note that `recipient` there is the user's in-app recipient, checked for ownership, while `destination` is where the money goes.
-
-```tsx
-import { ClaimModal } from "@rhinestone/deposit-modal/claim";
-import "@rhinestone/deposit-modal/styles.css";
-
-<ClaimModal
-  isOpen={isOpen}
-  onClose={() => setIsOpen(false)}
-  refundEndpoint="https://proxy.example.com/deposits/refund"
-  backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL}
-  getUserToken={async (request) => {
-    const res = await fetch("/api/refund-token", {
-      method: "POST",
-      body: JSON.stringify(request),
-    });
-    return (await res.json()).token;
-  }}
-/>
-```
-
-<Warning>
-Bind the token to **this specific refund**, not to the user alone. An
-identity-only token is a bearer credential that can be spent on any destination —
-mint it from the `RefundRequest` you were handed and sign over its fields,
-including the destination.
-</Warning>
-
-</Tab>
-</Tabs>
+`GET /deposits` still has to be proxied for the lookup step.
 
 ## Implementing the endpoint
 
@@ -140,12 +107,6 @@ The modal POSTs a `RefundRequest`. It comes from the page, so treat it as untrus
 | `onClose` | `() => void` | Called when the user closes the modal |
 | `refundEndpoint` | `string` | Endpoint the modal POSTs the refund to |
 | `backendUrl` | `string` | Your [backend proxy](/deposits/widget/backend), which holds your API key |
-
-### Authorization
-
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `getUserToken` | `(request: RefundRequest) => Promise<string>` | — | Mints a token authorizing exactly this refund, sent as `x-user-token`. Required when `refundEndpoint` is cross-origin |
 
 ### Prefills
 

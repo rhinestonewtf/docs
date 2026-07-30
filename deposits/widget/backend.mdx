@@ -31,7 +31,6 @@ Point `backendUrl` at it and check `GET /health`. Everything else is optional an
 |---|---|
 | `RHINESTONE_API_KEY` | Attached as `x-api-key` upstream. The process exits if it's unset |
 | `DEPOSIT_SERVICE_URL` | The upstream processor. Defaults to production |
-| `REFUND_TOKEN_SECRET` | Opts into [self-service refunds](/deposits/widget/claim-modal). Unset, that route isn't registered |
 | `TRUSTED_COUNTRY_HEADER`, `TRUSTED_PROXY_HOPS`, `TRUSTED_PROXY_CIDRS` | [Regional payment methods](#regional-payment-methods) |
 
 ## Minimal proxy
@@ -110,13 +109,11 @@ that loop passes the browser's body straight through with your API key attached 
 which for a refund means anyone could return any of your recoverable deposits to an
 address they chose.
 
-It needs a handler that authorizes the specific refund, and derives the upstream
-call from that authorization rather than from the request body:
-
-- **your own route** — use [`createRefundHandler`](/deposits/widget/claim-modal#implementing-the-endpoint), which checks the deposit belongs to the caller before spending the key
-- **a proxy** — verify a per-refund `x-user-token` and take *every* upstream field from the token, ignoring the body
-
-Register it only when that verification is in place. See
+So a refund is not a route a proxy can carry: a proxy authenticates nobody, and it
+would attach your API key to whatever reached it. Authorize it in your own backend
+with [`createRefundHandler`](/deposits/widget/claim-modal#implementing-the-endpoint),
+which checks the deposit belongs to the caller before spending the key, and call the
+processor directly. See
 [claim modal](/deposits/widget/claim-modal#why-your-app-authorizes-it).
 
 ## Required routes
