@@ -148,7 +148,7 @@ const { factory, factoryData } = account.getInitData();
 </Step>
 <Step title="Build session details">
 
-The deposit service uses a session key to sign bridging transactions on the user's behalf. You need to build session details for every chain the user can deposit from, plus the target chain.
+The deposit service uses a session key to sign bridging transactions on the user's behalf. Build session details for every chain you accept deposits from, plus the target chain — a deposit arriving on a chain with no session can't be bridged. See [supported chains and tokens](/deposits/overview#supported-chains-and-tokens) for the current set.
 
 ```ts
 import { toViewOnlyAccount } from "@rhinestone/sdk/utils";
@@ -157,7 +157,7 @@ import { base, optimism, arbitrum } from "viem/chains";
 const RHINESTONE_SIGNER_ADDRESS = "0x177bfcdd15bc01e99013dcc5d2b09cd87a18ce9c";
 const sessionSigner = toViewOnlyAccount(RHINESTONE_SIGNER_ADDRESS);
 
-const sourceChains = [base, optimism, arbitrum];
+const sourceChains = [base, optimism, arbitrum]; // extend to every chain you accept
 const sessions = sourceChains.map((chain) => ({
   owners: { type: "ecdsa" as const, accounts: [sessionSigner] },
   chain,

@@ -3,6 +3,82 @@ title: "Overview"
 description: "Accept deposits from any chain into your app with Rhinestone's cross-chain deposit infrastructure."
 ---
 
+export const DepositChainsTable = ({ chains }) => (
+  <table className="min-w-full">
+    <thead>
+      <tr className="border-b border-gray-200 dark:border-gray-700">
+        <th className="text-left py-2 pr-4 font-semibold">Name</th>
+        <th className="text-center py-2 pr-4 font-semibold">Source</th>
+        <th className="text-center py-2 pr-4 font-semibold">Destination</th>
+        <th className="text-left py-2 font-semibold">Tokens</th>
+      </tr>
+    </thead>
+    <tbody>
+      {chains.map((chain) => (
+        <tr key={chain.id} className="border-b border-gray-100 dark:border-gray-800">
+          <td className="py-2 pr-4">{chain.name}</td>
+          <td className="py-2 pr-4 text-center">{chain.deposit ? '✓' : '—'}</td>
+          <td className="py-2 pr-4 text-center">{chain.destination ? '✓' : '—'}</td>
+          <td className="py-2">{chain.supportedTokens === 'all' ? 'All' : (chain.supportedTokens?.map(t => t.symbol).join(', ') || '-')}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+);
+
+export const DepositChains = () => {
+  const [chains, setChains] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+
+  React.useEffect(() => {
+    fetch("https://v1.orchestrator.rhinestone.dev/deposit-processor/chains")
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch chains');
+        return res.json();
+      })
+      .then(data => {
+        const byName = new Map();
+        Object.entries(data).forEach(([id, chain]) => {
+          const kept = byName.get(chain.name);
+          // A virtual chain can be advertised twice: once under its canonical
+          // CAIP-2 namespace and once as `eip155:<synthetic id>`. Keep the
+          // canonical entry, which carries the accurate capability flags.
+          const isCanonical = !id.startsWith('eip155:');
+          if (!kept || (isCanonical && kept.id.startsWith('eip155:'))) {
+            byName.set(chain.name, { ...chain, id });
+          }
+        });
+        setChains([...byName.values()].sort((a, b) => a.name.localeCompare(b.name)));
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return <div className="text-gray-500 dark:text-gray-400 py-4">Loading chains...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500 dark:text-red-400 py-4">Error loading chains: {error}</div>;
+  }
+
+  const mainnets = chains.filter(chain => !chain.testnet);
+  const testnets = chains.filter(chain => chain.testnet);
+
+  return (
+    <>
+      <h3>Mainnet</h3>
+      <DepositChainsTable chains={mainnets} />
+      <h3>Testnet</h3>
+      <DepositChainsTable chains={testnets} />
+    </>
+  );
+};
+
 Rhinestone Deposits is a cross-chain deposit infrastructure that lets you accept tokens from users on any supported chain and deliver them to a target chain and token automatically. You don't need to build bridging logic, manage gas across chains, or handle token swaps — the service detects deposits, bridges them via [Warp](/home/introduction/rhinestone-intents), and notifies your app when funds arrive.
 
 It's built for teams that need reliable deposit rails: neobanks, modern dapps, DeFi protocols, or any app that onboards users from multiple chains.
@@ -71,7 +147,7 @@ Under the hood, Rhinestone aggregates multiple bridging providers, solvers, and 
 ## Key features
 
 - **Automatic bridging** — deposits are detected and bridged to the target chain without any user interaction beyond the initial transfer
-- **Multi-chain support** — accept deposits from Ethereum, Base, Arbitrum, Optimism, Polygon, and Solana, with more chains added regularly
+- **Multi-chain support** — accept deposits from [any supported chain](#supported-chains-and-tokens), EVM or Solana, with more added regularly
 - **1:1 stablecoin swaps** — USDC and USDT are swapped at parity
 - **Swap routing** — route between tokens as part of the deposit
 - **Fee sponsorship** — cover gas, bridging, and swap fees on a per-chain basis
@@ -86,49 +162,13 @@ With the **API**, you control the UX entirely. The user interacts with your app 
 
 ## Supported chains and tokens
 
-{/*
-  Source: GET https://v1.orchestrator.rhinestone.dev/deposit-processor/chains
-
-  Hardcoded as plain markdown tables so they render at SSR time (no client-side
-  fetch, no flash-of-loading). Refresh manually when the upstream list changes.
-*/}
-
 Rhinestone Deposits supports a wide range of EVM chains plus Solana. Each chain is enabled as a **source** (the user can send funds to it), a **destination** (funds can settle on it), or both.
 
 - **Source** — users can transfer tokens on this chain and have them bridged to the target.
 - **Destination** — accounts on this chain can be registered as the target where funds land.
 - **Tokens** — `All` means any token routable through Warp; otherwise, only the listed tokens are accepted.
 
-### Mainnet
-
-| Name            | Source  | Destination | Tokens                |
-| :-------------- | :-----: | :---------: | :-------------------- |
-| Ethereum        |    ✓    |      ✓      | All                   |
-| OP Mainnet      |    ✓    |      ✓      | All                   |
-| BNB Smart Chain |    ✓    |      ✓      | All                   |
-| Gnosis          |    ✓    |      ✓      | All                   |
-| Polygon         |    ✓    |      ✓      | All                   |
-| Sonic           |    ✓    |      ✓      | All                   |
-| HyperEVM        |    ✓    |      ✓      | All                   |
-| HyperCore       |    —    |      ✓      | USDC                  |
-| Soneium         |    ✓    |      ✓      | ETH, USDC, USDT, WETH |
-| Base            |    ✓    |      ✓      | All                   |
-| Plasma          |    ✓    |      ✓      | All                   |
-| Arbitrum One    |    ✓    |      ✓      | All                   |
-| Unichain        |    ✓    |      ✓      | All                   |
-| Monad           |    ✓    |      ✓      | All                   |
-| Katana          |    —    |      ✓      | ETH, USDC, USDT, WETH |
-| Solana          |    ✓    |      ✓      | USDC, USDT, SOL       |
-
-### Testnet
-
-| Name             | Source  | Destination | Tokens                   |
-| :--------------- | :-----: | :---------: | :----------------------- |
-| Sepolia          |    ✓    |      ✓      | ETH, USDC, WETH          |
-| OP Sepolia       |    ✓    |      ✓      | ETH, USDC, WETH          |
-| Base Sepolia     |    ✓    |      ✓      | ETH, USDC, WETH, MockUSD |
-| Arbitrum Sepolia |    ✓    |      ✓      | ETH, USDC, WETH          |
-| Plasma Testnet   |    —    |      ✓      | USDT0, USDC              |
+<DepositChains />
 
 <Info>
   This data is also available programmatically via the [List supported chains
