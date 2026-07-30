@@ -10,10 +10,27 @@ transfer to your app, and renames or removes props that no longer described what
 they did. The account and withdraw changes need code; the
 [prop renames](#renamed-and-removed-props) are mechanical.
 
+### Deploy your proxy first
+
+Four of these changes are proxy-side and take effect the moment the new modal
+loads in a browser. None of them degrades — the request 404s, or the browser
+blocks it at preflight.
+
+| Change | Why it can't wait |
+|---|---|
+| Forward `POST /register-managed` | Replaces `/setup-account` + `/register`. Without it registration 404s: no deposit address and no QR code |
+| Forward `GET /qr/tokens` | Replaces `GET /tokens`, with **no fallback**. Without it the QR picker falls back to the modal's built-in token set, which can offer a token your deposit whitelist rejects on arrival |
+| Allow `x-deposit-modal-version` in CORS | Every request now carries it. A proxy with an explicit `allowHeaders` that omits it fails the **whole request** at preflight, not just the header |
+| Forward `POST /deposits/recover` | Only if you adopt the new [claim modal](/deposits/widget/claim-modal) |
+
+See [required routes](/deposits/widget/backend#required-routes) for the full
+table. `/setup-account` and `/register` are no longer called and can be dropped
+once no older modal version is in use.
+
 <Warning>
-If you run your own proxy, deploy `POST /register-managed` **before** shipping the
-new modal. Registration 404s without it, which means no deposit address and no QR
-code — the flow does not degrade, it stops.
+Bare Hono `cors()` is safe for the version header — with no `allowHeaders` it
+reflects whatever the preflight asks for. An explicit allow-list is what breaks,
+and it breaks on upgrade rather than on first deploy.
 </Warning>
 
 **Both modals** — the `signerAddress` and `sessionChainIds` props are gone,
@@ -105,6 +122,9 @@ checked and shown on the QR / transfer screen.
 belongs on your [backend proxy](/deposits/widget/backend), which attaches it upstream.
 Delete it; nothing consumed it.
 
+**`FiatPaymentMethodOption` is no longer exported.** It described a row descriptor
+that `fiatMethods` no longer takes.
+
 **`backendUrl` is now required** on all three modals, and the `DEFAULT_BACKEND_URL`
 export is gone. The old default pointed at a Rhinestone-internal service running on
 **our** API key, so any integration that omitted the prop was silently routing its
@@ -179,6 +199,17 @@ longer needs it installed. See [install](/deposits/widget/quickstart#install).
 - **Logos load from Rhinestone's asset CDN.** Apps with an explicit `img-src` CSP must
   allow `https://s3.rhinestone.dev` — a blocked image fails silently. See
   [content security policy](/deposits/widget/deposit-modal#content-security-policy).
+- **`HYPERCORE_RECIPIENT_NOT_EOA` is no longer emitted.** [HyperCore](/deposits/widget/deposit-modal#hypercore-destinations)
+  deposits now accept a smart-account `recipient`, and the pre-screen that blocked one
+  is gone. If you branch on that `onError` code, the branch is dead.
+- **A chain your deposit whitelist allows nothing on is no longer offered** in the QR
+  flow's chain picker, instead of appearing with built-in tokens the deposit would then
+  be rejected for. Chains the shortlist says nothing about keep their existing set.
+- **Fiat payment methods are personalized by region** unless you pass `fiatMethods`.
+  See [regional payment methods](/deposits/widget/deposit-modal#regional-payment-methods).
+- **The deposit review shows a single "Fees" row.** The per-category breakdown and its
+  tooltips are gone; `uiConfig.feeSponsored` and `uiConfig.feeTooltip` still apply on
+  the processing and result screens.
 
 ### Removed prop warnings
 

@@ -97,15 +97,29 @@ Each method is a row on the modal's home screen. When exactly one is enabled the
 | `enableWallet` | `boolean` | `true` | Offer the connected wallet as a source. Turn off for a flow with no wallet even when a `walletClient` or `reownAppId` is supplied |
 | `enableQrTransfer` | `boolean` | `true` | Offer the "Transfer crypto" row — a deposit address and QR code the user sends to from anywhere |
 | `enableFiatOnramp` | `boolean` | `false` | Offer card / bank / Apple Pay payment via Swapped's embedded iframe |
-| `fiatMethods` | `FiatMethodsConfig` | all | Restrict which Swapped payment groups the on-ramp offers |
+| `fiatMethods` | `FiatMethodsConfig` | regional | Restrict which Swapped payment groups the on-ramp offers. Omitting it uses [regional personalization](#regional-payment-methods) |
 | `enableExchangeConnect` | `boolean` | `false` | Offer "Connect exchange" — the user picks their CEX inside Swapped's iframe and withdraws from it |
 | `assetMigrations` | `AssetMigrationsConfig` | none | Offer [migrating balances](#migrate-assets-from-other-apps) the user already holds in a supported third-party app |
 
 `enableFiatOnramp` and `enableExchangeConnect` require Swapped keys on your backend.
 
+### Regional payment methods
+
+Leave `fiatMethods` unset and the modal personalizes the Cash options for the user's region. It renders the method list the backend resolves — provider labels, icons, limits, and one optional **Popular** badge — and hands the exact method the user picked to the signed Swapped widget URL.
+
+This is the recommended default: which methods exist varies by country, and a hard-coded subset can only go stale.
+
+Personalization never blocks the flow. After 500 ms the standard card, bank transfer and Apple Pay rows render; a late regional result only replaces a picker the user hasn't touched; and any failure keeps the complete default set. Resolving the country happens at your proxy — see [regional payment methods](/deposits/widget/backend#regional-payment-methods) for what it needs.
+
+<Note>
+A known country with **no** available methods is authoritative merchant data, and the
+modal hides the Cash option entirely. That is different from an unresolved country,
+which renders the defaults.
+</Note>
+
 ### Restricting fiat payment methods
 
-`fiatMethods` is a boolean map keyed by Swapped `payment_group`. Omit it to offer all of them, which also tracks Swapped's lineup without you redeploying.
+`fiatMethods` is a boolean map keyed by Swapped `payment_group`. Passing it pins the Cash rows to that exact subset and opts this modal instance out of regional personalization.
 
 ```tsx
 <DepositModal
@@ -119,7 +133,7 @@ Valid keys are `creditcard`, `bank-transfer`, and `apple-pay`. Enabling one does
 
 <Warning>
 An empty or all-false `fiatMethods` offers **no** payment methods, not all of them.
-To offer everything, omit the prop.
+To offer everything, omit the prop — which also turns personalization back on.
 </Warning>
 
 ## Transfer configuration
@@ -142,9 +156,15 @@ For supported chains and tokens, see [supported chains](/deposits/overview#suppo
 
 ### HyperCore destinations
 
-HyperCore is `targetChain: 1337` (exported as `HYPERCORE_CHAIN_ID`), accepts USDC only, and **requires an EOA `recipient`**. The modal pre-screens the recipient on HyperEVM and shows an error if it's a contract; the orchestrator rejects it regardless, so a smart-account recipient cannot work here.
+HyperCore is `targetChain: 1337` (exported as `HYPERCORE_CHAIN_ID`) and accepts USDC only. The `recipient` can be an EOA or a smart account: deposits are credited through the MulticallHandler's `depositFor(recipient)`, which funds any address's HyperCore account identically and never executes on the recipient.
 
-The check fails open — an RPC error lets the flow continue rather than false-blocking a valid EOA.
+<Note>
+Earlier versions pre-screened the recipient's bytecode and blocked a contract with
+an `onError` code of `HYPERCORE_RECIPIENT_NOT_EOA`. That rule never matched the
+orchestrator and is gone as of v0.9.0 — the code is no longer emitted.
+</Note>
+
+HyperCore is also available as a deposit **source** in the QR / transfer flow, using the account's own EVM address as the deposit address; a native Hyperliquid L1 spot transfer lands there.
 
 ### Restricting which sources you accept
 
@@ -336,7 +356,7 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 | `enableWallet` | `boolean` | `true` | [Offer the connected wallet](#funding-methods) as a source |
 | `enableQrTransfer` | `boolean` | `true` | Offer the "Transfer crypto" deposit-address / QR row |
 | `enableFiatOnramp` | `boolean` | `false` | Offer fiat payment via Swapped's iframe. Requires backend Swapped keys |
-| `fiatMethods` | `FiatMethodsConfig` | all | [Restrict payment groups](#restricting-fiat-payment-methods) — `{ creditcard?, "bank-transfer"?, "apple-pay"? }`. Empty means none |
+| `fiatMethods` | `FiatMethodsConfig` | regional | [Restrict payment groups](#restricting-fiat-payment-methods) — `{ creditcard?, "bank-transfer"?, "apple-pay"? }`. Empty means none; omitted means [regional](#regional-payment-methods) |
 | `enableExchangeConnect` | `boolean` | `false` | Offer "Connect exchange". Requires backend Swapped keys |
 | `assetMigrations` | `AssetMigrationsConfig` | — | [Migrate balances](#migrate-assets-from-other-apps) from third-party apps (e.g. `{ polymarket: true }`) |
 | `initialAssetMigration` | `keyof AssetMigrationsConfig` | — | Open the modal pre-routed into a migration provider (e.g. `"polymarket"`), skipping the home screen. Must name an enabled `assetMigrations` key. |
