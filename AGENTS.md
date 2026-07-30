@@ -13,6 +13,15 @@ Docs: https://docs.rhinestone.dev
 
 Note: Mintlify requires Node 22 LTS. If you have multiple Node versions, ensure Node 22 is active.
 
+Gotcha: `mintlify dev` can report "A parsing error occured" for a page whose MDX is
+actually valid. The stale compile survives a server restart *and* deleting
+`~/.mintlify/mint/apps/client/.next/cache`; only a file-change event clears it. Before
+hunting the syntax, copy the file to an unused path (`cp x.mdx ztest.mdx`) and load
+that — if the byte-identical copy renders, the content is fine and you just need to
+re-save the original. Page content is client-rendered, so `curl` returns an empty app
+shell; you need a real browser to see errors. The CLI's own log carries the underlying
+message (`Could not parse expression with acorn`).
+
 ## Stack
 
 - Framework: Mintlify
