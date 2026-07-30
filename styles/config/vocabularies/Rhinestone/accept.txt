@@ -67,6 +67,9 @@ Base
 Sepolia
 Solana
 Soneium
+HyperEVM
+HyperCore
+Hyperliquid
 ZKsync
 Binance
 
@@ -104,6 +107,7 @@ onboards?
 waitlist
 timeframes?
 timebox
+tooltips?
 incentivized
 declaratively
 learnings
