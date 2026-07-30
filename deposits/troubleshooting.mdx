@@ -30,7 +30,8 @@ Refunds return a failed deposit's funds to an address you choose. Only Owners an
 <Tip>
 To let users recover their own failed deposits without going through you, embed the
 [claim modal](/deposits/widget/claim-modal) — the user pastes the deposit's
-transaction hash and your app authorizes the refund.
+transaction hash and signs to authorize it. That signature is the authorization, so
+it needs no backend of your own.
 </Tip>
 
 <Steps>

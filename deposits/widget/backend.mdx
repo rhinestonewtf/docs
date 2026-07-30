@@ -14,7 +14,7 @@ Two ways to get one:
 
 ## Deploy the Rhinestone proxy
 
-[`rhinestonewtf/deposit-widget-proxy`](https://github.com/rhinestonewtf/deposit-widget-proxy) is the proxy Rhinestone runs, packaged so you can deploy it as-is. It covers every route in the [table below](#required-routes), and adds two things a hand-written proxy doesn't get for free: [regional payment methods](#regional-payment-methods) and a verifying [refund route](/deposits/widget/claim-modal).
+[`rhinestonewtf/deposit-widget-proxy`](https://github.com/rhinestonewtf/deposit-widget-proxy) is the proxy Rhinestone runs, packaged so you can deploy it as-is. It covers every route in the [table below](#required-routes), and adds [regional payment methods](#regional-payment-methods) — which a hand-written proxy can't do, since resolving the user's country needs the edge that actually sees them.
 
 It needs one variable — your API key:
 
@@ -63,6 +63,9 @@ const ROUTES: [method: "get" | "post", path: string][] = [
   ["get", "/onramp/swapped/connect-exchanges"],
   ["get", "/onramp/swapped/payment-methods"],
   ["get", "/onramp/swapped/status/:smartAccount"],
+  // Safe to forward: the user's signature in the body is the authorization, so
+  // your API key alone can't move funds through it. See below.
+  ["post", "/deposits/recover"],
   // Add ["post", "/safe/withdraw"] only if your onSendTransaction relays through
   // it. Do NOT add /deposits/refund here — see below.
 ];
@@ -102,19 +105,27 @@ every write on the upstream — including `POST /setup`, which rotates your webh
 secret and sponsorship config. The route list is what stops that.
 </Warning>
 
-### Refunds are not a route-table entry
+### Recovery can be forwarded; refunds cannot
 
-`POST /deposits/refund` cannot be forwarded like the routes above. Every route in
-that loop passes the browser's body straight through with your API key attached —
-which for a refund means anyone could return any of your recoverable deposits to an
-address they chose.
+These two look alike and differ in exactly one way: where the authorization comes
+from.
 
-So a refund is not a route a proxy can carry: a proxy authenticates nobody, and it
-would attach your API key to whatever reached it. Authorize it in your own backend
-with [`createRefundHandler`](/deposits/widget/claim-modal#implementing-the-endpoint),
-which checks the deposit belongs to the caller before spending the key, and call the
-processor directly. See
-[claim modal](/deposits/widget/claim-modal#why-your-app-authorizes-it).
+`POST /deposits/recover` carries a signature from the deposit's `recipient`, covering
+which deposit and which destination. The service verifies it before moving anything,
+so your API key on its own achieves nothing here — which is what makes it safe to
+forward like any other route. See
+[claim modal](/deposits/widget/claim-modal#how-authorization-works).
+
+`POST /deposits/refund` carries no such proof. Every route in that loop passes the
+browser's body through with your API key attached, so forwarding this one would let
+anyone return any of your recoverable deposits to an address they chose. A proxy
+authenticates nobody, so it cannot be the thing that decides.
+
+Most apps need only the recover route. If some of your recipients genuinely cannot
+sign, authorize a refund in your own backend with
+[`createRefundHandler`](/deposits/widget/claim-modal#when-the-user-cant-sign), which
+checks the deposit belongs to the caller before spending the key, and call the
+processor directly.
 
 ## Required routes
 
@@ -133,7 +144,7 @@ Missing a route doesn't degrade the flow — the request 404s and that part of t
 | `GET` | `/setup` | Your client config (source-token allowlist, minimums) |
 | `GET` | `/qr/tokens` | Suggested source tokens for the QR flow, filtered to what your config accepts |
 | `GET` | `/onramp/swapped/payment-methods` | Fiat methods for the user's region. See [regional payment methods](#regional-payment-methods) |
-| `POST` | `/deposits/refund` | [Self-service refunds](/deposits/widget/claim-modal). **Not a plain passthrough** — needs a token-verifying handler, see [above](#refunds-are-not-a-route-table-entry) |
+| `POST` | `/deposits/recover` | [Self-service recovery](/deposits/widget/claim-modal), authorized by the user's signature |
 | `POST` | `/polymarket/withdraw` | Polymarket withdrawals |
 | `POST` | `/onramp/swapped/widget-url` | Fiat on-ramp |
 | `POST` | `/onramp/swapped/connect-url` | Exchange connect |

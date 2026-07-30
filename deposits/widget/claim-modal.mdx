@@ -1,24 +1,22 @@
 ---
 title: "Claim modal"
-description: "Let a user recover a failed or rejected deposit by pasting its transaction hash — no wallet connection."
+description: "Let a user recover a failed or rejected deposit by pasting its transaction hash, authorized by their own signature."
 ---
 
-The `ClaimModal` returns a failed or rejected EVM deposit to the user, on the chain it came from. The user pastes the deposit's transaction hash; the modal looks it up and asks your app to authorize the refund.
+The `ClaimModal` returns a failed or rejected EVM deposit to the user, on the chain it came from. The user pastes the deposit's transaction hash, the modal looks it up, and the user signs to authorize where the funds go.
 
-No wallet is involved, and there is no source chain to pick — the hash is looked up across every chain, so a deposit that landed on a chain your deposit flow doesn't offer is still claimable.
+There is no source chain to pick — the hash is looked up across every chain, so a deposit that landed on a chain your deposit flow doesn't offer is still claimable.
 
 <Note>
 On the `./claim` subpath. Applies to deposits in `failed` or `rejected`
 status; see [troubleshooting](/deposits/troubleshooting) for the dashboard equivalent.
 </Note>
 
-## Why your app authorizes it
+## How authorization works
 
-Deposit accounts are [service-managed](/deposits/widget/deposit-modal#account-setup), so no user wallet can sign for a refund, and an exchange-funded deposit has no signable sender either. Only your app knows which of its users a deposit belongs to, so `refundEndpoint` points at something you control.
+The deposit's `recipient` — the in-app wallet the funds were headed to — signs an EIP-712 struct naming the deposit and the destination. The service verifies that signature against the same `recipient` before moving anything.
 
-`refundEndpoint` is your own route, same-origin, so the browser's session cookie
-travels with the request and your route authenticates the user the way it always
-does.
+That signature **is** the authorization, so this needs no backend of your own. The request goes from the browser through your [proxy](/deposits/widget/backend), which contributes only your project API key. That key cannot move funds through this route without a signature, so there is nothing for a page to borrow.
 
 ```tsx
 import { ClaimModal } from "@rhinestone/deposit-modal/claim";
@@ -27,24 +25,108 @@ import "@rhinestone/deposit-modal/styles.css";
 <ClaimModal
   isOpen={isOpen}
   onClose={() => setIsOpen(false)}
-  refundEndpoint="/api/refund"
   backendUrl={process.env.NEXT_PUBLIC_DEPOSIT_PROXY_URL}
+  signRecovery={({ typedData }) => wallet.signTypedData(typedData)}
 />
 ```
 
+The modal never runs a connect step — it has no wallet UI and asks for no provider. It calls `signRecovery` and expects a signature back. For an embedded wallet that is headless, so the user sees a single confirmation at most.
+
 <Note>
-There is deliberately no cross-origin variant. A proxy authenticates nobody, so it
-cannot decide which user a deposit belongs to — and pointing `refundEndpoint` at
-another origin drops the session cookie anyway, since `fetch` omits credentials
-cross-origin. If you can authenticate the user, you can authorize the refund
-directly.
+The signer is the deposit's `recipient`, never the deposit account. Deposit accounts
+are [service-managed](/deposits/widget/deposit-modal#account-setup) and hold no user
+key, so nothing can sign for them.
 </Note>
 
-`GET /deposits` still has to be proxied for the lookup step.
+Your proxy must forward `POST /deposits/recover` alongside the `GET /deposits` used for the lookup. Both are in the [reference proxy](/deposits/widget/backend).
 
-## Implementing the endpoint
+## Signing
 
-`@rhinestone/deposit-modal/server` exports `createRefundHandler`, which does everything except decide who the caller is. It verifies the deposit belongs to the recipient you name before spending your API key.
+Return whatever the `recipient` address's own verifier accepts. `signRecovery` receives the exact typed data to sign, so you never construct it yourself.
+
+| `recipient` is | Return |
+|---|---|
+| An embedded EOA (Privy, Turnkey, Dynamic) | `signTypedData`, the raw 65-byte result |
+| A deployed smart account | A signature valid under its ERC-1271 `isValidSignature` |
+| A smart account not yet deployed | The same, wrapped per ERC-6492 |
+
+```tsx
+// Embedded EOA — the common case.
+signRecovery={({ typedData }) => wallet.signTypedData(typedData)}
+```
+
+<Warning>
+For a smart account, a raw owner signature is usually **not** enough. A Safe expects
+its own message wrapping, so go through your account SDK rather than signing with the
+owner key directly.
+</Warning>
+
+An undeployed account can still be verified, because an ERC-6492 wrapper carries the account's factory and factory data. That makes the check work without the account existing on chain yet — which matters, since a deposit can fail before the user's account is ever deployed.
+
+```tsx
+import { SignatureErc6492 } from "ox/erc6492";
+
+signRecovery={async ({ typedData }) => {
+  const signature = await account.signTypedData(typedData);
+  if (await account.isDeployed()) return signature;
+  return SignatureErc6492.wrap({
+    to: factory,        // the factory that will deploy the account
+    data: factoryData,  // the calldata that deploys it
+    signature,
+  });
+}}
+```
+
+`ox` is already a dependency of viem, so this adds nothing to your install.
+
+### What the user signs
+
+```ts
+domain:      { name: "Rhinestone Deposit Recovery", version: "1" }
+primaryType: "RecoverDeposit"
+types: { RecoverDeposit: [
+  { name: "depositId",   type: "uint256" },
+  { name: "destination", type: "address" },
+]}
+```
+
+Two fields, both meaningful to the person signing: which deposit, and where the money goes.
+
+**The destination is inside the signature**, which is the property worth understanding. The service cannot pay anywhere other than the address the user signed for, so a compromised page cannot redirect the funds — and your success screen can state where they went without trusting a response to echo it back.
+
+The signature is verified on the deposit's **target** chain, where the recipient wallet lives, not the source chain the funds sit on. For a smart account with different owners per chain, its target-chain owners are the ones who can authorize.
+
+<Warning>
+A signature stays valid until the deposit is claimed — there is no expiry. Replay is
+already closed, because claiming moves the deposit out of `failed`/`rejected` and a
+second attempt is rejected. But do not persist a signature: treat it as
+single-use and discard it once the request returns.
+</Warning>
+
+## Handling failures
+
+The response carries a machine-readable `code`. Switch on that rather than the HTTP status — the code is the contract, and the correct advice differs between codes that share a status.
+
+| `code` | Means | Retry? |
+|---|---|---|
+| `DEPOSIT_NOT_RECOVERABLE` | Not in `failed`/`rejected` — often already claimed | No |
+| `RECOVERY_UNSUPPORTED` | The deposit has no recipient to verify against, or a non-EVM chain on either side | No |
+| `SIGNATURE_INVALID` | The recipient's verifier rejected these bytes | No — signing again the same way won't help |
+| `VERIFICATION_UNAVAILABLE` | The on-chain check couldn't run | Yes, and without re-signing |
+| `REFUND_RECONCILIATION_REQUIRED` | Funds may be in flight; needs an operator | **No** |
+| `REFUND_FAILED` | The transfer didn't complete | Yes |
+
+The modal maps these to copy and to whether it offers a retry, so you get this for free. Handle them yourself only if you drive your own UI.
+
+<Warning>
+Never retry `REFUND_RECONCILIATION_REQUIRED`. The funds may already be moving, and
+the deposit needs an operator either way — [contact support](/resources/support) with
+the deposit.
+</Warning>
+
+## When the user can't sign
+
+Some recipients have no key to sign with: a wallet the user has lost, or a recipient your app controls rather than the user. For those, `@rhinestone/deposit-modal/server` exports `createRefundHandler`, which authorizes on your say-so instead of a signature — you decide who the caller is, and it verifies the deposit belongs to them before spending your API key.
 
 ```ts
 // app/api/refund/route.ts
@@ -59,43 +141,21 @@ export const POST = createRefundHandler({
 });
 ```
 
-It returns a `(Request) => Promise<Response>`, so it mounts in any fetch-based runtime — Next.js route handlers, Hono, `Bun.serve`, Cloudflare Workers.
+`authorize` returns the deposit `recipient` the caller owns, or `null` to reject with 401. Add `refundDestination` to pin where the money goes rather than letting the request choose. `depositRecipient` never decides the destination — the handler lists deposits settling to it and rejects a `txHash` that isn't among them.
+
+It returns a `(Request) => Promise<Response>`, so it mounts in any fetch-based runtime: Next.js route handlers, Hono, `Bun.serve`, Cloudflare Workers.
 
 <Warning>
-Import from `@rhinestone/deposit-modal/server` only. It holds your API key and must
-never reach the browser.
+Import from `@rhinestone/deposit-modal/server` only — it holds your API key and must
+never reach the browser. `ClaimModal` does not call this route; drive your own UI
+against it.
 </Warning>
-
-### authorize
-
-Return the deposit recipient the caller owns, or `null` to reject with 401.
-
-| Field | Type | Description |
-|---|---|---|
-| `depositRecipient` | `string` | The deposit `recipient` this user owns — the same value you pass `<DepositModal>`. Used **only** to prove the deposit is theirs |
-| `refundDestination` | `string` | Optional. Where the refund is paid, overriding whatever the browser asked for |
-
-`depositRecipient` does not decide where money goes. The handler lists deposits settling to it and rejects a `txHash` that isn't among them — that's the whole job. One value covers every deposit account the user has, since the account salt includes the target chain and token.
-
-Set `refundDestination` whenever you already know where the user's money should go. Without it the page picks, and it could pick anything.
 
 <Warning>
 Never refund to an exchange deposit address. Exchanges don't credit arbitrary
 incoming transfers, so the funds **may be lost**. This is why the modal never defaults
 the destination to the deposit's sender.
 </Warning>
-
-### Request body
-
-The modal POSTs a `RefundRequest`. It comes from the page, so treat it as untrusted.
-
-| Field | Type | Description |
-|---|---|---|
-| `chain` | `string` | CAIP-2 source chain of the deposit, e.g. `"eip155:8453"` |
-| `txHash` | `string` | The deposit transaction the user pasted |
-| `account` | `string` | Managed account that received the deposit |
-| `token` | `string` | Source token address |
-| `destination` | `string` | Where the refunded funds should go, on the source chain |
 
 ## Props reference
 
@@ -105,15 +165,24 @@ The modal POSTs a `RefundRequest`. It comes from the page, so treat it as untrus
 |---|---|---|
 | `isOpen` | `boolean` | Controls modal visibility |
 | `onClose` | `() => void` | Called when the user closes the modal |
-| `refundEndpoint` | `string` | Endpoint the modal POSTs the refund to |
-| `backendUrl` | `string` | Your [backend proxy](/deposits/widget/backend), which holds your API key |
+| `signRecovery` | `(payload) => Promise<Hex>` | Signs the authorization. Throwing is treated as the user declining, and is retryable |
+| `backendUrl` | `string` | Your [proxy](/deposits/widget/backend), which holds your API key |
+
+`signRecovery` receives:
+
+| Field | Type | Description |
+|---|---|---|
+| `typedData` | `TypedDataDefinition` | Sign this exactly — pass it to `signTypedData` or your account SDK |
+| `signer` | `Address` | The address whose signature is verified: the deposit's `recipient` |
+| `depositId` | `string` | The deposit being recovered, for your own logging or confirmation UI |
+| `destination` | `Address` | Where the funds will go. Covered by the signature |
 
 ### Prefills
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `defaultTxHash` | `string` | — | Prefills the lookup field |
-| `defaultRefundDestination` | `Address` | — | Prefills the refund destination — a seed the user can edit, unlike `refundDestination`. Otherwise left empty |
+| `defaultRefundDestination` | `Address` | — | Prefills the destination as an editable seed. Left empty otherwise |
 
 ### Backend
 
@@ -146,9 +215,9 @@ The modal POSTs a `RefundRequest`. It comes from the page, so treat it as untrus
 | `event.type` | Payload | Fired when |
 |---|---|---|
 | `lookup` | `txHash`, `matches` | The pasted hash was looked up. `matches` is how many deposits it resolved to |
-| `refund_requested` | `account`, `destination`, `chain` | The refund was submitted to your endpoint |
-| `complete` | `txHash`, `account`, `destination`, `chain`, `token`, `amount` | The refund succeeded |
-| `failed` | `status`, `error` | The refund failed. `status` is the HTTP status from your endpoint, or `0` if it was unreachable |
+| `refund_requested` | `account`, `destination`, `chain` | The signed request was submitted |
+| `complete` | `txHash`, `account`, `destination`, `chain`, `token`, `amount` | The recovery succeeded |
+| `failed` | `status`, `error` | It failed. `status` is the HTTP status, or `0` if the service was unreachable |
 
 ```tsx
 <ClaimModal
