@@ -163,7 +163,10 @@ longer needs it installed. See [install](/deposits/widget/quickstart#install).
   present a flow with no wallet even when a `walletClient` or `reownAppId` is supplied.
 - **[`<ClaimModal>`](/deposits/widget/claim-modal)** and the `./claim` subpath — a user
   pastes a failed or rejected deposit's transaction hash and gets the funds returned.
-  Also adds `@rhinestone/deposit-modal/server` for the endpoint that authorizes it.
+  The user's own signature authorizes it, so this needs no backend of your own: pass
+  `signRecovery` and forward `POST /deposits/recover` on your proxy. For recipients
+  that can't sign, `@rhinestone/deposit-modal/server` exports `createRefundHandler` to
+  authorize against your own session instead.
 
 ### Behavior changes worth checking
 
