@@ -99,7 +99,7 @@ Each method is a row on the modal's home screen. When exactly one is enabled the
 | `enableFiatOnramp` | `boolean` | `false` | Offer card / bank / Apple Pay payment via Swapped's embedded iframe |
 | `fiatMethods` | `FiatMethodsConfig` | regional | Restrict which Swapped payment groups the on-ramp offers. Omitting it uses [regional personalization](#regional-payment-methods) |
 | `enableExchangeConnect` | `boolean` | `false` | Offer "Connect exchange" — the user picks their CEX inside Swapped's iframe and withdraws from it |
-| `assetMigrations` | `AssetMigrationsConfig` | none | Offer [migrating balances](#migrate-assets-from-other-apps) the user already holds in a supported third-party app |
+| `assetMigrations` | `AssetMigrationsConfig` | none | Offer [migrating balances or DeFi positions](#migrate-assets-from-other-apps) the user already holds in a supported third-party app |
 
 `enableFiatOnramp` and `enableExchangeConnect` require Swapped keys on your backend.
 
@@ -227,9 +227,9 @@ deposit entry screen and opens a picker over that provider's positions. The user
 picks one, and the modal pulls the funds into their smart account and bridges
 them to `targetChain` / `targetToken` like any other source.
 
-`polymarket` is the provider available today. Only the providers you enable are
-listed, and one that isn't available yet renders as a disabled row rather than being
-hidden.
+`polymarket` and `aave` are the providers available today. Only the providers you
+enable are listed, and one that isn't available yet renders as a disabled row
+rather than being hidden.
 
 ### Polymarket
 
@@ -284,6 +284,53 @@ Returns `null` only when the EOA has no Polymarket account. A transient failure
 (network, 5xx, abort) rejects instead, so an outage is never mistaken for "no
 account". Pass `rpcUrl` to override the default public Polygon RPC, or a
 `signal` (`AbortSignal`) to cancel the lookup.
+
+### Aave
+
+Set `assetMigrations={{ aave: true }}`. The modal lists the connected EOA's Aave
+v3 supply positions across every chain you can take deposits from, and picking
+one produces a single `Pool.withdraw` that sends the proceeds **straight to the
+user's deposit address** — the funds never pass through their wallet, and the
+normal deposit pipeline ingests them like any other incoming transfer.
+
+Requires your [backend proxy](/deposits/widget/backend) to forward
+`GET /positions/:address` and `POST /positions/:address/unwind`. A read-scoped
+API key is enough for both.
+
+Three behaviours worth knowing, because they are deliberate:
+
+- **The amount offered is what can actually be withdrawn right now**, not the
+  full supplied balance. Aave caps a withdrawal against the user's health factor,
+  E-Mode thresholds, paused reserves and pool liquidity, so a position worth $100
+  may only permit $40 out. The modal offers the $40 — the user is never shown a
+  figure the pool would reject.
+- **The user's wallet signs; Rhinestone never holds a key on this path.** The
+  aTokens sit in the user's own EOA, so only they can authorise the withdraw. The
+  transaction we build is unsigned and inert until they sign it.
+- **A position whose proceeds your config would refuse is not offered at all** —
+  under your `minDepositUsd`, or outside your source-token allowlist. Offering it
+  and failing afterwards would leave the user having irreversibly exited a
+  position for funds we then reject.
+
+Positions are keyed by **market**, not chain: Ethereum alone hosts four Aave v3
+markets with distinct pools and risk parameters, so the same token supplied to two
+of them appears as two rows, each naming its market.
+
+If a market can't be read, the positions that did load are still listed and the
+screen says the list may be incomplete — an outage never silently reports a
+smaller balance than the user holds.
+
+#### Open directly into Aave
+
+As with Polymarket, `initialAssetMigration="aave"` skips the home screen:
+
+```tsx
+<DepositModal
+  // ...required props
+  assetMigrations={{ aave: true }}
+  initialAssetMigration="aave"
+/>
+```
 
 ## Package entry points
 
@@ -358,8 +405,8 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 | `enableFiatOnramp` | `boolean` | `false` | Offer fiat payment via Swapped's iframe. Requires backend Swapped keys |
 | `fiatMethods` | `FiatMethodsConfig` | regional | [Restrict payment groups](#restricting-fiat-payment-methods) — `{ creditcard?, "bank-transfer"?, "apple-pay"? }`. Empty means none; omitted means [regional](#regional-payment-methods) |
 | `enableExchangeConnect` | `boolean` | `false` | Offer "Connect exchange". Requires backend Swapped keys |
-| `assetMigrations` | `AssetMigrationsConfig` | — | [Migrate balances](#migrate-assets-from-other-apps) from third-party apps (e.g. `{ polymarket: true }`) |
-| `initialAssetMigration` | `keyof AssetMigrationsConfig` | — | Open the modal pre-routed into a migration provider (e.g. `"polymarket"`), skipping the home screen. Must name an enabled `assetMigrations` key. |
+| `assetMigrations` | `AssetMigrationsConfig` | — | [Migrate balances or positions](#migrate-assets-from-other-apps) from third-party apps (e.g. `{ polymarket: true, aave: true }`) |
+| `initialAssetMigration` | `keyof AssetMigrationsConfig` | — | Open the modal pre-routed into a migration provider (e.g. `"aave"`), skipping the home screen. Must name an enabled `assetMigrations` key. |
 
 ### Account
 
