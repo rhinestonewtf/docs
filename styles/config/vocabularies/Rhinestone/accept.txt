@@ -193,3 +193,30 @@ KYC
 iframes?
 WebViews?
 prefill(s|ed)?
+
+# Deposit widget (0.9.0 docs). Possessive forms follow the `validator('?s)?`
+# pattern already used above — Vale flags `Swapped's` even though `Swapped` is a
+# dictionary word.
+Swapped('?s)?
+widget('?s)?
+signable
+untrusted
+fundable
+
+# Pre-existing across the tree (deposits API, smart-wallet, sdk-reference).
+# The camelCase entries are SDK method names used as page `title:` values in
+# sdk-reference, where they cannot be wrapped in backticks.
+backoff
+deduplicat(e|es|ed)
+Idempotency
+integrators?
+preselect(s|ing|ed)?
+unix
+usdc
+walkthroughs?
+withdrawable
+assembleTransaction
+createSession
+disableSession
+enableSession
+toSession

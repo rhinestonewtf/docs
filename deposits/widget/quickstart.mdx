@@ -1,5 +1,5 @@
 ---
-title: "Quickstart"
+title: "Widget quickstart"
 description: "Add the deposit widget to your React app and accept cross-chain deposits in minutes."
 ---
 
@@ -19,22 +19,25 @@ This quickstart has the modal connect the wallet itself, via Reown. If you don't
 npm install @rhinestone/deposit-modal viem wagmi @tanstack/react-query
 ```
 
-Add Reown only if you want the modal to connect the wallet — these are optional peer dependencies, so skip them when you pass your own `walletClient` or run a flow with no wallet:
+If you want the modal to connect the wallet — that is, you pass `reownAppId` — add
+all five of these:
 
 ```bash
-npm install @reown/appkit @reown/appkit-adapter-wagmi
+npm install @reown/appkit @reown/appkit-adapter-wagmi \
+  @reown/appkit-adapter-solana @solana/web3.js @solana/spl-token
 ```
 
-For Solana sources or destinations, add:
-
-```bash
-npm install @reown/appkit-adapter-solana @solana/web3.js @solana/spl-token
-```
+<Warning>
+The Solana three are **not** optional on this path, despite being marked optional
+peers. Reown's connect view always registers the Solana adapter, so the chunk that
+loads it imports all three statically — an EVM-only app that omits them gets a
+module-resolution failure when the modal opens.
+</Warning>
 
 <Note>
-All five of the above are **optional** peers. An app that supplies its own wallet
-client never loads Reown — the modal imports it lazily, so it stays out of your
-bundle entirely.
+Supply your own `walletClient` instead and you need none of the five. Reown is
+imported lazily, so it stays out of your bundle entirely — which is what makes them
+optional peers in `package.json`.
 </Note>
 
 The modal ships with its own `wagmi` and `@tanstack/react-query` providers — you do not need to wrap your app with `WagmiProvider` or `QueryClientProvider`.
