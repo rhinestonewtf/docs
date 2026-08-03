@@ -41,11 +41,9 @@ export const DepositChains = () => {
         const byName = new Map();
         Object.entries(data).forEach(([id, chain]) => {
           const kept = byName.get(chain.name);
-          // A virtual chain can be advertised twice: once under its canonical
-          // CAIP-2 namespace and once as `eip155:<synthetic id>`. Keep the
-          // canonical entry, which carries the accurate capability flags.
-          const isCanonical = !id.startsWith('eip155:');
-          if (!kept || (isCanonical && kept.id.startsWith('eip155:'))) {
+          const isCanonicalNamespace = !id.startsWith('eip155:');
+          const keptIsSynthetic = kept?.id.startsWith('eip155:');
+          if (!kept || (isCanonicalNamespace && keptIsSynthetic)) {
             byName.set(chain.name, { ...chain, id });
           }
         });

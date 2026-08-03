@@ -22,6 +22,18 @@ re-save the original. Page content is client-rendered, so `curl` returns an empt
 shell; you need a real browser to see errors. The CLI's own log carries the underlying
 message (`Could not parse expression with acorn`).
 
+Gotcha: **never put a `//` or `/* */` comment inside an `export const` block in MDX**,
+even though it is valid JavaScript and `mintlify dev` renders it fine. The hosted build
+re-prints the ESM node from its ESTree (this is what produces the `<page>.md` variant),
+and the printer hoists a leading comment *out* of the function body to the line above
+`export`. On the next parse that `//` line is a paragraph and the `export …` line
+becomes a lazy continuation of it, so the JSX braces are parsed as MDX expressions →
+`Could not parse expression with acorn` → the whole page body is replaced with
+"🚧 A parsing error occured". This only bites in production, and it is silent: nothing
+in CI checks it. Encode the explanation in variable names instead. (Broke
+`deposits/overview` for the whole of the a5bfaea deploy; fetch `https://docs.rhinestone.dev/<page>.md`
+to see exactly what the hosted build re-printed.)
+
 ## Stack
 
 - Framework: Mintlify
