@@ -1,32 +1,42 @@
-# Mintlify Starter Kit
+# docs
 
-Click on `Use this template` to copy the Mintlify starter kit. The starter kit contains examples including
+Source for **[docs.rhinestone.dev](https://docs.rhinestone.dev)** — Rhinestone's developer
+documentation. Built with [Mintlify](https://mintlify.com).
 
-- Guide pages
-- Navigation
-- Customizations
-- API Reference pages
-- Use of popular components
+## Layout
 
-### Development
+| Path | What |
+|---|---|
+| `home/` | Introduction and orientation |
+| `intents/` | Intents and orchestration |
+| `smart-wallet/` | Smart wallet and smart account guides |
+| `deposits/` | Deposit service and the deposit widget |
+| `dashboard/` | Dashboard guides |
+| `sdk-reference/` | SDK reference |
+| `api-reference/` | API reference |
+| `snippets/` | Reusable MDX fragments |
+| `docs.json` | Navigation, theme and redirects |
+| `styles/`, `style.css` | Custom styling |
+| `.vale.ini` | Prose linting configuration |
+| `images/`, `logo/`, `public/` | Assets |
 
-Install the [Mintlify CLI](https://www.npmjs.com/package/mintlify) to preview the documentation changes locally. To install, use the following command
+## Running locally
 
+```sh
+bunx mintlify dev                  # local preview on :3000
+bunx mintlify dev --port 3333      # custom port
+bunx mintlify broken-links         # check for broken links
 ```
-npm i -g mintlify
-```
 
-Run the following command at the root of your documentation (where docs.json is)
+Mintlify requires Node 22 LTS — if you have several Node versions installed, make sure 22
+is active before running the preview.
 
-```
-mintlify dev
-```
+## Publishing
 
-### Publishing Changes
+Changes deploy automatically on push to the default branch, via the Mintlify GitHub App.
 
-Install our Github App to auto propagate changes from your repo to your deployment. Changes will be deployed to production automatically after pushing to the default branch. Find the link to install on your dashboard.
+## Where to go next
 
-#### Troubleshooting
-
-- Mintlify dev isn't running - Run `mintlify install` it'll re-install dependencies.
-- Page loads as a 404 - Make sure you are running in a folder with `docs.json`
+[AGENTS.md](./AGENTS.md) — writing conventions, component usage, and Mintlify gotchas
+(including a stale-compile trap where `mintlify dev` reports a parsing error for MDX that
+is actually valid).
