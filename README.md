@@ -1,32 +1,29 @@
-# Mintlify Starter Kit
+# docs
 
-Click on `Use this template` to copy the Mintlify starter kit. The starter kit contains examples including
+Source for **[docs.rhinestone.dev](https://docs.rhinestone.dev)** — Rhinestone's developer
+documentation. Pages are MDX, grouped into a directory per product area; prose is linted
+with [Vale](https://vale.sh).
 
-- Guide pages
-- Navigation
-- Customizations
-- API Reference pages
-- Use of popular components
+`docs.json` defines navigation, theming and redirects. **A new page needs an entry there
+or it will not appear on the site** — adding the file alone is not enough.
 
-### Development
+## Running locally
 
-Install the [Mintlify CLI](https://www.npmjs.com/package/mintlify) to preview the documentation changes locally. To install, use the following command
-
-```
-npm i -g mintlify
-```
-
-Run the following command at the root of your documentation (where docs.json is)
-
-```
-mintlify dev
+```sh
+bunx mintlify dev                  # local preview on :3000
+bunx mintlify dev --port 3333      # custom port
+bunx mintlify broken-links         # check for broken links
 ```
 
-### Publishing Changes
+Mintlify requires Node 22 LTS — if you have several Node versions installed, make sure 22
+is active before running the preview.
 
-Install our Github App to auto propagate changes from your repo to your deployment. Changes will be deployed to production automatically after pushing to the default branch. Find the link to install on your dashboard.
+## Publishing
 
-#### Troubleshooting
+Changes deploy automatically on push to the default branch, via the Mintlify GitHub App.
 
-- Mintlify dev isn't running - Run `mintlify install` it'll re-install dependencies.
-- Page loads as a 404 - Make sure you are running in a folder with `docs.json`
+## Where to go next
+
+[AGENTS.md](./AGENTS.md) — writing conventions, component usage, and Mintlify gotchas
+(including a stale-compile trap where `mintlify dev` reports a parsing error for MDX that
+is actually valid).
