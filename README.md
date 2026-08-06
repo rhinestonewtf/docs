@@ -1,24 +1,11 @@
 # docs
 
 Source for **[docs.rhinestone.dev](https://docs.rhinestone.dev)** — Rhinestone's developer
-documentation. Built with [Mintlify](https://mintlify.com).
+documentation. Pages are MDX, grouped into a directory per product area; prose is linted
+with [Vale](https://vale.sh).
 
-## Layout
-
-| Path | What |
-|---|---|
-| `home/` | Introduction and orientation |
-| `intents/` | Intents and orchestration |
-| `smart-wallet/` | Smart wallet and smart account guides |
-| `deposits/` | Deposit service and the deposit widget |
-| `dashboard/` | Dashboard guides |
-| `sdk-reference/` | SDK reference |
-| `api-reference/` | API reference |
-| `snippets/` | Reusable MDX fragments |
-| `docs.json` | Navigation, theme and redirects |
-| `styles/`, `style.css` | Custom styling |
-| `.vale.ini` | Prose linting configuration |
-| `images/`, `logo/`, `public/` | Assets |
+`docs.json` defines navigation, theming and redirects. **A new page needs an entry there
+or it will not appear on the site** — adding the file alone is not enough.
 
 ## Running locally
 
