@@ -296,6 +296,14 @@
                     ]
                   },
                   {
+                    "group": "Recovery",
+                    "pages": [
+                      "sdk-reference/actions/recovery/enable",
+                      "sdk-reference/actions/recovery/recover-ecdsa-ownership",
+                      "sdk-reference/actions/recovery/recover-passkey-ownership"
+                    ]
+                  },
+                  {
                     "group": "MFA",
                     "pages": [
                       "sdk-reference/actions/mfa/enable",

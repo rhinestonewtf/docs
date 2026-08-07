@@ -1,0 +1,34 @@
+---
+title: "recoverPasskeyOwnership"
+description: "Build the calls that rotate an account's passkey ownership."
+---
+
+Send each returned call as its own UserOperation, in order: the social
+recovery validator authorizes a single `execute` per UserOperation, so
+batching them is rejected onchain.
+
+Ownership is only fully rotated once every call has landed. Until the
+removals execute the previous credentials stay valid alongside the new ones.
+
+## Import
+
+```ts
+import { recoverPasskeyOwnership } from '@rhinestone/sdk/actions/recovery'
+```
+
+## Usage
+
+```ts
+const passkeyOwnership = await recoverPasskeyOwnership(options)
+```
+
+## Parameters
+
+<ParamField path="options" type="RecoverPasskeyOwnershipOptions" required>
+</ParamField>
+
+## Returns
+
+<ResponseField name="passkeyOwnership" type="CalldataInput[]">
+  Calls to recover ownership, in the order they must be sent
+</ResponseField>
