@@ -1,0 +1,34 @@
+---
+title: "recoverEcdsaOwnership"
+description: "Build the calls that rotate an account's ECDSA ownership."
+---
+
+Send each returned call as its own UserOperation, in order: the social
+recovery validator authorizes a single `execute` per UserOperation, so
+batching them is rejected onchain.
+
+Ownership is only fully rotated once every call has landed. Until the
+removals execute the previous owners stay valid alongside the new ones.
+
+## Import
+
+```ts
+import { recoverEcdsaOwnership } from '@rhinestone/sdk/actions/recovery'
+```
+
+## Usage
+
+```ts
+const ecdsaOwnership = await recoverEcdsaOwnership(options)
+```
+
+## Parameters
+
+<ParamField path="options" type="RecoverEcdsaOwnershipOptions" required>
+</ParamField>
+
+## Returns
+
+<ResponseField name="ecdsaOwnership" type="CalldataInput[]">
+  Calls to recover ownership, in the order they must be sent
+</ResponseField>

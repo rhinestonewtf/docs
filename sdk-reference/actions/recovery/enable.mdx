@@ -1,0 +1,35 @@
+---
+title: "enable"
+description: "Set up social recovery."
+---
+
+## Import
+
+```ts
+import { enable } from '@rhinestone/sdk/actions/recovery'
+```
+
+## Usage
+
+```ts
+const transaction = await account.prepareTransaction({
+  chain,
+  calls: [enable(guardians, threshold)],
+})
+```
+
+## Parameters
+
+<ParamField path="guardians" type="Account[]" required>
+  Guardians permitted to recover the account
+</ParamField>
+
+<ParamField path="threshold" type="number" required>
+  Guardian signatures required to recover
+</ParamField>
+
+## Returns
+
+<ResponseField name="call" type="LazyCallInput">
+  Calls to install the social recovery validator
+</ResponseField>
