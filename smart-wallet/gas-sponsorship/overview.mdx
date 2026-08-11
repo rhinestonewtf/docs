@@ -5,7 +5,9 @@ description: "Sponsor gas, bridging, and swap costs for your users"
 
 Rhinestone lets you cover the fees for your users with a single onchain deposit.
 
-All projects in your organization draw from the same available balance and credit balance. They also share one deposit address for USDC on Base, which can subsidise gas, bridge fees, and swap fees across all chains.
+You can deposit USDC on Base, and subsidise gas, bridge fees, and swap fees across all chains.
+
+All projects in your organization share the same available balance, credit balance, and deposit address.
 
 ## Fee Types
 
@@ -21,9 +23,7 @@ You can sponsor both cross-chain and same-chain transactions.
 
 ## How it Works
 
-When your users make transactions, you can select which (if any) fees you are willing to sponsor. Rather than charging the user these costs, the Orchestrator instead applies them against your organization's sponsorship balance. You can sponsor up to the available amount, after which point, fees will be applied to your users' intents, ensuring continuity should you run out of funds.
-
-Per-intent sponsorship limits remain specific to each project.
+When your users make transactions, you can select which (if any) fees you are willing to sponsor. Rather than charging the user these costs, the Orchestrator instead applies them against your sponsorship balance. You can sponsor up to their deposited amount, after which point, fees will be applied to your users' intents, ensuring continuity should you run out of funds.
 
 The sponsored amount is calculated in USD at the time of the intent, based on the cumulative fees that would otherwise be charged to the user.
 
@@ -31,7 +31,7 @@ The sponsored amount is calculated in USD at the time of the intent, based on th
 
 You can test fee sponsorship on testnets out of the box.
 
-For production use, open **Settings → Sponsorship** in the [Dashboard](https://dashboard.rhinestone.dev) to find and fund your organization's deposit address. See [Set up sponsorship](./set-up-sponsorship) for top-up instructions.
+Open **Settings → Sponsorship** in the [Dashboard](https://dashboard.rhinestone.dev) to find and fund the address. See [Set up sponsorship](./set-up-sponsorship) for top-up instructions.
 
 Currently, we accept USDC deposits on Base. [Reach out to us](http://t.me/kurt_larsen) if you want to use fiat deposits.
 
