@@ -66,7 +66,7 @@ The `cost` object on each route describes what the user pays:
 |---|---|
 | `input` | Tokens spent. Array of `{ chainId, tokenAddress, symbol, decimals, price, amount }`. |
 | `output` | Tokens delivered to the recipient on the destination chain. Same shape as `input`. |
-| `fees` | `{ total: { usd }, breakdown: { gas, swap, bridge } }`. Each breakdown entry has `{ usd, sponsored }` — `sponsored` reflects what was actually covered for this route, given the request's `sponsorSettings` and the project's sponsorship balance. |
+| `fees` | `{ total: { usd }, breakdown: { gas, swap, bridge } }`. Each breakdown entry has `{ usd, sponsored }` — `sponsored` reflects what was actually covered for this route, given the request's `sponsorSettings` and the sponsorship balance. |
 
 ```ts
 const inputAmount = route.cost.input[0].amount;
