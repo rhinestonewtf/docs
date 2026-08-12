@@ -142,7 +142,7 @@ Control the deposit destination and optionally pre-fill source parameters.
 
 | Prop | Type | Required | Description |
 |---|---|---|---|
-| `targetChain` | `Chain \| number \| "solana"` | Yes | Destination chain (viem `Chain` object, chain ID, or `"solana"`) |
+| `targetChain` | `Chain \| number \| "solana" \| "hypercore:spot"` | Yes | Destination chain (viem `Chain` object, chain ID, or a non-EVM identifier) |
 | `targetToken` | `Address \| string` | Yes | Token address on the destination chain (base58 mint for Solana) |
 | `recipient` | `Address \| string` | Yes | Where funds are delivered on the target chain (base58 address for Solana) |
 | `defaultAmount` | `string` | No | Pre-filled deposit amount. A USD number string (e.g. `"25"`) or the sentinel `"max"` to fill the full available balance. |
@@ -156,7 +156,15 @@ For supported chains and tokens, see [supported chains](/deposits/overview#suppo
 
 ### HyperCore destinations
 
-HyperCore is `targetChain: 1337` (exported as `HYPERCORE_CHAIN_ID`) and accepts USDC only. The `recipient` can be an EOA or a smart account: deposits are credited through the MulticallHandler's `depositFor(recipient)`, which funds any address's HyperCore account identically and never executes on the recipient.
+HyperCore is `targetChain: "hypercore:spot"` (exported as `HYPERCORE_SPOT_CAIP2`) and accepts USDC only. The `recipient` can be an EOA or a smart account: deposits are credited through the MulticallHandler's `depositFor(recipient)`, which funds any address's HyperCore account identically and never executes on the recipient.
+
+A HyperCore delivery names the **venue** it credits, because spot and perp margin are different balances. Spot is the only venue deposits are delivered to — perp margin cannot be moved back out without a signature the deposit account cannot produce.
+
+<Note>
+`targetChain: 1337` (`HYPERCORE_CHAIN_ID`) is the older spelling and still works.
+It resolves to the same venue **and the same deposit address**, so switching to
+`HYPERCORE_SPOT_CAIP2` does not move your users' accounts.
+</Note>
 
 <Note>
 Earlier versions pre-screened the recipient's bytecode and blocked a contract with
@@ -255,7 +263,7 @@ Set `closeOnOverlayClick={false}` to prevent the modal from closing when the use
 |---|---|---|
 | `isOpen` | `boolean` | Controls modal visibility |
 | `onClose` | `() => void` | Called when the user closes the modal |
-| `targetChain` | `Chain \| number \| "solana"` | Destination chain (viem `Chain` object, chain ID, or `"solana"`) |
+| `targetChain` | `Chain \| number \| "solana" \| "hypercore:spot"` | Destination chain (viem `Chain` object, chain ID, or a non-EVM identifier) |
 | `targetToken` | `Address \| string` | Token address on the destination chain |
 | `recipient` | `Address \| string` | Where funds are delivered on the target chain |
 | `backendUrl` | `string` | Your [backend proxy](/deposits/widget/backend), which holds your API key |
