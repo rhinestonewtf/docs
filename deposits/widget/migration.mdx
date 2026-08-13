@@ -1,7 +1,35 @@
 ---
 title: "Migration guide"
-description: "Upgrade @rhinestone/deposit-modal to v0.9.0 — managed accounts, the withdraw callback, and renamed props. Plus v0.1.x / v0.2.x to v0.3.0."
+description: "Upgrade @rhinestone/deposit-modal — v0.12.0 requires GET /chains on your proxy; v0.9.0 brought managed accounts, the withdraw callback, and renamed props. Plus v0.1.x / v0.2.x to v0.3.0."
 ---
+
+## v0.11.x → v0.12.0
+
+One change, and it is proxy-side: **your proxy must forward `GET /chains`.**
+
+The modal has read the chain set from `/chains` since v0.11.0, but it still
+carried a compiled-in table it fell back to. That table is gone. A proxy that
+does not forward the route no longer degrades to a built-in chain list — it
+leaves every picker empty, and the deposit flow reports that supported chains are
+unavailable.
+
+| Change | Why it can't wait |
+|---|---|
+| Forward `GET /chains` | The only source of the chain set. Without it there are no chains to offer and no deposit can start |
+
+`deposit-widget-proxy` has forwarded it since 2026-08-11, so redeploying the
+packaged proxy is enough. A hand-written proxy needs the route added to its
+allowlist — see [required routes](/deposits/widget/backend#required-routes).
+This is not a CORS change: it is a `GET` using headers the modal already sends,
+so it cannot break a preflight.
+
+Nothing in your application code changes.
+
+<Note>
+  The upside of the removal is that the chain set is now whatever the backend
+  serves, in both directions — a chain we add appears without a modal release,
+  and one we withdraw stops being offered instead of lingering until you upgrade.
+</Note>
 
 ## v0.8.x → v0.9.0
 
