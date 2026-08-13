@@ -394,7 +394,7 @@
         ]
       },
       {
-        "tab": "Deposits",
+        "tab": "Deposit",
         "pages": [
           "deposits/overview",
           {
