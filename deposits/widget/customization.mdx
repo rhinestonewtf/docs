@@ -45,7 +45,6 @@ Toggle UI elements, set deposit constraints, and control fee display via `uiConf
   // ...required props
   uiConfig={{
     showBackButton: true,
-    showHistoryButton: true,
     minDepositUsd: 1,
     maxDepositUsd: 10000,
     feeSponsored: true,
@@ -58,8 +57,11 @@ Toggle UI elements, set deposit constraints, and control fee display via `uiConf
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `showBackButton` | `boolean` | `true` | Show the back button in the header |
-| `showHistoryButton` | `boolean` | `false` | Show the deposit history button in the header |
 | `minDepositUsd` | `number` | — | Minimum deposit amount in USD |
 | `maxDepositUsd` | `number` | — | Maximum deposit amount in USD |
 | `feeSponsored` | `boolean` | `false` | When `true`, the network/protocol fee renders struck-through on the review, processing, and result screens, with a tooltip explaining the sponsorship |
 | `feeTooltip` | `string` | — | Custom copy for the fee info tooltip. Defaults to a generic message based on `feeSponsored`. |
+
+### Deposit history
+
+The header on the modal's home screen carries a history button that opens the recipient's past deposits, and it is always shown. Your [proxy](/deposits/widget/backend) must forward `GET /deposits` or the panel opens on an error.
