@@ -94,9 +94,21 @@ await fetch(`${DEPOSIT_SERVICE_URL}/setup`, {
 
 | Field       | Type     | Description                                                      |
 | ----------- | -------- | ---------------------------------------------------------------- |
-| `token`     | `string` | Token address (`0x`-prefixed)                                    |
+| `token`     | `string` | Token identifier, as `GET /chains` reports it in `depositTokens` |
 | `minAmount` | `string` | Optional. Minimum accepted amount in raw token units (inclusive) |
 | `maxAmount` | `string` | Optional. Maximum accepted amount in raw token units (inclusive) |
+
+<Warning>
+Take `token` from a chain's **`depositTokens`** in `GET /chains`, not from
+`supportedTokens`. The two answer different questions — what you can deposit
+*from* a chain, and what can be delivered *to* it — and on HyperCore they are
+different identifiers for the same asset. Everywhere else they match.
+
+A whitelist keyed on an identifier deposits are not matched on rejects every
+deposit with `TOKEN-3`, and `/setup` still returns `200`, so the only symptom is
+that nothing arrives. `minAmount` / `maxAmount` are in the units of the
+identifier you used — for HyperCore USDC that is 8 decimals, not 6.
+</Warning>
 
 If no whitelist is set, all [supported tokens](/deposits/overview#supported-chains-and-tokens) are accepted with no amount restrictions.
 

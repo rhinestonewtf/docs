@@ -3,6 +3,16 @@ title: "Overview"
 description: "Accept deposits from any chain into your app with Rhinestone's cross-chain deposit infrastructure."
 ---
 
+{/* A chain answers what it accepts as a deposit and what can be delivered to it
+    separately, because on HyperCore those are different identifiers for the
+    same asset. Listing one field alone understates the other side. */}
+export const chainTokenSymbols = (chain) => {
+  const lists = [chain.depositTokens, chain.supportedTokens].filter(Boolean);
+  if (lists.some((l) => l === 'all')) return 'All';
+  const symbols = [...new Set(lists.flatMap((l) => l.map((t) => t.symbol)))];
+  return symbols.join(', ') || '-';
+};
+
 export const DepositChainsTable = ({ chains }) => (
   <table className="min-w-full">
     <thead>
@@ -19,7 +29,7 @@ export const DepositChainsTable = ({ chains }) => (
           <td className="py-2 pr-4">{chain.name}</td>
           <td className="py-2 pr-4 text-center">{chain.deposit ? '✓' : '—'}</td>
           <td className="py-2 pr-4 text-center">{chain.destination ? '✓' : '—'}</td>
-          <td className="py-2">{chain.supportedTokens === 'all' ? 'All' : (chain.supportedTokens?.map(t => t.symbol).join(', ') || '-')}</td>
+          <td className="py-2">{chainTokenSymbols(chain)}</td>
         </tr>
       ))}
     </tbody>
