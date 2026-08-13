@@ -52,6 +52,7 @@ const MODAL_VERSION_HEADER = "x-deposit-modal-version";
 // Every route the modal calls, and nothing else. `:param` segments are matched
 // by Hono, so a request can only reach a shape you listed here.
 const ROUTES: [method: "get" | "post", path: string][] = [
+  ["get", "/chains"],
   ["post", "/register-managed"],
   ["post", "/quotes/preview"],
   ["get", "/check/:address"],
@@ -141,8 +142,11 @@ processor directly.
 
 Missing a route doesn't degrade the flow — the request 404s and that part of the modal stops working.
 
+Two routes are load-bearing rather than partial: without `/chains` the modal has no chain set at all, and without `/register-managed` there is no deposit account to send to. Everything else costs you the feature in its row.
+
 | Method | Route | Used for |
 |---|---|---|
+| `GET` | `/chains` | The chain set, and each chain's tokens, explorer and gas asset. **Required** |
 | `POST` | `/register-managed` | Registering the deposit account. **Required** |
 | `POST` | `/quotes/preview` | Indicative fee/time quote on the review screen |
 | `GET` | `/check/:address` | Registration + target lookup |
