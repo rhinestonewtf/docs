@@ -25,24 +25,23 @@ Why this works: dashboard auth is entirely client-side — `pages/Main.vue` only
 
 2. **Disable the Vue devtools plugin** in the dashboard's `vite.config.ts` (comment out `VueDevTools()`). Otherwise its floating "V" pill appears in every full-page shot. **Remember to restore it after.** (CSS-hiding the host element does not work — it renders in a shadow root.)
 
-3. **Point the dashboard at the mock.** In the dashboard `.env`:
+3. **Point the dashboard at the mock.** In the dashboard's `apps/console/.env`:
    ```
    VITE_USER_SERVICE_BASE_URL=http://localhost:3000
    VITE_APP_BASE_URL=http://localhost:5173
    ```
-   Set the mock org's `ORG_ID` (in `scripts/mock-user-service.ts`) equal to `VITE_RHINESTONE_ORG_ID` to show the brand mark.
 
 4. **Boot both servers.** Background them with `setsid` (see Gotchas):
    ```bash
    setsid bash -c 'bun run <skill>/scripts/mock-user-service.ts >/tmp/mock.log 2>&1' </dev/null >/dev/null 2>&1 &
-   cd "$DASHBOARD_DIR" && setsid bash -c 'bun run dev >/tmp/dash.log 2>&1' </dev/null >/dev/null 2>&1 &
+   cd "$DASHBOARD_DIR" && setsid bash -c "bun run --filter '@dashboard/console' dev >/tmp/dash.log 2>&1" </dev/null >/dev/null 2>&1 &
    sleep 4
    curl -s -o /dev/null -w 'mock:%{http_code} ' http://localhost:3000/users/me
    curl -s -o /dev/null -w 'dash:%{http_code}\n' http://localhost:5173/
    ```
    Both should report `200`.
 
-5. **Capture.** `node <skill>/scripts/shoot.mjs` — writes PNGs into `images/dashboard/<guide>/` (auto-resolved relative to the skill; override with `SCREENSHOT_OUT`). It prints `OK`/`FAIL` per shot.
+5. **Capture.** `node <skill>/scripts/shoot.mjs` — writes PNGs into `images/dashboard/<guide>/` (auto-resolved relative to the skill; override with `SCREENSHOT_OUT`). It prints `OK`/`FAIL` per shot. To refresh one guide without touching the others, scope the run: `SHOTS=sponsorship node <skill>/scripts/shoot.mjs` (comma-separated groups: `access`, `api-keys`, `team`, `jwt-keys`, `deposits`, `sponsorship`).
 
 6. **Review every shot** by reading the PNGs. Check: auth passed (not stuck on `/login`), data populated, correct dialog, no stray toasts, dark theme. Re-run after fixing the mock data or the script.
 
@@ -59,6 +58,7 @@ Role-gated controls (Create key, scopes editor, Refund) only render when the moc
 - **Backgrounding:** use `setsid bash -c '…' </dev/null &`. A plain `&` (or a harness "run in background") gets the server killed by a signal (exit 144) when the launching turn ends.
 - **Killing servers:** never `pkill -f "vite"` / `pgrep -f "vite"` — the pattern matches the shell running your own command and kills it (also exit 144). Find the PID (`pgrep -af vite`) and `kill <pid>`.
 - **Playwright MCP** leaves a stale chrome `SingletonLock` ("Browser is already in use"). This skill drives Playwright via a script instead — don't mix the two.
+- **Route drift:** check each shot's path against the dashboard router (`apps/console/src/main.ts`) before re-shooting. The settings routes already swapped once (`/settings` is Team, `/settings/sponsorship` is Sponsorship), which silently pointed the sponsorship shot at another page.
 - **CORS:** the mock must reflect the dashboard origin and `Access-Control-Allow-Credentials: true`, and answer `OPTIONS` (the service sets `Content-Type` on GETs, triggering preflight). Already handled in `scripts/mock-user-service.ts`.
 
 ## Files
