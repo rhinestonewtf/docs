@@ -63,9 +63,21 @@ const JWT_KEYS = [
   { id: 'jwt_prod', kid: 'prod-2026-06', integratorId: 'rhinestone', algorithm: 'ES256', enabled: true, createdAt: ago(5 * DAY) },
 ]
 
-const SPONSORSHIPS = [
-  { projectId: PROJECT_ID, address: '0x8a911a7e3a0bff0f9f0e9b2d3b9f1c2d4e5f6a7b', pendingDisbursements: 0, credits: '0' },
-]
+// Balances are micro-USD strings (1_000_000 = $1), as user-service serves them.
+// `provisioned` + a non-null `address` gate the funding actions; PROJECT_ID must
+// appear in `projects` or the limits panel renders its empty state.
+const ORG_SPONSORSHIP = {
+  orgId: ORG_ID,
+  provisioned: true,
+  address: '0x8a911a7e3a0bff0f9f0e9b2d3b9f1c2d4e5f6a7b',
+  balance: { total: '12480500000', credits: '2500000000', spent: '7519500000', creditLimit: '5000000000' },
+  projects: [{ projectId: PROJECT_ID }],
+}
+
+// Per-intent caps in plain USD (null renders as "Unlimited"). Required: with
+// sponsorship configured the page fetches this, and the catch-all's undefined
+// caps throw while rendering.
+const POLICY_CONFIG = { gasLimitPerIntentUsd: 0.5, bridgeFeeLimitPerIntentUsd: null, limitPerIntentUsd: 5, version: 3 }
 
 const USDC_BASE = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
 const USDC_ARB = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
@@ -138,7 +150,8 @@ Bun.serve({
     if (p === '/users/me/projects' && m === 'GET') return json([PROJECT])
     if (p === '/users/me/org' && m === 'GET') return json(ORG)
     if (p === '/users/me/invite') return json({ message: 'no invite' }, 404)
-    if (p === '/users/me/sponsorships') return json(SPONSORSHIPS)
+    if (p === '/users/me/org/sponsorship' && m === 'GET') return json(ORG_SPONSORSHIP)
+    if (p.endsWith('/policy-config') && m === 'GET') return json(POLICY_CONFIG)
     if (p === '/users/me/deposits' && m === 'GET') return json({ deposits: DEPOSITS, nextCursor: null })
     if (p === '/users/me/deposits/stats') return json(DEPOSIT_STATS)
     if (p.endsWith('/integrator-keys') && m === 'GET') return json(JWT_KEYS)

@@ -45,8 +45,13 @@ const { chromium } = require(findPlaywright())
 const EXEC = findChrome()
 const BASE = process.env.DASHBOARD_URL || 'http://localhost:5173'
 const OUT = process.env.SCREENSHOT_OUT || join(__dirname, '../../../../images/dashboard')
-for (const d of ['access', 'api-keys', 'team', 'jwt-keys', 'deposits', 'sponsorship'])
-  mkdirSync(`${OUT}/${d}`, { recursive: true })
+const GROUPS = ['access', 'api-keys', 'team', 'jwt-keys', 'deposits', 'sponsorship']
+for (const d of GROUPS) mkdirSync(`${OUT}/${d}`, { recursive: true })
+
+// SHOTS=sponsorship[,team] limits the run to those groups, so a scoped refresh
+// can't overwrite unrelated images. Empty = capture everything.
+const ONLY = new Set((process.env.SHOTS ?? '').split(',').filter(Boolean))
+const want = (group) => ONLY.size === 0 || ONLY.has(group)
 
 const results = []
 async function shoot(page, file, { dialog = false } = {}) {
@@ -83,108 +88,120 @@ await page.addInitScript(() => {
 })
 
 // ---------- LOGIN (unauthenticated) ----------
-try {
-  await page.route('**/users/auth/get-session*', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: 'null' }))
-  await page.goto(`${BASE}/login`, { waitUntil: 'networkidle' })
-  await shoot(page, 'access/invite-code.png')
-  await page.getByPlaceholder('Invite code').fill('RHINESTONE-2026')
-  await page.getByRole('button', { name: /continue/i }).click()
-  await page.waitForTimeout(700)
-  await shoot(page, 'access/sso.png')
-  await page.unroute('**/users/auth/get-session*')
-} catch (e) { results.push(`FAIL login flow — ${e.message.split('\n')[0]}`) }
+if (want('access')) {
+  try {
+    await page.route('**/users/auth/get-session*', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: 'null' }))
+    await page.goto(`${BASE}/login`, { waitUntil: 'networkidle' })
+    await shoot(page, 'access/invite-code.png')
+    await page.getByPlaceholder('Invite code').fill('RHINESTONE-2026')
+    await page.getByRole('button', { name: /continue/i }).click()
+    await page.waitForTimeout(700)
+    await shoot(page, 'access/sso.png')
+    await page.unroute('**/users/auth/get-session*')
+  } catch (e) { results.push(`FAIL login flow — ${e.message.split('\n')[0]}`) }
 
-// ---------- NAV / app shell ----------
-await appReady(page)
-await shoot(page, 'access/nav.png')
+  // ---------- NAV / app shell ----------
+  await appReady(page)
+  await shoot(page, 'access/nav.png')
+}
 
 // ---------- API KEYS ----------
-await page.goto(`${BASE}/keys`, { waitUntil: 'networkidle' })
-await page.waitForTimeout(500)
-await shoot(page, 'api-keys/list.png')
-try {
-  await page.getByText('prod', { exact: true }).first().click()
-  await page.waitForTimeout(400)
-  await shoot(page, 'api-keys/scopes.png')
-  await page.getByRole('button', { name: /^revoke$/i }).first().click()
-  await shoot(page, 'api-keys/revoke.png', { dialog: true })
-  await page.keyboard.press('Escape')
-  await page.waitForTimeout(250)
-  await page.keyboard.press('Escape')
-  await page.waitForTimeout(250)
-} catch (e) { results.push(`FAIL api-keys scopes/revoke — ${e.message.split('\n')[0]}`) }
-try {
+if (want('api-keys')) {
   await page.goto(`${BASE}/keys`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(500)
-  await page.getByRole('button', { name: /create key/i }).first().click()
-  await shoot(page, 'api-keys/create.png', { dialog: true })
-  await page.getByPlaceholder(/prod/i).fill('mobile-app')
-  await page.getByRole('button', { name: /^create$/i }).click()
-  await shoot(page, 'api-keys/reveal.png', { dialog: true })
-  await page.keyboard.press('Escape')
-  await page.waitForTimeout(300)
-} catch (e) { results.push(`FAIL api-keys create — ${e.message.split('\n')[0]}`) }
+  await shoot(page, 'api-keys/list.png')
+  try {
+    await page.getByText('prod', { exact: true }).first().click()
+    await page.waitForTimeout(400)
+    await shoot(page, 'api-keys/scopes.png')
+    await page.getByRole('button', { name: /^revoke$/i }).first().click()
+    await shoot(page, 'api-keys/revoke.png', { dialog: true })
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(250)
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(250)
+  } catch (e) { results.push(`FAIL api-keys scopes/revoke — ${e.message.split('\n')[0]}`) }
+  try {
+    await page.goto(`${BASE}/keys`, { waitUntil: 'networkidle' })
+    await page.waitForTimeout(500)
+    await page.getByRole('button', { name: /create key/i }).first().click()
+    await shoot(page, 'api-keys/create.png', { dialog: true })
+    await page.getByPlaceholder(/prod/i).fill('mobile-app')
+    await page.getByRole('button', { name: /^create$/i }).click()
+    await shoot(page, 'api-keys/reveal.png', { dialog: true })
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(300)
+  } catch (e) { results.push(`FAIL api-keys create — ${e.message.split('\n')[0]}`) }
+}
 
 // ---------- TEAM ----------
-await page.goto(`${BASE}/settings/team`, { waitUntil: 'networkidle' })
-await page.waitForTimeout(500)
-await shoot(page, 'team/list.png')
-try {
-  await page.getByRole('button', { name: /invite member/i }).click()
-  await shoot(page, 'team/invite.png', { dialog: true })
-  await page.keyboard.press('Escape')
-} catch (e) { results.push(`FAIL team invite — ${e.message.split('\n')[0]}`) }
+if (want('team')) {
+  await page.goto(`${BASE}/settings`, { waitUntil: 'networkidle' })
+  await page.waitForTimeout(500)
+  await shoot(page, 'team/list.png')
+  try {
+    await page.getByRole('button', { name: /invite member/i }).click()
+    await shoot(page, 'team/invite.png', { dialog: true })
+    await page.keyboard.press('Escape')
+  } catch (e) { results.push(`FAIL team invite — ${e.message.split('\n')[0]}`) }
+}
 
 // ---------- JWT KEYS ----------
-await page.goto(`${BASE}/keys/jwt`, { waitUntil: 'networkidle' })
-await page.waitForTimeout(500)
-try {
-  await page.getByRole('button', { name: /register key/i }).click()
-  await page.waitForTimeout(300)
-  await shoot(page, 'jwt-keys/generate.png', { dialog: true })
-  await page.getByPlaceholder(/application identifier/i).fill('rhinestone')
-  await page.getByPlaceholder(/unique name for this key/i).fill('mobile-2026-06')
-  await page.getByRole('button', { name: /create key/i }).click()
-  await page.waitForTimeout(800)
-  await shoot(page, 'jwt-keys/download.png', { dialog: true })
-  await page.keyboard.press('Escape')
-  await page.waitForTimeout(300)
-  await page.getByRole('button', { name: /register key/i }).click()
-  await page.waitForTimeout(300)
-  await page.getByText(/upload public key/i).click()
-  await page.waitForTimeout(300)
-  await shoot(page, 'jwt-keys/upload.png', { dialog: true })
-  await page.keyboard.press('Escape')
-} catch (e) { results.push(`FAIL jwt add — ${e.message.split('\n')[0]}`) }
-try {
-  await page.getByRole('button', { name: /^disable$/i }).first().click()
-  await shoot(page, 'jwt-keys/disable.png', { dialog: true })
-  await page.keyboard.press('Escape')
-} catch (e) { results.push(`FAIL jwt disable — ${e.message.split('\n')[0]}`) }
+if (want('jwt-keys')) {
+  await page.goto(`${BASE}/keys/jwt`, { waitUntil: 'networkidle' })
+  await page.waitForTimeout(500)
+  try {
+    await page.getByRole('button', { name: /register key/i }).click()
+    await page.waitForTimeout(300)
+    await shoot(page, 'jwt-keys/generate.png', { dialog: true })
+    await page.getByPlaceholder(/application identifier/i).fill('rhinestone')
+    await page.getByPlaceholder(/unique name for this key/i).fill('mobile-2026-06')
+    await page.getByRole('button', { name: /create key/i }).click()
+    await page.waitForTimeout(800)
+    await shoot(page, 'jwt-keys/download.png', { dialog: true })
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(300)
+    await page.getByRole('button', { name: /register key/i }).click()
+    await page.waitForTimeout(300)
+    await page.getByText(/upload public key/i).click()
+    await page.waitForTimeout(300)
+    await shoot(page, 'jwt-keys/upload.png', { dialog: true })
+    await page.keyboard.press('Escape')
+  } catch (e) { results.push(`FAIL jwt add — ${e.message.split('\n')[0]}`) }
+  try {
+    await page.getByRole('button', { name: /^disable$/i }).first().click()
+    await shoot(page, 'jwt-keys/disable.png', { dialog: true })
+    await page.keyboard.press('Escape')
+  } catch (e) { results.push(`FAIL jwt disable — ${e.message.split('\n')[0]}`) }
+}
 
 // ---------- DEPOSITS ----------
-await page.goto(`${BASE}/deposits`, { waitUntil: 'networkidle' })
-await page.waitForTimeout(700)
-await shoot(page, 'deposits/list.png')
-try {
-  await page.getByRole('button', { name: /^retry$/i }).first().click()
-  await shoot(page, 'deposits/retry.png', { dialog: true })
-  await page.keyboard.press('Escape')
-  await page.waitForTimeout(300)
-  await page.getByRole('button', { name: /^refund$/i }).first().click()
-  await shoot(page, 'deposits/refund.png', { dialog: true })
-  await page.keyboard.press('Escape')
-} catch (e) { results.push(`FAIL deposits retry/refund — ${e.message.split('\n')[0]}`) }
+if (want('deposits')) {
+  await page.goto(`${BASE}/deposits`, { waitUntil: 'networkidle' })
+  await page.waitForTimeout(700)
+  await shoot(page, 'deposits/list.png')
+  try {
+    await page.getByRole('button', { name: /^retry$/i }).first().click()
+    await shoot(page, 'deposits/retry.png', { dialog: true })
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(300)
+    await page.getByRole('button', { name: /^refund$/i }).first().click()
+    await shoot(page, 'deposits/refund.png', { dialog: true })
+    await page.keyboard.press('Escape')
+  } catch (e) { results.push(`FAIL deposits retry/refund — ${e.message.split('\n')[0]}`) }
+}
 
 // ---------- SPONSORSHIP ----------
-await page.goto(`${BASE}/settings`, { waitUntil: 'networkidle' })
-await page.waitForTimeout(700)
-await shoot(page, 'sponsorship/balance.png')
-try {
-  await page.getByRole('button', { name: /^deposit$/i }).first().click()
-  await shoot(page, 'sponsorship/deposit-amount.png', { dialog: true })
-  await page.keyboard.press('Escape')
-} catch (e) { results.push(`FAIL sponsorship deposit — ${e.message.split('\n')[0]}`) }
+if (want('sponsorship')) {
+  await page.goto(`${BASE}/settings/sponsorship`, { waitUntil: 'networkidle' })
+  await page.waitForTimeout(700)
+  await shoot(page, 'sponsorship/balance.png')
+  try {
+    await page.getByRole('button', { name: /^deposit$/i }).first().click()
+    await shoot(page, 'sponsorship/deposit-amount.png', { dialog: true })
+    await page.keyboard.press('Escape')
+  } catch (e) { results.push(`FAIL sponsorship deposit — ${e.message.split('\n')[0]}`) }
+}
 
 await browser.close()
 console.log(results.join('\n'))
