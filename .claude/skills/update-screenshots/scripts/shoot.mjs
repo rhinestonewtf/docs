@@ -53,6 +53,10 @@ for (const d of GROUPS) mkdirSync(`${OUT}/${d}`, { recursive: true })
 const ONLY = new Set((process.env.SHOTS ?? '').split(',').filter(Boolean))
 const want = (group) => ONLY.size === 0 || ONLY.has(group)
 
+// The failed row in mock-user-service.ts, which is also what its deposit-by-id
+// route serves — keep them in sync.
+const FAILED_DEPOSIT_ID = '90244'
+
 const results = []
 async function shoot(page, file, { dialog = false } = {}) {
   try {
@@ -73,6 +77,9 @@ async function shoot(page, file, { dialog = false } = {}) {
 async function appReady(page) {
   await page.goto(`${BASE}/`, { waitUntil: 'networkidle' })
   await page.getByText('API keys').first().waitFor({ timeout: 8000 })
+  // `/` redirects to Overview when metrics are enabled; wait for a chart bar so
+  // the shot can't catch a metric block still in its loading state.
+  await page.locator('svg path.bar').first().waitFor({ timeout: 8000 })
   await page.waitForTimeout(400)
 }
 
@@ -169,8 +176,14 @@ if (want('jwt-keys')) {
     await page.keyboard.press('Escape')
   } catch (e) { results.push(`FAIL jwt add — ${e.message.split('\n')[0]}`) }
   try {
+    // Disable lives in the key's side drawer, not the table row. Open it from the
+    // Created cell — the id cells swallow the click to copy their value.
+    await page.locator('tbody tr').first().locator('td.col-date').click()
+    await page.waitForTimeout(400)
     await page.getByRole('button', { name: /^disable$/i }).first().click()
     await shoot(page, 'jwt-keys/disable.png', { dialog: true })
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(250)
     await page.keyboard.press('Escape')
   } catch (e) { results.push(`FAIL jwt disable — ${e.message.split('\n')[0]}`) }
 }
@@ -181,14 +194,15 @@ if (want('deposits')) {
   await page.waitForTimeout(700)
   await shoot(page, 'deposits/list.png')
   try {
-    await page.getByRole('button', { name: /^retry$/i }).first().click()
-    await shoot(page, 'deposits/retry.png', { dialog: true })
-    await page.keyboard.press('Escape')
-    await page.waitForTimeout(300)
+    // Retry is a single-deposit action with no confirmation dialog, so the guide's
+    // retry step shows the failed deposit's page, where Retry and Refund live.
+    await page.goto(`${BASE}/deposits/${FAILED_DEPOSIT_ID}`, { waitUntil: 'networkidle' })
+    await page.waitForTimeout(700)
+    await shoot(page, 'deposits/retry.png')
     await page.getByRole('button', { name: /^refund$/i }).first().click()
     await shoot(page, 'deposits/refund.png', { dialog: true })
     await page.keyboard.press('Escape')
-  } catch (e) { results.push(`FAIL deposits retry/refund — ${e.message.split('\n')[0]}`) }
+  } catch (e) { results.push(`FAIL deposits detail/refund — ${e.message.split('\n')[0]}`) }
 }
 
 // ---------- SPONSORSHIP ----------
