@@ -9,6 +9,8 @@ Re-captures the dashboard screenshots that the docs guides embed (everything und
 
 Why this works: dashboard auth is entirely client-side — `pages/Main.vue` only checks `authClient.useSession()` (better-auth `GET /users/auth/get-session`); every other call is a `credentials:'include'` fetch. Return a non-null session + stubbed data and the app renders fully populated.
 
+The same mock also answers the dashboard-api calls (`/api/chains`, `/api/me/projects/:id/overview`), which the console makes same-origin — its Vite dev server proxies `/api` to port 3000. So leave `VITE_DASHBOARD_API_BASE_URL` unset. Without those two the Overview page renders its "Data not available" fallback and deposit rows show raw `eip155:…` chain ids.
+
 ## Prerequisites
 
 - A local checkout of the `dashboard` repo (sibling to this `docs` repo by default; override with `DASHBOARD_DIR`).
@@ -30,6 +32,7 @@ Why this works: dashboard auth is entirely client-side — `pages/Main.vue` only
    VITE_USER_SERVICE_BASE_URL=http://localhost:3000
    VITE_APP_BASE_URL=http://localhost:5173
    ```
+   Leave `VITE_METRICS_ENABLED` unset: metrics are on in production, and the nav shot is the Overview page (`/` redirects there).
 
 4. **Boot both servers.** Background them with `setsid` (see Gotchas):
    ```bash
@@ -53,12 +56,17 @@ In `scripts/shoot.mjs`, navigate to the route and call `shoot(page, '<guide>/<na
 
 Role-gated controls (Create key, scopes editor, Refund) only render when the mock session `user.email` matches an org member with role OWNER/ADMIN — keep them aligned in `mock-user-service.ts`.
 
+For a shot of a single deposit, navigate to `/deposits/<id>`; the mock serves its failed fixture for any numeric id.
+
 ## Gotchas
 
 - **Backgrounding:** use `setsid bash -c '…' </dev/null &`. A plain `&` (or a harness "run in background") gets the server killed by a signal (exit 144) when the launching turn ends.
 - **Killing servers:** never `pkill -f "vite"` / `pgrep -f "vite"` — the pattern matches the shell running your own command and kills it (also exit 144). Find the PID (`pgrep -af vite`) and `kill <pid>`.
 - **Playwright MCP** leaves a stale chrome `SingletonLock` ("Browser is already in use"). This skill drives Playwright via a script instead — don't mix the two.
 - **Route drift:** check each shot's path against the dashboard router (`apps/console/src/main.ts`) before re-shooting. The settings routes already swapped once (`/settings` is Team, `/settings/sponsorship` is Sponsorship), which silently pointed the sponsorship shot at another page.
+- **Fixture drift:** the mock's shapes have to track the API types (deposit rows come from `services/deposit.ts`, the `/api/*` payloads from `packages/shared/src/index.ts`). A field the console has since renamed doesn't error — it renders as `—`, a raw id, or raw base units.
+- **Loading states:** metric blocks and deposit stat cards render placeholders until their fetches land. `appReady()` waits for a chart bar; add a similar wait rather than a longer sleep when a new screen shows one.
+- **Row-level clicks:** table cells holding an id (JWT keys, deposits) swallow the click to copy their value. Click a neutral cell — e.g. `td.col-date` — to open the row's drawer.
 - **CORS:** the mock must reflect the dashboard origin and `Access-Control-Allow-Credentials: true`, and answer `OPTIONS` (the service sets `Content-Type` on GETs, triggering preflight). Already handled in `scripts/mock-user-service.ts`.
 
 ## Files
