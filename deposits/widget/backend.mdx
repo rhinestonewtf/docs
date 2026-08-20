@@ -69,6 +69,11 @@ const ROUTES: [method: "get" | "post", path: string][] = [
   // unsigned transaction only the position holder's wallet can execute.
   ["get", "/positions/:address"],
   ["post", "/positions/:address/unwind"],
+  // Gasless permit deposits. Safe to forward for the same reason as
+  // /deposits/recover: the user's token authorization signature in the body is
+  // what moves the funds, so your API key alone cannot.
+  ["post", "/deposits/permit/prepare"],
+  ["post", "/deposits/permit"],
   ["post", "/onramp/swapped/widget-url"],
   ["post", "/onramp/swapped/connect-url"],
   ["get", "/onramp/swapped/connect-exchanges"],
@@ -159,6 +164,8 @@ Two routes are load-bearing rather than partial: without `/chains` the modal has
 | `GET` | `/qr/tokens` | Suggested source tokens for the QR flow, filtered to what your config accepts |
 | `GET` | `/onramp/swapped/payment-methods` | Fiat methods for the user's region. See [regional payment methods](#regional-payment-methods) |
 | `POST` | `/deposits/recover` | [Self-service recovery](/deposits/widget/claim-modal), authorized by the user's signature |
+| `POST` | `/deposits/permit/prepare` | Offers a gasless deposit and returns the payload to sign. Omitting it costs the gasless path, not the deposit |
+| `POST` | `/deposits/permit` | Submits the signed token authorization that funds the deposit |
 | `GET` | `/positions/:address` | DeFi positions the user can migrate. Only for [asset migrations](/deposits/widget/asset-migrations) |
 | `POST` | `/positions/:address/unwind` | Builds the unsigned exit transaction for one position. Only for asset migrations |
 | `POST` | `/polymarket/withdraw` | Polymarket withdrawals |
